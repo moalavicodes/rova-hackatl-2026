@@ -10,7 +10,7 @@
 
 - [x] B0 — Contract freeze. Initialize Next.js + Tailwind without deleting the docs. Add `lib/types.ts` from `docs/INTEGRATION_CONTRACTS.md`, `lib/llm.ts` in template mode (D-004: `callLLM(templateId, vars)` fills a pre-written template variant, no AI model), and a view switcher (Student / Teacher / Parent) on `app/page.tsx`. Push to `main` quickly so A and C can branch
 - [ ] B1 — Seed data: skill map (README section 17) ✅ `lib/data/skillMap.ts`, Maya's profile with her earlier-grade history (Simulated) ✅ `lib/data/seed.ts` (buddy name and interests are placeholders until the team picks them), Ms. Rivera's class of 25 with 5 sharing the `4.NF.A.1` gap (Simulated) — not done
-- [ ] B2 — Store (JSON or SQLite, team choice): students, skill states, events, alerts, parent messages
+- [ ] B2 — Store (D-005): load JSON seeds, keep students, skill states, events, alerts, and parent messages in browser storage, with a reset to seed
 - [ ] B3 — `trace_prerequisites`: walks `needs` back, nearest first. Test: `6.RP.A.3` → includes `4.NF.A.1`
 - [ ] B4 — Detection rules as pure functions with scripted-event tests (start with stuck, answer-seeking, repeated misconception, and class gap)
 - [ ] B5 — `log_event` → rules → `create_alert`, with root cause and `others_with_gap` filled in. Alert text comes from C's templates through `callLLM`, filled with the real evidence; the rules decide when

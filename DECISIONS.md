@@ -33,3 +33,19 @@ Accepted tradeoffs only. Format is in `docs/AI_WORKFLOW.md`. Entries marked `pro
 - Decision: The prototype calls no AI model. It is still a free-flowing app, not a fixed script: Maya can type anything or tap quick-reply buttons, solve problems in any order, and move freely between screens. A rule-based responder (`lib/tutor/responder.ts`) decides each reply from what she typed and her current state: numeric answers go through `check_answer` and get a reply for that exact mistake type; "just tell me" gets a refusal plus a guiding question; "stuck", "help", "idk" open the next hint; an explain-back is checked for key ideas; unsafe words flag the teacher; anything else gets "Great question for your teacher!". Replies come from a bank of pre-written templates (several variants each), filled with her name, buddy name, and interests. Alerts, the teacher views, and parent messages are built from the real events she produced, not canned screens. All text still goes through `callLLM` in `lib/llm.ts` (templates for now), so a real model can be swapped in later without changing callers.
 - Reason: The app runs the same way every time, with no API key, cost, or network risk, but judges can still use it freely and it never hits a dead end.
 - Consequence: Tutor replies are real but rule-based, so on screen and in the pitch they are labeled "rule-based (AI planned)", never called AI. Off-script inputs work only as well as the rules: anything unrecognized falls back to the teacher redirect. The 120-question AI test set in README section 17 is replaced by a responder test set (typed inputs → expected reply type) and the math-check tests. A "Reset demo" control restores the seeded state so the README section 8 demo path can be rerun any time.
+
+## D-005 — Data: JSON seed files, live state in the browser
+
+- Date: 2026-10-17
+- Status: accepted (Person B, integration owner)
+- Decision: Seed data (skill map, Maya, the simulated class) lives in JSON files committed to the repo. While the app runs, changes (events, skill states, alerts, parent messages) live in the browser's storage, starting from the seed. "Reset demo" clears them back to the seed. No database and no SQLite.
+- Reason: No setup, and the demo is one student on one laptop. Vercel can't save changes to files in the repo while the app runs, so a server-side JSON file wouldn't keep its changes.
+- Consequence: The Student, Teacher, and Parent views share state only within the same browser, so the demo runs all three views on one laptop (tabs or the home switcher). Data is lost if browser storage is cleared, which is fine for a prototype. A real database is needed before any multi-device use.
+
+## D-006 — Hosting on Vercel
+
+- Date: 2026-10-17
+- Status: accepted (Person B, integration owner)
+- Decision: Deploy the app to Vercel as one URL.
+- Reason: Free tier, built for Next.js, and it deploys straight from GitHub.
+- Consequence: Someone needs a Vercel account connected to the repo (still to decide who). Nothing in the app may depend on writing files at runtime (see D-005).

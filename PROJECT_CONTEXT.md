@@ -18,7 +18,7 @@ AI made answers instant, not learning. Rova coaches a 6th grader with a hint lad
 
 - Next.js (App Router) + Tailwind. Deployed to Vercel or similar as one URL.
 - **Replies without AI (D-004):** `lib/tutor/responder.ts` classifies each input with rules (answer, ask-for-answer, stuck, explain-back, off-topic, unsafe), then gets the text through `callLLM` in `lib/llm.ts`, which fills a template for now. A real model can be plugged in there later.
-- **Data:** JSON seed files or SQLite. No external database.
+- **Data (D-005):** JSON seed files in the repo; live state in the browser, reset by "Reset demo". No database. Nothing writes files at runtime (Vercel, D-006).
 - **Math checking:** a small expression and fraction evaluator in code (`check_answer`).
 - **Detection rules run in code** (README section 17, "Detection rules"), so they are consistent and explainable.
 

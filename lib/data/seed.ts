@@ -1,6 +1,6 @@
 // Seeded demo state. Maya's earlier-grade history is Simulated (README section 8).
 // Persona facts come from README section 1 (Maya, 11, 6th grade; mom's first language is Spanish).
-// TODO(team): buddy_name and interests are not in the README yet; agree on them and update here.
+// TODO(team): interests are not in the README yet; agree on them and update here.
 
 import type { LearnerProfile, Student } from "@/lib/types";
 
@@ -10,7 +10,7 @@ export const maya: Student = {
   id: "maya",
   first_name: "Maya",
   grade: 6,
-  buddy_name: "Rova", // placeholder until the team picks the buddy's name
+  buddy_name: "Rova", // team decision 2026-10-17: "Rova" for now
   language_home: "es",
   interests: [], // placeholder until the team picks them
 };

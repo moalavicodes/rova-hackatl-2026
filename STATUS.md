@@ -18,7 +18,11 @@ The integration owner consolidates this file after merges. During feature work, 
   - PR #3: Person C's teacher and parent views on the shared seed.
   - PR #5: B2 to B8. Browser store (`lib/data/store.ts`), root-cause trace, detection rules, the alert loop (`lib/rules/engine.ts`), live Teacher and Parent views, and Reset demo in every header.
   - PR #4: Person A's student tutor. Rule-based responder, exact math checker, hint ladder, fraction refresher, explain-it-back, win screen; 27-case responder test set.
-- **In progress:** connecting the student view to the store (Person A). Until then, Maya's mistakes stay on the student screen and don't create the teacher alert.
+  - PR #7: Person A connected the student view to the store. The full demo works live: Student → alert → Teacher → re-check → Parent (checked in Chrome).
+- **In progress (branch `feat/teacher-reports`):**
+  - `reportToTeacher` for safety concerns and student questions: new alert signals `safety_concern` and `student_question`; safety concerns go to the top of the inbox; Done closes them with no re-check and no parent message.
+  - `onDemoReset` reset signal, so the header Reset also clears the student chat (`RovaState.session`).
+  - Rules fix: only mistakes after an alert is resolved count (cut-off = `resolved_after_event`, an event count, since the re-check uses a simulated date), and misconceptions are cleared when an alert is verified. Saved state from an older version is migrated on load (`migrate_state`): it gets a session, so cross-tab reset still fires, and resolved alerts without a cut-off are treated as resolved at the end of the saved log. All from the PR #8 review.
 - **Not built (cut):** drop and disengagement rules, review queue (C6).
 - **Blocked:** none.
 - **Decided:** demo's group of 5 shown as `others_with_gap` on Maya's alert, class-gap rule stays at 30% (D-007); buddy name stays "Rova" for now; data in JSON seed files with live state in the browser (D-005); hosting on Vercel (D-006); no AI model for now; free-flowing app with a rule-based responder and templates (D-004).
@@ -31,11 +35,19 @@ The integration owner consolidates this file after merges. During feature work, 
 
 ## Next actions
 
-1. Person A connects the student view to the store (steps in `docs/workstreams/PERSON_A_STUDENT_TUTOR.md`, "Connecting to the store"): `logEvents(reply.events)` after each reply, read the profile from the store, and make the student Reset call `resetDemo()`. That also removes the duplicate Reset demo button on `/student`.
+1. Merge `feat/teacher-reports`. Then Person A calls `reportToTeacher` for unsafe messages and "Send to my teacher", listens to `onDemoReset`, and removes the student-page Reset button (steps in `docs/workstreams/PERSON_A_STUDENT_TUTOR.md`, "Next steps").
 2. Demo acceptance check (`docs/TEAM_WORKFLOW.md`) on one laptop: Student → Teacher → Parent, 3 runs from Reset demo, then 5 minutes of free use.
 3. Person B: deploy to Vercel (B9) once the Vercel owner is decided.
 
 ## Verification
+
+- 2026-10-17 PR #8 second review fix: 141/141 tests (new: legacy resolved alert doesn't re-alert on one new mistake but does on two; open alerts untouched; store applies the migration on load), tsc, lint, and build clean.
+
+- 2026-10-17 PR #8 review fixes: 138/138 tests (new: in-cycle mistake + one post-resolution mistake doesn't re-alert; simulated far-future re-check doesn't hide later mistakes; legacy saved state still triggers a cross-tab reset; same-tab reset and unsubscribe), tsc, lint, and build clean.
+
+- 2026-10-17 `feat/teacher-reports` with `main` (PR #7) merged in: 134/134 tests (4 new: misconceptions cleared on verify, no re-alert on one new mistake, re-alert on two, session seed), tsc, lint, and build clean.
+
+- 2026-10-17 on `feat/teacher-reports`: 130/130 tests (4 new report tests), tsc, lint, and build clean. Chrome: a safety concern, a question, and Maya's learning alert in the inbox; safety listed first without root cause; Done → Closed, count dropped, no parent message, loop tracker still followed the learning alert.
 
 - 2026-10-17 `main` after PR #4 (2cdbf0d): `npm run test` 126/126 pass, `tsc --noEmit`, lint, and build clean. Before merge, the student path was checked in Chrome on PR #4 combined with PR #5: refusal → two `9`s → refresher → `12` → explain-it-back → Win.
 

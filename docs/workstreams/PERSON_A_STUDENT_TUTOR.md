@@ -29,6 +29,12 @@
 - The refresher selects any active alert with a root cause, including `stuck` alerts with different mistakes. Reports without a root cause cannot be mistaken for learning alerts.
 - Review fixes: seed imports use the merged seed module, the suggested explain-back reply completes the flow, fraction mistakes stay fraction-specific, hints match each ratio problem, and greetings come from response templates.
 
+## Next steps (Person B's pieces are on `main` after PR #8)
+
+- **Teacher reports (finishes A5):** when a reply's intent is `unsafe`, call `reportToTeacher({ student_id, skill_id, kind: "safety_concern", message: input })` from `@/lib/data/store` right away; Maya doesn't have to tap anything. On "Send to my teacher", call it with `kind: "student_question"` and the message she typed (or `"safety_concern"` if that message was unsafe). Replace the "Simulated: no alert was sent" banner with "Sent to Ms. Rivera". The same open report sent twice is ignored.
+- **One Reset button:** add `useEffect(() => onDemoReset(clearLocalTutorState), [])`, where `clearLocalTutorState` clears the chat, screen, hint level, and refresher state and calls `/api/tutor/reset`. Then remove the student-page Reset demo button; the header button resets everything, even from another tab.
+- **Rules change to know about:** after an alert is verified, Maya's misconceptions on that skill are cleared and her earlier mistakes no longer count, so one new mistake doesn't start the refresher or a new alert. The same mistake twice does.
+
 ## Rules
 
 - Correctness is always decided by `check_answer`.

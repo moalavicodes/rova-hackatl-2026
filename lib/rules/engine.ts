@@ -19,10 +19,12 @@ import type {
   SkillState,
   Student,
   TeacherAction,
+  TeacherReport,
 } from "@/lib/types";
 
 export interface RovaState {
   version: 1;
+  session: string; // changes on every Reset demo, so views can clear their own local state
   skillMap: SkillMap;
   classroom: Classroom;
   students: Student[];
@@ -41,6 +43,7 @@ export const RECHECK_REFRESHERS_NEEDED = 2;
 export function seedState(): RovaState {
   return {
     version: 1,
+    session: "seed",
     skillMap,
     classroom,
     students,
@@ -48,6 +51,21 @@ export function seedState(): RovaState {
     events: [],
     alerts: [],
     parentMessages: [],
+  };
+}
+
+// Brings state saved by an older version up to date. Resolved alerts saved before
+// resolved_after_event existed are treated as resolved at the end of the saved log: their real
+// resolution point is unknown, and counting all earlier events could raise a false alert.
+export function migrate_state(saved: RovaState): RovaState {
+  return {
+    ...saved,
+    session: saved.session ?? "seed",
+    alerts: saved.alerts.map((a) =>
+      (a.status === "verified" || a.status === "escalated") && a.resolved_after_event === undefined
+        ? { ...a, resolved_after_event: saved.events.length }
+        : a,
+    ),
   };
 }
 
@@ -89,6 +107,7 @@ function hasUnresolvedAlert(state: RovaState, studentId: string, skillId: SkillI
     (a) =>
       a.student_id === studentId &&
       a.skill_id === skillId &&
+      !is_report(a) &&
       (a.status === "open" || a.status === "acted"),
   );
 }
@@ -138,6 +157,24 @@ export function create_alert(
   return created;
 }
 
+// Once an alert is verified or escalated, nothing from before that point counts again,
+// including mistakes made while the alert was open: detection only looks at later events.
+function eventsSinceLastResolved(state: RovaState, studentId: string, skillId: SkillId): Event[] {
+  const cutoff = Math.max(
+    0,
+    ...state.alerts
+      .filter(
+        (a) =>
+          a.student_id === studentId &&
+          a.skill_id === skillId &&
+          !is_report(a) &&
+          (a.status === "verified" || a.status === "escalated"),
+      )
+      .map((a) => a.resolved_after_event ?? 0),
+  );
+  return state.events.slice(cutoff);
+}
+
 // Records one event; returns the next state and any alerts it created.
 export function log_event(
   state: RovaState,
@@ -152,11 +189,57 @@ export function log_event(
   if (event.type !== "attempt" && event.type !== "hint") return { state: next, newAlerts: [] };
   if (hasUnresolvedAlert(next, event.student_id, event.skill_id)) return { state: next, newAlerts: [] };
 
-  const detection = detect(next.events, event.student_id, event.skill_id);
+  const detection = detect(
+    eventsSinceLastResolved(next, event.student_id, event.skill_id),
+    event.student_id,
+    event.skill_id,
+  );
   if (!detection) return { state: next, newAlerts: [] };
 
   const newAlerts = create_alert(next, event.student_id, event.skill_id, detection, now);
   return { state: { ...next, alerts: [...next.alerts, ...newAlerts] }, newAlerts };
+}
+
+// Student-sent reports: no root cause, no re-check, no parent message.
+export function is_report(alert: Alert): boolean {
+  return alert.signal === "safety_concern" || alert.signal === "student_question";
+}
+
+const MAX_REPORT_MESSAGE = 300;
+
+// Sends what the student wrote straight to the teacher's inbox. A repeat of the same open
+// report is ignored, so tapping "Send to my teacher" twice doesn't create two alerts.
+export function report_to_teacher(
+  state: RovaState,
+  report: TeacherReport,
+  now: Date = new Date(),
+): { state: RovaState; alert: Alert | null } {
+  const message = report.message.trim().slice(0, MAX_REPORT_MESSAGE);
+  const evidenceFor = (name: string) =>
+    report.kind === "safety_concern"
+      ? `${name} wrote something that may need a check-in: "${message}"`
+      : `${name} asked: "${message}"`;
+  const name = studentName(state, report.student_id);
+  const evidence = evidenceFor(name);
+  const duplicate = state.alerts.some(
+    (a) => a.student_id === report.student_id && a.signal === report.kind && a.status === "open" && a.evidence === evidence,
+  );
+  if (duplicate) return { state, alert: null };
+
+  const alert: Alert = {
+    id: `alert-${state.alerts.length + 1}`,
+    student_id: report.student_id,
+    skill_id: report.skill_id,
+    signal: report.kind,
+    evidence,
+    root_cause: null,
+    action: callLLM(`alert.action.${report.kind}`, { student: name }, alertTemplates),
+    others_with_gap: [],
+    status: "open",
+    recheck_at: null,
+    created_at: now.toISOString(),
+  };
+  return { state: { ...state, alerts: [...state.alerts, alert] }, alert };
 }
 
 function parentMessage(
@@ -199,6 +282,10 @@ export function apply_teacher_action(
   if (action === "snooze") {
     return updateAlert(state, alertId, (a) => ({ ...a, recheck_at: daysLater(now, SNOOZE_DAYS) }));
   }
+  // A report is closed once the teacher handles it: nothing to re-check, nothing to tell the parent.
+  if (is_report(alert)) {
+    return updateAlert(state, alertId, (a) => ({ ...a, status: "verified", recheck_at: null }));
+  }
 
   const acted = updateAlert(state, alertId, (a) => ({
     ...a,
@@ -234,9 +321,25 @@ export function run_recheck(state: RovaState, alertId: string, nowOverride?: Dat
   if (!alert || alert.status !== "acted") return state;
   const now = nowOverride ?? new Date();
   if (!is_mastered(state, alert)) {
-    return updateAlert(state, alertId, (a) => ({ ...a, status: "escalated" }));
+    return updateAlert(state, alertId, (a) => ({
+      ...a,
+      status: "escalated",
+      resolved_after_event: state.events.length,
+    }));
   }
-  const verified = updateAlert(state, alertId, (a) => ({ ...a, status: "verified" }));
+  const verified: RovaState = {
+    ...updateAlert(state, alertId, (a) => ({
+      ...a,
+      status: "verified",
+      resolved_after_event: state.events.length,
+    })),
+    // Mastered: the student's recorded misconceptions on this skill are cleared.
+    skillStates: state.skillStates.map((s) =>
+      s.student_id === alert.student_id && s.skill_id === alert.skill_id
+        ? { ...s, misconceptions: [] }
+        : s,
+    ),
+  };
   const message = parentMessage(verified, alert, "win", now);
   return message ? { ...verified, parentMessages: [...verified.parentMessages, message] } : verified;
 }

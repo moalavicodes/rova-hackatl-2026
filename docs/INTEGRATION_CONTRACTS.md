@@ -54,6 +54,13 @@ export interface Event {
 export type AlertStatus = "open" | "acted" | "verified" | "escalated";
 export type TeacherAction = "done" | "snooze" | "different_strategy";
 
+export interface TeacherReport {
+  student_id: string;
+  skill_id: SkillId; // skill being practiced when it was sent
+  kind: "safety_concern" | "student_question";
+  message: string; // what the student wrote
+}
+
 export interface Alert {
   id: string;
   student_id: string;
@@ -66,6 +73,7 @@ export interface Alert {
   status: AlertStatus;
   recheck_at: string | null;
   created_at?: string; // set by create_alert; run_recheck reads only events after it
+  resolved_after_event?: number; // event count when verified/escalated; detection ignores earlier events
 }
 
 export interface ParentMessage {
@@ -94,7 +102,8 @@ export interface LearnerProfile {
 | `apply_teacher_action` | B | `(state, alertId, action, now?) => state`; done/different_strategy → acted + re-check in 7 days + parent activity; snooze → stays open |
 | `schedule_recheck` | B | `(now, days = 7) => ISO time` |
 | `run_recheck` | B | `(state, alertId, nowOverride?) => state`; verified (+ parent win) or escalated |
-| **Store** (client) | B | `lib/data/store.ts`: `useRovaState()`, `getState()`, `logEvents(events) => Alert[]`, `teacherAction(alertId, action)`, `recheck(alertId, nowOverride?)`, `resetDemo()`. Views call these, never the engine directly |
+| `report_to_teacher` | B | `(state, report: TeacherReport, now?) => { state, alert }`; safety concern or question straight to the teacher inbox; no root cause, no re-check, no parent message; Done closes it; the same open report twice is ignored |
+| **Store** (client) | B | `lib/data/store.ts`: `useRovaState()`, `getState()`, `logEvents(events) => Alert[]`, `reportToTeacher(report) => Alert \| null`, `teacherAction(alertId, action)`, `recheck(alertId, nowOverride?)`, `resetDemo()`, `onDemoReset(listener) => unsubscribe` (fires on Reset demo in this or another tab; `RovaState.session` changes on each reset). Views call these, never the engine directly |
 | `check_answer` | A | `(problem, answer) => { correct: boolean; error_type?: string }` (code only) |
 | `find_source` | A | `(skillId, question) => { ref: string; text: string } \| null` |
 | `make_practice` | A | `(skillId, level, interest) => Problem[]` (each answer verified by `check_answer`) |

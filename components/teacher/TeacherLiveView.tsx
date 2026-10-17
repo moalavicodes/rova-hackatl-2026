@@ -9,13 +9,22 @@ import { ClassHeatmap } from "@/components/teacher/ClassHeatmap";
 import { LoopTracker } from "@/components/teacher/LoopTracker";
 import { TeacherAlertCard } from "@/components/teacher/TeacherAlertCard";
 import { recheck, teacherAction, useRovaState } from "@/lib/data/store";
+import { is_report } from "@/lib/rules/engine";
+import type { Alert } from "@/lib/types";
+
+// Open safety concerns first, then other alerts still in progress, then closed ones; newest first within each.
+function inboxOrder(alerts: Alert[]): Alert[] {
+  const rank = (a: Alert) =>
+    a.status === "verified" ? 2 : a.signal === "safety_concern" && a.status === "open" ? 0 : 1;
+  return [...alerts].reverse().sort((a, b) => rank(a) - rank(b));
+}
 
 export function TeacherLiveView() {
   const state = useRovaState();
-  const studentAlerts = state.alerts.filter((a) => a.signal !== "class_gap");
-  const needsAction = studentAlerts.filter((a) => a.status === "open");
-  // Newest first; the loop tracker follows the newest alert.
-  const inbox = [...state.alerts].reverse();
+  const needsAction = state.alerts.filter((a) => a.status === "open" && a.signal !== "class_gap");
+  const inbox = inboxOrder(state.alerts);
+  // The loop tracker and heatmap follow the newest learning alert (not class-gap or student reports).
+  const studentAlerts = state.alerts.filter((a) => a.signal !== "class_gap" && !is_report(a));
   const tracked = studentAlerts.at(-1) ?? null;
   const nameOf = (id: string) => state.students.find((s) => s.id === id)?.first_name ?? id;
 

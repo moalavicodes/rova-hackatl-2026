@@ -14,7 +14,7 @@
 - [x] A2 — Student home: buddy greeting that uses memory ("Fractions were tricky last time…"), Today's Mission card, skill map with progress rings
 - [x] A3 — Problem screen: problem text, interactive ratio table or double number line, "I'm stuck", 3-step locked hint ladder, source tag
 - [x] A4 — `lib/tutor/responder.ts` (D-004, no AI): `respond(input, ctx)` classifies typed input with rules into an `Intent`, checks answers with `check_answer`, picks the next move (hint level, refresher, explain-back), and gets text from `content/templates/` through `callLLM`. Free text box plus quick-reply buttons; Maya can type anything and change problems at any time
-- [ ] A5 — Guardrails as rules: "just tell me the answer" → kind refusal plus a guiding question; unsafe keywords → flag the teacher; anything unrecognized → "Great question for your teacher!" plus Send-to-teacher. Several template variants per reply so it doesn't feel repetitive. Small label: "rule-based (AI planned)"
+- [x] A5 — Guardrails as rules: "just tell me the answer" → kind refusal plus a guiding question; unsafe keywords → flag the teacher; anything unrecognized → "Great question for your teacher!" plus Send-to-teacher. Several template variants per reply so it doesn't feel repetitive. Small label: "rule-based (AI planned)"
 - [x] A6 — Refresher screen: 3 prerequisite questions from the traced root cause, scored by `check_answer`
 - [x] A7 — Explain-it-back box (rule check for key ideas, e.g. "multiply both", "same ratio", "equivalent"; a gentle follow-up question if missing), then the Win screen
 - [x] A8 — `eval/`: responder test set (typed input → expected intent and reply type), including misspellings, "just tell me", off-topic, and unsafe lines, plus the 20 math checks from A0. A runner prints pass rates for `STATUS.md`
@@ -24,16 +24,15 @@
 - Student tutor events now go through `logEvents` in `lib/data/store.ts`; Person B's rules create and share alerts with the Teacher view.
 - The student view reads Maya's profile from `useRovaState()` and `get_learner_profile`, so mastery and misconceptions match the shared store.
 - After a repeated misconception creates or matches an active alert, the refresher uses that alert's traced root cause and asks three code-checked practice questions. Refresher events are also logged for the teacher's re-check flow.
-- The student page still has a local reset button that resets both shared demo state and the chat. Remove that duplicate button and respond to Person B's forthcoming shared reset signal so the header reset also clears the local chat.
-- Unsafe/off-topic guardrails still show the student a simulated teacher-review flag. Person B is adding `reportToTeacher` for safety and student-question reports; wire those two paths to it after the helper lands.
 - The refresher selects any active alert with a root cause, including `stuck` alerts with different mistakes. Reports without a root cause cannot be mistaken for learning alerts.
 - Review fixes: seed imports use the merged seed module, the suggested explain-back reply completes the flow, fraction mistakes stay fraction-specific, hints match each ratio problem, and greetings come from response templates.
 
-## Next steps (Person B's pieces are on `main` after PR #8)
+## Person A integration — 2026-10-17
 
-- **Teacher reports (finishes A5):** when a reply's intent is `unsafe`, call `reportToTeacher({ student_id, skill_id, kind: "safety_concern", message: input })` from `@/lib/data/store` right away; Maya doesn't have to tap anything. On "Send to my teacher", call it with `kind: "student_question"` and the message she typed (or `"safety_concern"` if that message was unsafe). Replace the "Simulated: no alert was sent" banner with "Sent to Ms. Rivera". The same open report sent twice is ignored.
-- **One Reset button:** add `useEffect(() => onDemoReset(clearLocalTutorState), [])`, where `clearLocalTutorState` clears the chat, screen, hint level, and refresher state and calls `/api/tutor/reset`. Then remove the student-page Reset demo button; the header button resets everything, even from another tab.
-- **Rules change to know about:** after an alert is verified, Maya's misconceptions on that skill are cleared and her earlier mistakes no longer count, so one new mistake doesn't start the refresher or a new alert. The same mistake twice does.
+- Unsafe messages now call `reportToTeacher` immediately as a `safety_concern`. "Send to my teacher" reports the student's original message as a `student_question`, or as a `safety_concern` when that was the message's intent. The student sees "Sent to Ms. Rivera"; failures are surfaced in the tutor UI.
+- The student view listens to `onDemoReset`, clears its local conversation and tutor state, and resets reply templates. The duplicate student-page Reset button is removed; the shared header reset now clears the student view in this or another tab. In-flight tutor replies are ignored after a reset.
+- Verification: `npm.cmd run test` (141/141), `npm.cmd run lint`, `npx.cmd tsc --noEmit`, and `npm.cmd run build` passed. Browser-checked an unsafe report and a student question in the Teacher inbox, plus a Teacher-header reset clearing the Student view.
+- PR #8 also ensures resolved alerts clear misconceptions and old attempts, including state migrated from before `resolved_after_event` existed.
 
 ## Rules
 

@@ -3,7 +3,7 @@ import { find_source } from "@/content/lessons";
 import { callLLM } from "@/lib/llm";
 import { check_answer } from "@/lib/math/checkAnswer";
 import { classify_intent, explain_is_complete } from "@/lib/tutor/intent";
-import { getProblem } from "@/lib/tutor/problems";
+import { getProblem, getRatioTable } from "@/lib/tutor/problems";
 import type {
   Event,
   Intent,
@@ -51,12 +51,34 @@ function buildReply(
 ): TutorReply {
   const student = context.profile.student;
   const problem = getProblem(context.problem_id);
+  const ratioTable = problem ? getRatioTable(problem.id) : null;
+  const targetStart = ratioTable
+    ? ratioTable.targetSide === "first"
+      ? ratioTable.firstStart
+      : ratioTable.secondStart
+    : 0;
+  const otherName = ratioTable
+    ? ratioTable.targetSide === "first"
+      ? ratioTable.secondLabel
+      : ratioTable.firstLabel
+    : "other amount";
+  const targetName = ratioTable
+    ? ratioTable.targetSide === "first"
+      ? ratioTable.firstLabel
+      : ratioTable.secondLabel
+    : "amount";
   const source = problem ? find_source(problem.skill_id, problem.prompt) : null;
   const vars = {
     name: student.first_name,
     buddy: student.buddy_name,
-    target: problem?.prompt.match(/\bIf there are\s+(\d+(?:\.\d+)?)/i)?.[1] ?? "the target amount",
-    factor: problem?.id === "ratio-main" ? "4" : "the same number",
+    start: String(targetStart || "starting amount"),
+    target: String(ratioTable?.target ?? "target amount"),
+    targetName,
+    otherName,
+    factor:
+      ratioTable && targetStart !== 0
+        ? String(ratioTable.target / targetStart)
+        : "the same number",
   };
   return {
     intent,
@@ -139,12 +161,12 @@ export function respond(input: string, context: TutorContext): TutorReply {
     }
 
     const templateId =
-      result.error_type === "adds-across-ratio-table"
-        ? "attempt_wrong_add"
-        : result.error_type === "reverses-ratio"
-          ? "attempt_wrong_reverse"
-          : eventType === "refresher"
-            ? "refresher_wrong"
+      eventType === "refresher"
+        ? "refresher_wrong"
+        : result.error_type === "adds-across-ratio-table"
+          ? "attempt_wrong_add"
+          : result.error_type === "reverses-ratio"
+            ? "attempt_wrong_reverse"
             : "attempt_wrong_generic";
     return buildReply(context, intent, templateId, {
       events: [answerEvent],

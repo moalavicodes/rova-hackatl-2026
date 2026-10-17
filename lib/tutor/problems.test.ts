@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { check_answer } from "@/lib/math/checkAnswer";
-import { skillMap } from "@/lib/data/skillMap";
+import { skillMap } from "@/lib/data/seed";
 import { find_source } from "@/content/lessons";
 import { getProblem, make_practice } from "./problems";
 

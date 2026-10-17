@@ -141,10 +141,13 @@ export function check_answer(
   const expected = parseAnswer(problem.answer);
   if (sameRational(actual, expected)) return { correct: true };
 
+  const ratioError =
+    problem.skill_id === "6.RP.A.3"
+      ? classifyRatioError(problem, answer)
+      : undefined;
   return {
     correct: false,
     error_type:
-      classifyRatioError(problem, answer) ??
-      (actual === null ? "unrecognized-answer" : "calculation-slip"),
+      ratioError ?? (actual === null ? "unrecognized-answer" : "calculation-slip"),
   };
 }

@@ -31,10 +31,12 @@ export function classify_intent(input: string, mode: TutorContext["mode"]): Inte
 export function explain_is_complete(input: string): boolean {
   const normalized = input.toLowerCase();
   const mentionsScaling =
-    /\b(?:multiply|multiplied|multiplying|times|scale|scaled)\b/.test(normalized);
+    /\b(?:multiply|multiplied|multiplying|times|scale|scaled|change|changes|changed)\b/.test(
+      normalized,
+    );
   const mentionsBoth =
     /\b(?:both|each|top and bottom|numerator and denominator)\b/.test(normalized);
   const mentionsEquivalence =
-    /\b(?:same ratio|equivalent|same value|stay balanced)\b/.test(normalized);
+    /\b(?:same ratio|same factor|equivalent|same value|stay balanced)\b/.test(normalized);
   return mentionsScaling && mentionsBoth && mentionsEquivalence;
 }

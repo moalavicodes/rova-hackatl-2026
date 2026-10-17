@@ -24,6 +24,7 @@
 - The student flow, responder, source content, practice bank, and exact math checker are implemented and tested on `feat/student-tutor`.
 - Until Person B's functions are available, tutor events stay in the student session, the refresher uses a clearly labeled simulated `4.NF.A.1` root cause, and teacher review is only a local simulated flag. No real alert is sent.
 - Finish A5/A6 after Person B exposes the agreed event logging, prerequisite trace, and alert/teacher handoff functions; replace the local stand-ins without changing the shared contracts.
+- Review fixes on `feat/student-tutor`: use the merged seed export, complete the suggested explain-back phrase, keep refresher errors on the fraction skill/template, tailor hints to each ratio table, and source greetings from response templates. The teacher flag and root-cause trace remain simulated pending Person B's integration.
 
 ## Rules
 

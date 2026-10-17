@@ -2,9 +2,9 @@
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { mayaProfile } from "@/lib/data/seed";
-import { skillMap } from "@/lib/data/skillMap";
+import { skillMap } from "@/lib/data/seed";
 import { find_source } from "@/content/lessons";
-import { make_practice, demoProblems } from "@/lib/tutor/problems";
+import { getRatioTable, make_practice, demoProblems } from "@/lib/tutor/problems";
 import { classify_intent, explain_is_complete } from "@/lib/tutor/intent";
 import type {
   Event,
@@ -25,42 +25,6 @@ interface ConversationMessage {
   hintLevel?: number;
   quickReplies?: string[];
 }
-
-interface RatioTable {
-  firstLabel: string;
-  secondLabel: string;
-  firstStart: number;
-  secondStart: number;
-  targetSide: "first" | "second";
-  target: number;
-}
-
-const ratioTables: Record<string, RatioTable> = {
-  "ratio-main": {
-    firstLabel: "Concentrate (cups)",
-    secondLabel: "Water (cups)",
-    firstStart: 2,
-    secondStart: 3,
-    targetSide: "first",
-    target: 8,
-  },
-  "ratio-practice-2": {
-    firstLabel: "Raisins (scoops)",
-    secondLabel: "Cereal (scoops)",
-    firstStart: 3,
-    secondStart: 2,
-    targetSide: "first",
-    target: 9,
-  },
-  "ratio-practice-3": {
-    firstLabel: "Blue paint (cups)",
-    secondLabel: "White paint (cups)",
-    firstStart: 4,
-    secondStart: 1,
-    targetSide: "second",
-    target: 3,
-  },
-};
 
 const fractionModels: Record<string, { numerator: number; denominator: number }> = {
   "fraction-refresher-1": { numerator: 2, denominator: 3 },
@@ -93,7 +57,11 @@ function isTutorReply(value: unknown): value is TutorReply {
   );
 }
 
-export default function StudentTutor() {
+export default function StudentTutor({
+  welcomeMessage,
+}: {
+  welcomeMessage: string;
+}) {
   const [screen, setScreen] = useState<Screen>("home");
   const [mode, setMode] = useState<TutorMode>("problem");
   const [profile, setProfile] = useState(mayaProfile);
@@ -117,7 +85,7 @@ export default function StudentTutor() {
   const refresherQuestions = make_practice(rootCauseSkill, 0, "");
   const activeProblem =
     screen === "refresher" ? refresherQuestions[refresherIndex] : problem;
-  const table = ratioTables[problem.id];
+  const table = getRatioTable(problem.id);
   const recentReply = [...messages].reverse().find((message) => message.sender === "buddy");
   const source = find_source(activeProblem.skill_id, activeProblem.prompt);
 
@@ -419,9 +387,7 @@ export default function StudentTutor() {
             <p className="text-sm font-semibold uppercase tracking-wide text-indigo-200">
               Your buddy says
             </p>
-            <p className="mt-3 text-xl font-medium">
-              Fractions were tricky last time, so let’s finish ratios together.
-            </p>
+            <p className="mt-3 text-xl font-medium">{welcomeMessage}</p>
             <p className="mt-2 text-sm text-indigo-100">
               We’ll use a picture, try a hint, and check your math with code.
             </p>

@@ -3,17 +3,21 @@
 import type { TemplateBank } from "@/lib/types";
 
 export const studentTemplates: TemplateBank = {
+  welcome_back: [
+    "Welcome back, {name}! Fractions were tricky last time, so let’s finish ratios together.",
+    "Good to see you, {name}! Let’s use what you know about fractions to work on ratios.",
+  ],
   hint_1: [
-    "{name}, what quantity is changing, and what quantity must stay in the same ratio?",
-    "Let's start with one question, {name}: what happens to the first amount?",
+    "{name}, which amount are you finding, and what does the starting pair tell you?",
+    "Let’s think it through, {name}: what changes, and how can the ratio stay the same?",
   ],
   hint_2: [
-    "Try a ratio table: write the starting pair, then find the number that changes the first value to {target}.",
-    "Picture equal groups, {name}. How many times larger is {target} than the starting amount?",
+    "In the table, how many times does {targetName} change from {start} to {target}? Use that same factor on {otherName}.",
+    "Compare {start} and {target} for {targetName}, {name}. What same multiplier should you use for {otherName}?",
   ],
   hint_3: [
-    "The first amount is scaled by {factor}. Multiply the second amount by that same factor, then tell me what you get.",
-    "Keep the ratio balanced: use {factor} for both values. What is the new second value?",
+    "The {targetName} amount grows from {start} to {target}, so use {factor} for both parts. What is {otherName} now?",
+    "Use {factor} for both quantities: {targetName} goes from {start} to {target}. What does that do to {otherName}?",
   ],
   ask_answer: [
     "I won't skip your thinking, {name}. Start by asking: what number scales both parts of the ratio?",

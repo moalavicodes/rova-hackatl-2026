@@ -1,6 +1,42 @@
 import type { Problem, SkillId } from "@/lib/types";
 import { check_answer } from "@/lib/math/checkAnswer";
 
+export interface RatioTable {
+  firstLabel: string;
+  secondLabel: string;
+  firstStart: number;
+  secondStart: number;
+  targetSide: "first" | "second";
+  target: number;
+}
+
+const ratioTables: Record<string, RatioTable> = {
+  "ratio-main": {
+    firstLabel: "Concentrate (cups)",
+    secondLabel: "Water (cups)",
+    firstStart: 2,
+    secondStart: 3,
+    targetSide: "first",
+    target: 8,
+  },
+  "ratio-practice-2": {
+    firstLabel: "Raisins (scoops)",
+    secondLabel: "Cereal (scoops)",
+    firstStart: 3,
+    secondStart: 2,
+    targetSide: "first",
+    target: 9,
+  },
+  "ratio-practice-3": {
+    firstLabel: "Blue paint (cups)",
+    secondLabel: "White paint (cups)",
+    firstStart: 4,
+    secondStart: 1,
+    targetSide: "second",
+    target: 3,
+  },
+};
+
 const practiceBySkill: Record<SkillId, Problem[]> = {
   "6.RP.A.3": [
     {
@@ -128,6 +164,10 @@ export function getProblem(problemId: string): Problem | null {
   return Object.values(practiceBySkill)
     .flat()
     .find((problem) => problem.id === problemId) ?? null;
+}
+
+export function getRatioTable(problemId: string): RatioTable | null {
+  return ratioTables[problemId] ?? null;
 }
 
 export function make_practice(

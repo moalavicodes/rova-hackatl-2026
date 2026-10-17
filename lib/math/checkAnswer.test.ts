@@ -47,6 +47,19 @@ describe("check_answer", () => {
     );
   });
 
+  it("does not apply ratio-table errors to equivalent-fraction exercises", () => {
+    const fractionProblem: Problem = {
+      id: "fraction-refresher-1",
+      skill_id: "4.NF.A.1",
+      prompt: "Which fraction is equivalent to 2/3 when both parts are multiplied by 2?",
+      answer: "4/6",
+    };
+    expect(check_answer(fractionProblem, "5/6")).toEqual({
+      correct: false,
+      error_type: "calculation-slip",
+    });
+  });
+
   it("rejects non-integer arithmetic without rounding", () => {
     expect(
       check_answer({ ...ratioProblem, answer: "1/3" }, "0.3333333333333333")

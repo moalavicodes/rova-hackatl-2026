@@ -103,7 +103,7 @@ export function TeacherLiveView() {
         return;
       }
 
-      if (!selected || (selected.status !== "open" && selected.status !== "acted")) return;
+      if (!selected || selected.status !== "open") return;
       runAction(selected, shortcut === "done" ? "done" : "snooze");
     };
 

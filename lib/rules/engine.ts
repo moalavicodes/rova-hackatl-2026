@@ -278,6 +278,8 @@ export function apply_teacher_action(
 ): RovaState {
   const alert = state.alerts.find((a) => a.id === alertId);
   if (!alert || (alert.status !== "open" && alert.status !== "acted")) return state;
+  // Done and Snooze cannot repeat or reschedule an intervention already in progress.
+  if (alert.status !== "open" && (action === "done" || action === "snooze")) return state;
 
   if (action === "snooze") {
     return updateAlert(state, alertId, (a) => ({ ...a, recheck_at: daysLater(now, SNOOZE_DAYS) }));

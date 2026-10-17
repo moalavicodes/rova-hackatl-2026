@@ -122,6 +122,21 @@ describe("the loop: detect → diagnose → alert → act → verify", () => {
     expect(run_recheck(state, "missing")).toBe(state);
   });
 
+  it.each(["done", "different_strategy"] as const)(
+    "ignores repeated Done and Snooze after %s, preserving the parent message and seven-day re-check",
+    (initialAction) => {
+      const state = run(seedState(), [attempt(false, "adds-across-ratio-table"), attempt(false, "adds-across-ratio-table")]);
+      const alertId = state.alerts[0].id;
+      const acted = apply_teacher_action(state, alertId, initialAction, t0);
+      const later = new Date("2026-10-18T19:00:00.000Z");
+
+      expect(apply_teacher_action(acted, alertId, "done", later)).toBe(acted);
+      expect(apply_teacher_action(acted, alertId, "snooze", later)).toBe(acted);
+      expect(acted.parentMessages).toHaveLength(1);
+      expect(acted.alerts[0].recheck_at).toBe("2026-10-24T19:00:00.000Z");
+    },
+  );
+
   it("starts every demo from the same seed", () => {
     const a = seedState();
     a.skillStates[0].misconceptions.push("x");

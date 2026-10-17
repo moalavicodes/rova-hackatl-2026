@@ -35,6 +35,8 @@ export function TeacherAlertCard({
         ? "Question for you"
         : null;
   const canAct = Boolean(onAction) && (alert.status === "open" || alert.status === "acted");
+  const canHandle = Boolean(onAction) && alert.status === "open";
+  const handleTitle = alert.status === "acted" ? "Waiting for re-check" : undefined;
   const actionTitle = canAct
     ? undefined
     : onAction
@@ -124,18 +126,18 @@ export function TeacherAlertCard({
       <div className="flex flex-wrap gap-2 border-t border-rule px-5 py-4 sm:px-7">
         <button
           type="button"
-          disabled={!canAct}
+          disabled={!canHandle}
           onClick={() => onAction?.("done")}
-          title={actionTitle}
+          title={handleTitle ?? actionTitle}
           className="rounded-control bg-accent px-4 py-2.5 text-sm font-semibold text-white transition-colors enabled:hover:bg-accent-strong disabled:cursor-not-allowed disabled:opacity-45"
         >
           Done <span aria-hidden="true" className="ml-1 text-white/65">D</span>
         </button>
         <button
           type="button"
-          disabled={!canAct}
+          disabled={!canHandle}
           onClick={() => onAction?.("snooze")}
-          title={actionTitle}
+          title={handleTitle ?? actionTitle}
           className="rounded-control border border-rule bg-surface px-4 py-2.5 text-sm font-semibold text-ink transition-colors enabled:hover:border-accent disabled:cursor-not-allowed disabled:opacity-45"
         >
           Snooze <span aria-hidden="true" className="ml-1 text-ink-muted">S</span>

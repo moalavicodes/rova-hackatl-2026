@@ -1,29 +1,31 @@
-// Seeded demo state. Maya's earlier-grade history is Simulated (README section 8).
+// Seeded demo state (D-005): JSON files in lib/data/seed/, typed here. Import seed data from this module.
+// The 25-student class and Maya's earlier-grade history are Simulated (README section 8).
 // Persona facts come from README section 1 (Maya, 11, 6th grade; mom's first language is Spanish).
-// TODO(team): buddy_name and interests are not in the README yet; agree on them and update here.
+// Mastery values are invented demo data. Exactly 5 students (Maya + 4) share the 4.NF.A.1 gap
+// ("group of 5 share this root cause", README section 17); s14 and s18 have a separate 3.OA.C.7 gap.
+// Classmates are labeled "Student 2"…"Student 25" (no person names); only Maya, the README persona, is named.
+// TODO(team): interests are not in the README yet; agree on them and update students.json.
 
-import type { LearnerProfile, Student } from "@/lib/types";
+import type { Classroom, LearnerProfile, SkillMap, SkillState, Student } from "@/lib/types";
+import classroomJson from "./seed/classroom.json";
+import skillMapJson from "./seed/skillMap.json";
+import skillStatesJson from "./seed/skillStates.json";
+import studentsJson from "./seed/students.json";
 
-const SEED_TIME = "2026-10-17T19:00:00.000Z";
+export const skillMap: SkillMap = skillMapJson;
+export const students: Student[] = studentsJson;
+export const skillStates: SkillState[] = skillStatesJson;
+export const classroom: Classroom = classroomJson;
 
-export const maya: Student = {
-  id: "maya",
-  first_name: "Maya",
-  grade: 6,
-  buddy_name: "Rova", // placeholder until the team picks the buddy's name
-  language_home: "es",
-  interests: [], // placeholder until the team picks them
-};
+export function profileFor(studentId: string): LearnerProfile {
+  const student = students.find((s) => s.id === studentId);
+  if (!student) throw new Error(`Unknown student: ${studentId}`);
+  return {
+    student,
+    skills: skillStates.filter((s) => s.student_id === studentId),
+    preferences: [],
+  };
+}
 
-// "Fractions were tricky last time" (README section 8, step 1): equivalent fractions start weak.
-export const mayaProfile: LearnerProfile = {
-  student: maya,
-  skills: [
-    { student_id: "maya", skill_id: "6.RP.A.3", mastery: 0, misconceptions: [], last_seen: SEED_TIME },
-    { student_id: "maya", skill_id: "6.RP.A.1", mastery: 0.6, misconceptions: [], last_seen: SEED_TIME },
-    { student_id: "maya", skill_id: "4.NF.A.1", mastery: 0.3, misconceptions: [], last_seen: SEED_TIME },
-    { student_id: "maya", skill_id: "3.NF.A.3", mastery: 0.8, misconceptions: [], last_seen: SEED_TIME },
-    { student_id: "maya", skill_id: "3.OA.C.7", mastery: 0.9, misconceptions: [], last_seen: SEED_TIME },
-  ],
-  preferences: [],
-};
+export const maya: Student = profileFor("maya").student;
+export const mayaProfile: LearnerProfile = profileFor("maya");

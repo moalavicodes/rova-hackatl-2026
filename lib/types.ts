@@ -20,6 +20,13 @@ export interface Student {
   interests: string[];
 }
 
+export interface Classroom {
+  id: string;
+  teacher: string;
+  name: string;
+  student_ids: string[];
+}
+
 export interface SkillState {
   student_id: string;
   skill_id: SkillId;

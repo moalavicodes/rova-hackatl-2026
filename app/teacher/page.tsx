@@ -1,9 +1,5 @@
-import { ClassHeatmap } from "@/components/teacher/ClassHeatmap";
-import { LoopTracker } from "@/components/teacher/LoopTracker";
-import { TeacherAlertCard } from "@/components/teacher/TeacherAlertCard";
-import { mayaAlertFixture } from "@/components/teacher/mayaAlertFixture";
+import { TeacherLiveView } from "@/components/teacher/TeacherLiveView";
 import { ViewShell } from "@/components/ui/ViewShell";
-import { classroom, skillMap, skillStates, students } from "@/lib/data/seed";
 
 export default function TeacherPage() {
   return (
@@ -18,33 +14,11 @@ export default function TeacherPage() {
           </p>
         </div>
         <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-bold uppercase tracking-wide text-amber-900">
-          Simulated fixture
+          Simulated class data
         </span>
       </div>
 
-      <section aria-labelledby="action-inbox-heading">
-        <div className="mb-4 flex items-center justify-between gap-4">
-          <div>
-            <p className="text-sm font-semibold text-teal-700">1 needs action</p>
-            <h2 id="action-inbox-heading" className="text-2xl font-bold">
-              Action inbox
-            </h2>
-          </div>
-          <p className="hidden text-sm text-slate-500 sm:block">About 5 minutes</p>
-        </div>
-
-        <TeacherAlertCard alert={mayaAlertFixture} studentName="Maya" skills={skillMap} />
-      </section>
-
-      <LoopTracker alert={mayaAlertFixture} averageDaysToFix={6.2} />
-
-      <ClassHeatmap
-        alert={mayaAlertFixture}
-        classroom={classroom}
-        students={students}
-        skillMap={skillMap}
-        skillStates={skillStates}
-      />
+      <TeacherLiveView />
     </ViewShell>
   );
 }

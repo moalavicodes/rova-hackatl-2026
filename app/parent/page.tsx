@@ -1,12 +1,4 @@
-import { ParentWinMessage } from "@/components/parent/ParentWinMessage";
-import { ParentSmsMockup } from "@/components/parent/ParentSmsMockup";
-import { WeeklyLearningCard } from "@/components/parent/WeeklyLearningCard";
-import {
-  mayaActivityMessageFixture,
-  mayaWeeklyMessageFixture,
-  mayaWinMessageFixture,
-  recipeRatioActivity,
-} from "@/components/parent/mayaActivityMessageFixture";
+import { ParentLiveView } from "@/components/parent/ParentLiveView";
 import { ViewShell } from "@/components/ui/ViewShell";
 
 export default function ParentPage() {
@@ -21,16 +13,7 @@ export default function ParentPage() {
         </p>
       </header>
 
-      <ParentSmsMockup message={mayaActivityMessageFixture} />
-
-      <WeeklyLearningCard
-        message={mayaWeeklyMessageFixture}
-        learned="Comparar fracciones simples"
-        workingOn="Usar fracciones equivalentes en tablas de razones"
-        tryAtHome={recipeRatioActivity}
-      />
-
-      <ParentWinMessage message={mayaWinMessageFixture} />
+      <ParentLiveView studentId="maya" />
     </ViewShell>
   );
 }

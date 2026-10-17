@@ -1,6 +1,6 @@
-# Integration contracts (DRAFT until the contract freeze)
+# Integration contracts
 
-These are taken from README section 17 (data model, tools, detection rules). At the contract freeze the team edits this file, then Person B copies the types into `lib/types.ts`. After that, only the integration owner changes them.
+Taken from README section 17 (data model, tools, detection rules). `lib/types.ts` is the source of truth; only the integration owner changes it.
 
 ## Types
 
@@ -65,6 +65,7 @@ export interface Alert {
   others_with_gap: string[]; // student ids
   status: AlertStatus;
   recheck_at: string | null;
+  created_at?: string; // set by create_alert; run_recheck reads only events after it
 }
 
 export interface ParentMessage {
@@ -86,17 +87,18 @@ export interface LearnerProfile {
 
 | Function | Owner | Signature |
 | --- | --- | --- |
-| `get_learner_profile` | B | `(studentId) => LearnerProfile` |
-| `log_event` | B | `(event: Event) => Alert[]` (runs the rules and returns any new alerts) |
-| `trace_prerequisites` | B | `(skillId) => SkillId[]` (nearest first) |
-| `create_alert` | B | `(alert: Omit<Alert, "id" \| "status">) => Alert` |
-| `apply_teacher_action` | B | `(alertId, action: TeacherAction) => Alert` |
-| `schedule_recheck` | B | `(studentId, skillId, days) => void` |
-| `run_recheck` | B | `(alertId, nowOverride?) => Alert` (`nowOverride` drives the simulated 7-day jump) |
+| `get_learner_profile` | B | `(state, studentId) => LearnerProfile` in `lib/rules/engine.ts` |
+| `log_event` | B | `(state, event, now?) => { state, newAlerts }`; runs the rules and creates alerts |
+| `trace_prerequisites` | B | `(skillId, skillMap) => SkillId[]` (nearest first); `find_root_cause` picks the earliest-grade weak one |
+| `create_alert` | B | called by `log_event`; fills `root_cause`, `others_with_gap` (D-007), `created_at` |
+| `apply_teacher_action` | B | `(state, alertId, action, now?) => state`; done/different_strategy → acted + re-check in 7 days + parent activity; snooze → stays open |
+| `schedule_recheck` | B | `(now, days = 7) => ISO time` |
+| `run_recheck` | B | `(state, alertId, nowOverride?) => state`; verified (+ parent win) or escalated |
+| **Store** (client) | B | `lib/data/store.ts`: `useRovaState()`, `getState()`, `logEvents(events) => Alert[]`, `teacherAction(alertId, action)`, `recheck(alertId, nowOverride?)`, `resetDemo()`. Views call these, never the engine directly |
 | `check_answer` | A | `(problem, answer) => { correct: boolean; error_type?: string }` (code only) |
 | `find_source` | A | `(skillId, question) => { ref: string; text: string } \| null` |
 | `make_practice` | A | `(skillId, level, interest) => Problem[]` (each answer verified by `check_answer`) |
-| `draft_parent_message` | C | `(studentId, activity, language) => ParentMessage` |
+| `draft_parent_message` | C | `draftParentMessage(studentId, activity, language, options?) => ParentMessage`; optional `options` sets kind, names, and `sentAt` |
 | `respond` | A | `(input: string, ctx: TutorContext) => TutorReply` in `lib/tutor/responder.ts` (rules, no AI) |
 | `callLLM` | integration owner | `(templateId: string, vars: Record<string, string>) => string` in `lib/llm.ts`. Template mode (D-004) picks a variant and fills the vars; a real model can replace the body later |
 

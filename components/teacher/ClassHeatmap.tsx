@@ -1,7 +1,7 @@
 import type { Alert, Classroom, SkillMap, SkillState, Student } from "@/lib/types";
 
 interface ClassHeatmapProps {
-  alert: Alert;
+  alert: Alert | null; // null until a live alert exists
   classroom: Classroom;
   students: Student[];
   skillMap: SkillMap;
@@ -35,10 +35,10 @@ export function ClassHeatmap({
   const classroomStudents = classroom.student_ids
     .map((studentId) => students.find((student) => student.id === studentId))
     .filter((student): student is Student => Boolean(student));
-  const groupStudents = alertGroupStudentIds(alert)
+  const groupStudents = (alert ? alertGroupStudentIds(alert) : [])
     .map((studentId) => students.find((student) => student.id === studentId))
     .filter((student): student is Student => Boolean(student));
-  const rootCauseName = alert.root_cause
+  const rootCauseName = alert?.root_cause
     ? (skillMap[alert.root_cause]?.name ?? alert.root_cause)
     : "Root cause pending";
 
@@ -72,6 +72,7 @@ export function ClassHeatmap({
         </div>
       </div>
 
+      {groupStudents.length > 1 && (
       <div className="mb-4 rounded-2xl border border-violet-200 bg-violet-50 p-4 text-violet-950">
         <p className="text-xs font-bold uppercase tracking-[0.16em] text-violet-700">
           Small-group opportunity · Simulated
@@ -83,6 +84,7 @@ export function ClassHeatmap({
           {groupStudents.map((student) => student.first_name).join(", ")} can join the same 5-minute refresher.
         </p>
       </div>
+      )}
 
       <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
         <table className="w-full min-w-[960px] border-collapse text-left text-sm">

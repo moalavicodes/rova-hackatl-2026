@@ -1,12 +1,30 @@
-import type { Alert, SkillMap } from "@/lib/types";
+import type { Alert, AlertStatus, SkillMap, TeacherAction } from "@/lib/types";
 
 interface TeacherAlertCardProps {
   alert: Alert;
   studentName: string;
   skills: SkillMap;
+  onAction?: (action: TeacherAction) => void; // wired to apply_teacher_action by the live view
+  badge?: string;
 }
 
-export function TeacherAlertCard({ alert, studentName, skills }: TeacherAlertCardProps) {
+const statusBadges: Record<AlertStatus, { label: string; className: string }> = {
+  open: { label: "Needs action", className: "bg-rose-100 text-rose-800" },
+  acted: { label: "Waiting for re-check", className: "bg-sky-100 text-sky-800" },
+  verified: { label: "Fixed", className: "bg-emerald-100 text-emerald-800" },
+  escalated: { label: "Escalated", className: "bg-amber-100 text-amber-900" },
+};
+
+export function TeacherAlertCard({
+  alert,
+  studentName,
+  skills,
+  onAction,
+  badge = "Simulated fixture",
+}: TeacherAlertCardProps) {
+  const status = statusBadges[alert.status];
+  const canAct = Boolean(onAction) && (alert.status === "open" || alert.status === "acted");
+  const actionTitle = canAct ? undefined : onAction ? "This alert is closed" : "Connects to apply_teacher_action";
   const sharedGapCount = alert.others_with_gap.length + 1;
   const skillName = skills[alert.skill_id]?.name ?? alert.skill_id;
   const rootCauseName = alert.root_cause
@@ -20,8 +38,8 @@ export function TeacherAlertCard({ alert, studentName, skills }: TeacherAlertCar
           <div>
             <div className="flex flex-wrap items-center gap-2">
               <h3 className="text-2xl font-bold">{studentName}</h3>
-              <span className="rounded-full bg-rose-100 px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-rose-800">
-                Needs action
+              <span className={`rounded-full px-2.5 py-1 text-xs font-bold uppercase tracking-wide ${status.className}`}>
+                {status.label}
               </span>
             </div>
             <p className="mt-1 text-sm font-medium text-slate-600">
@@ -30,7 +48,7 @@ export function TeacherAlertCard({ alert, studentName, skills }: TeacherAlertCar
           </div>
 
           <span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-amber-900">
-            Simulated fixture
+            {badge}
           </span>
         </div>
       </div>
@@ -65,31 +83,36 @@ export function TeacherAlertCard({ alert, studentName, skills }: TeacherAlertCar
       <div className="flex flex-wrap gap-3 border-t border-slate-100 px-6 py-5 sm:px-8">
         <button
           type="button"
-          disabled
-          title="Connects to apply_teacher_action after Person B's data layer lands"
-          className="cursor-not-allowed rounded-xl bg-teal-700 px-4 py-2.5 text-sm font-bold text-white opacity-60"
+          disabled={!canAct}
+          onClick={() => onAction?.("done")}
+          title={actionTitle}
+          className="rounded-xl bg-teal-700 px-4 py-2.5 text-sm font-bold text-white enabled:hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
         >
           Done
         </button>
         <button
           type="button"
-          disabled
-          title="Connects to apply_teacher_action after Person B's data layer lands"
-          className="cursor-not-allowed rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 opacity-60"
+          disabled={!canAct}
+          onClick={() => onAction?.("snooze")}
+          title={actionTitle}
+          className="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 enabled:hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
         >
           Snooze
         </button>
         <button
           type="button"
-          disabled
-          title="Connects to apply_teacher_action after Person B's data layer lands"
-          className="cursor-not-allowed rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 opacity-60"
+          disabled={!canAct}
+          onClick={() => onAction?.("different_strategy")}
+          title={actionTitle}
+          className="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 enabled:hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
         >
           Different strategy
         </button>
-        <p className="w-full text-xs text-slate-500">
-          Actions become available when the alert service is connected.
-        </p>
+        {!onAction && (
+          <p className="w-full text-xs text-slate-500">
+            Actions become available when the alert service is connected.
+          </p>
+        )}
       </div>
     </article>
   );

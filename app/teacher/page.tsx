@@ -1,12 +1,9 @@
 import { ClassHeatmap } from "@/components/teacher/ClassHeatmap";
 import { LoopTracker } from "@/components/teacher/LoopTracker";
 import { TeacherAlertCard } from "@/components/teacher/TeacherAlertCard";
-import {
-  heatmapSkills,
-  simulatedClass,
-} from "@/components/teacher/simulatedClassFixture";
 import { mayaAlertFixture } from "@/components/teacher/mayaAlertFixture";
 import { ViewShell } from "@/components/ui/ViewShell";
+import { classroom, skillMap, skillStates, students } from "@/lib/data/seed";
 
 export default function TeacherPage() {
   return (
@@ -36,15 +33,17 @@ export default function TeacherPage() {
           <p className="hidden text-sm text-slate-500 sm:block">About 5 minutes</p>
         </div>
 
-        <TeacherAlertCard alert={mayaAlertFixture} studentName="Maya" />
+        <TeacherAlertCard alert={mayaAlertFixture} studentName="Maya" skills={skillMap} />
       </section>
 
       <LoopTracker alert={mayaAlertFixture} averageDaysToFix={6.2} />
 
       <ClassHeatmap
-        students={simulatedClass}
-        skills={heatmapSkills}
-        rootCauseId="4.NF.A.1"
+        alert={mayaAlertFixture}
+        classroom={classroom}
+        students={students}
+        skillMap={skillMap}
+        skillStates={skillStates}
       />
     </ViewShell>
   );

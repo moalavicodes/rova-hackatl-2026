@@ -36,6 +36,13 @@ describe("draftParentMessage", () => {
     expect(message.text).toContain("domina");
   });
 
+  it("uses the shared student name instead of defaulting every message to Maya", () => {
+    const message = draftParentMessage("s02", recipeActivity, "es");
+
+    expect(message.text).toContain("Student 2");
+    expect(message.text).not.toContain("Maya");
+  });
+
   it("drafts a weekly learned, working-on, and at-home summary", () => {
     const message = draftParentMessage("maya", recipeActivity, "es", {
       kind: "weekly",

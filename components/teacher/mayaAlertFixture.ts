@@ -10,7 +10,7 @@ export const mayaAlertFixture = {
   root_cause: "4.NF.A.1",
   action:
     "Use fraction strips for a 5-minute refresher: match 1/2, 2/4, and 3/6, then connect the same scaling move to the ratio table.",
-  others_with_gap: ["student-02", "student-03", "student-04", "student-05"],
+  others_with_gap: ["s04", "s12", "s15", "s24"],
   status: "open",
   recheck_at: null,
 } satisfies Alert;

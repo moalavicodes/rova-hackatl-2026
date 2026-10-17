@@ -1,20 +1,16 @@
-import type { Alert } from "@/lib/types";
+import type { Alert, SkillMap } from "@/lib/types";
 
 interface TeacherAlertCardProps {
   alert: Alert;
   studentName: string;
+  skills: SkillMap;
 }
 
-const skillNames: Record<string, string> = {
-  "6.RP.A.3": "Ratio tables",
-  "4.NF.A.1": "Equivalent fractions",
-};
-
-export function TeacherAlertCard({ alert, studentName }: TeacherAlertCardProps) {
+export function TeacherAlertCard({ alert, studentName, skills }: TeacherAlertCardProps) {
   const sharedGapCount = alert.others_with_gap.length + 1;
-  const skillName = skillNames[alert.skill_id] ?? alert.skill_id;
+  const skillName = skills[alert.skill_id]?.name ?? alert.skill_id;
   const rootCauseName = alert.root_cause
-    ? (skillNames[alert.root_cause] ?? alert.root_cause)
+    ? (skills[alert.root_cause]?.name ?? alert.root_cause)
     : "Still checking";
 
   return (

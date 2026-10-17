@@ -1,7 +1,7 @@
 import { callLLM } from "@/lib/llm";
+import { students } from "@/lib/data/seed";
 import type { ParentMessage } from "@/lib/types";
 
-const DEFAULT_STUDENT_NAME = "Maya";
 const DEFAULT_SKILL = "razones con tablas";
 const DEFAULT_ROOT_CAUSE = "fracciones equivalentes";
 
@@ -30,7 +30,8 @@ export function draftParentMessage(
 ): ParentMessage {
   const kind = options.kind ?? "activity";
   const templateId = `parent.${kind}.${language}`;
-  const studentName = options.studentName ?? DEFAULT_STUDENT_NAME;
+  const seededStudentName = students.find((student) => student.id === studentId)?.first_name;
+  const studentName = options.studentName ?? seededStudentName ?? studentId;
   const skill = options.skill ?? DEFAULT_SKILL;
   const rootCause = options.rootCause ?? DEFAULT_ROOT_CAUSE;
 

@@ -23,6 +23,13 @@ export interface Student {
   interests: string[];
 }
 
+export interface Classroom {
+  id: string;
+  teacher: string;
+  name: string;
+  student_ids: string[];
+}
+
 export interface SkillState {
   student_id: string;
   skill_id: SkillId;
@@ -135,6 +142,6 @@ export interface TutorReply {
 | Disengagement | Sessions 50% shorter for a week, or 2+ missed missions |
 | Class gap | ≥30% of a class shares the same root cause → group alert |
 
-## Skill map (demo slice)
+## Seed data (D-005)
 
-Seed this into `lib/data/` exactly as in README section 17.
+JSON files in `lib/data/seed/` (skill map exactly as in README section 17; students, skill states, and classroom are Simulated). Import them through `lib/data/seed.ts`, not directly.

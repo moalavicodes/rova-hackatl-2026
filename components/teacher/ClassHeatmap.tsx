@@ -1,14 +1,11 @@
-import type { SkillId } from "@/lib/types";
-
-import type {
-  HeatmapSkill,
-  SimulatedClassStudent,
-} from "@/components/teacher/simulatedClassFixture";
+import type { Alert, Classroom, SkillMap, SkillState, Student } from "@/lib/types";
 
 interface ClassHeatmapProps {
-  students: SimulatedClassStudent[];
-  skills: HeatmapSkill[];
-  rootCauseId: SkillId;
+  alert: Alert;
+  classroom: Classroom;
+  students: Student[];
+  skillMap: SkillMap;
+  skillStates: SkillState[];
 }
 
 function masteryStyle(mastery: number): string {
@@ -23,12 +20,27 @@ function masteryLabel(mastery: number): string {
   return "Needs support";
 }
 
-export function ClassHeatmap({ students, skills, rootCauseId }: ClassHeatmapProps) {
-  const rootCause = skills.find((skill) => skill.id === rootCauseId);
-  const studentsWithGap = students.filter((student) => {
-    const skill = student.skills.find((state) => state.skill_id === rootCauseId);
-    return skill ? skill.mastery < 0.5 : false;
-  });
+export function alertGroupStudentIds(alert: Alert): string[] {
+  return Array.from(new Set([alert.student_id, ...alert.others_with_gap]));
+}
+
+export function ClassHeatmap({
+  alert,
+  classroom,
+  students,
+  skillMap,
+  skillStates,
+}: ClassHeatmapProps) {
+  const skills = Object.entries(skillMap).map(([id, skill]) => ({ id, ...skill }));
+  const classroomStudents = classroom.student_ids
+    .map((studentId) => students.find((student) => student.id === studentId))
+    .filter((student): student is Student => Boolean(student));
+  const groupStudents = alertGroupStudentIds(alert)
+    .map((studentId) => students.find((student) => student.id === studentId))
+    .filter((student): student is Student => Boolean(student));
+  const rootCauseName = alert.root_cause
+    ? (skillMap[alert.root_cause]?.name ?? alert.root_cause)
+    : "Root cause pending";
 
   return (
     <section aria-labelledby="class-heatmap-heading" className="mt-10">
@@ -43,7 +55,7 @@ export function ClassHeatmap({ students, skills, rootCauseId }: ClassHeatmapProp
             </span>
           </div>
           <p className="mt-2 text-sm text-slate-600">
-            Period 2 · {students.length} students · mastery by skill
+            {classroom.name} · {classroomStudents.length} students · mastery by skill
           </p>
         </div>
 
@@ -65,15 +77,15 @@ export function ClassHeatmap({ students, skills, rootCauseId }: ClassHeatmapProp
           Small-group opportunity · Simulated
         </p>
         <p className="mt-1 font-bold">
-          {studentsWithGap.length} students share this root cause: {rootCause?.shortName ?? rootCauseId}
+          {groupStudents.length} students share this root cause: {rootCauseName}
         </p>
         <p className="mt-1 text-sm text-violet-800">
-          {studentsWithGap.map((student) => student.name).join(", ")} can join the same 5-minute refresher.
+          {groupStudents.map((student) => student.first_name).join(", ")} can join the same 5-minute refresher.
         </p>
       </div>
 
       <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
-        <table className="w-full min-w-[680px] border-collapse text-left text-sm">
+        <table className="w-full min-w-[960px] border-collapse text-left text-sm">
           <thead className="bg-slate-100 text-xs uppercase tracking-wide text-slate-600">
             <tr>
               <th scope="col" className="sticky left-0 z-10 bg-slate-100 px-4 py-3 font-bold">
@@ -81,16 +93,14 @@ export function ClassHeatmap({ students, skills, rootCauseId }: ClassHeatmapProp
               </th>
               {skills.map((skill) => (
                 <th key={skill.id} scope="col" className="px-3 py-3 text-center font-bold">
-                  <span className="block normal-case tracking-normal text-slate-900">
-                    {skill.shortName}
-                  </span>
+                  <span className="block normal-case tracking-normal text-slate-900">{skill.name}</span>
                   <span className="mt-0.5 block font-medium">{skill.id}</span>
                 </th>
               ))}
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {students.map((student) => (
+            {classroomStudents.map((student) => (
               <tr key={student.id} className={student.id === "maya" ? "bg-teal-50/70" : undefined}>
                 <th
                   scope="row"
@@ -98,13 +108,15 @@ export function ClassHeatmap({ students, skills, rootCauseId }: ClassHeatmapProp
                     student.id === "maya" ? "bg-teal-50" : "bg-white"
                   }`}
                 >
-                  {student.name}
+                  {student.first_name}
                   {student.id === "maya" ? (
                     <span className="ml-2 text-xs font-bold text-teal-700">Demo student</span>
                   ) : null}
                 </th>
                 {skills.map((skill) => {
-                  const state = student.skills.find((item) => item.skill_id === skill.id);
+                  const state = skillStates.find(
+                    (item) => item.student_id === student.id && item.skill_id === skill.id,
+                  );
                   const mastery = state?.mastery ?? 0;
                   const percent = Math.round(mastery * 100);
 
@@ -113,7 +125,7 @@ export function ClassHeatmap({ students, skills, rootCauseId }: ClassHeatmapProp
                       <span
                         className={`inline-flex min-w-14 justify-center rounded-lg px-2 py-1.5 font-bold ${masteryStyle(mastery)}`}
                         title={`${masteryLabel(mastery)} · ${percent}% mastery`}
-                        aria-label={`${student.name}, ${skill.shortName}: ${masteryLabel(mastery)}, ${percent}% mastery`}
+                        aria-label={`${student.first_name}, ${skill.name}: ${masteryLabel(mastery)}, ${percent}% mastery`}
                       >
                         {percent}%
                       </span>

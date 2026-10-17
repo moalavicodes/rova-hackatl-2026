@@ -30,3 +30,7 @@ yarn-debug.log*
 # demo recordings stay out of git
 *.mov
 *.mp4
+
+# testing
+/coverage
+*.pem

@@ -17,3 +17,13 @@ Use the `maintaining-rova-context` skill for material planning, implementation, 
 Do not claim planned features are implemented. Math answers are always checked by code, never by the LLM. Label anything simulated as Simulated. Never commit API keys or real student data.
 
 When a contributor identifies as Person A, B, or C, remain within that workstream's owned areas unless a coordinated shared-contract change is required. The integration owner (Person B by default) consolidates `STATUS.md` after merges.
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->

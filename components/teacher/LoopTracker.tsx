@@ -9,17 +9,7 @@ interface LoopTrackerProps {
   isRunningRecheck?: boolean;
 }
 
-interface LoopStep {
-  id: "open" | "acted" | "verified";
-  label: string;
-  detail: string;
-}
-
-const loopSteps: LoopStep[] = [
-  { id: "open", label: "Detected", detail: "Rova found the learning gap" },
-  { id: "acted", label: "Teacher acted", detail: "A short reteach is recorded" },
-  { id: "verified", label: "Verified", detail: "A recheck confirms mastery" },
-];
+const loopSteps = ["Detected", "Acted", "Verified"] as const;
 
 export function loopStageIndex(status: AlertStatus): number {
   if (status === "verified" || status === "escalated") return 2;
@@ -28,7 +18,7 @@ export function loopStageIndex(status: AlertStatus): number {
 }
 
 function recheckLabel(alert: Alert): string {
-  if (!alert.recheck_at) return "Scheduled after the teacher records an action";
+  if (!alert.recheck_at) return "Available after an action is recorded";
 
   return new Intl.DateTimeFormat("en-US", {
     month: "short",
@@ -50,102 +40,83 @@ export function LoopTracker({
   const isEscalated = alert.status === "escalated";
 
   return (
-    <section aria-labelledby="loop-tracker-heading" className="mt-10">
-      <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+    <section aria-labelledby="loop-tracker-heading" className="border-t border-rule px-5 py-5 sm:px-7">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
         <div>
-          <div className="flex flex-wrap items-center gap-2">
-            <h2 id="loop-tracker-heading" className="text-2xl font-bold">
-              Intervention loop
-            </h2>
-            <span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-amber-900">
-              7-day jump · Simulated
-            </span>
-          </div>
-          <p className="mt-2 text-sm text-slate-600">
-            Track the issue from first signal through a verified fix.
+          <h4 id="loop-tracker-heading" className="font-semibold text-ink">
+            Intervention loop
+          </h4>
+          <p className="mt-1 text-xs text-ink-muted">
+            {averageDaysToFix.toFixed(1)} average days to fix · Simulated
           </p>
         </div>
-
-        <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-right shadow-sm">
-          <p className="text-2xl font-black text-slate-950">{averageDaysToFix.toFixed(1)}</p>
-          <p className="text-xs font-semibold text-slate-500">avg. days to fix · Simulated</p>
-        </div>
+        <p className="text-xs text-ink-muted">Next check: {recheckLabel(alert)}</p>
       </div>
 
-      <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
-        <ol className="grid gap-3 sm:grid-cols-3" aria-label="Alert progress">
-          {loopSteps.map((step, index) => {
-            const isComplete = index < currentStage || (isVerified && index === currentStage);
-            const isCurrent = index === currentStage && !isVerified;
+      <ol className="mt-5 grid grid-cols-3" aria-label="Alert progress">
+        {loopSteps.map((label, index) => {
+          const isComplete = index < currentStage || (isVerified && index === currentStage);
+          const isCurrent = index === currentStage && !isVerified;
 
-            return (
-              <li
-                key={step.id}
-                aria-current={isCurrent ? "step" : undefined}
-                className={`relative rounded-2xl border p-4 ${
+          return (
+            <li
+              key={label}
+              aria-current={isCurrent ? "step" : undefined}
+              className="relative flex flex-col items-center text-center"
+            >
+              {index > 0 ? (
+                <span
+                  aria-hidden="true"
+                  className={`absolute right-1/2 top-3 h-px w-full motion-safe:transition-colors ${
+                    index <= currentStage ? "bg-accent" : "bg-rule"
+                  }`}
+                />
+              ) : null}
+              <span
+                className={`relative z-10 flex h-6 w-6 items-center justify-center rounded-full border text-xs font-bold motion-safe:transition-colors ${
                   isComplete
-                    ? "border-emerald-200 bg-emerald-50"
+                    ? "border-success bg-success text-white"
                     : isCurrent
-                      ? "border-teal-300 bg-teal-50"
-                      : "border-slate-200 bg-slate-50"
+                      ? "border-accent bg-accent text-white"
+                      : "border-rule bg-paper text-ink-muted"
                 }`}
               >
-                <div
-                  className={`mb-3 flex h-8 w-8 items-center justify-center rounded-full text-sm font-black ${
-                    isComplete
-                      ? "bg-emerald-600 text-white"
-                      : isCurrent
-                        ? "bg-teal-700 text-white"
-                        : "bg-slate-200 text-slate-500"
-                  }`}
-                >
-                  {isComplete ? "✓" : index + 1}
-                </div>
-                <p className="font-bold text-slate-950">{step.label}</p>
-                <p className="mt-1 text-sm leading-5 text-slate-600">{step.detail}</p>
-              </li>
-            );
-          })}
-        </ol>
+                {isComplete ? "✓" : index + 1}
+              </span>
+              <span
+                className={`mt-2 text-xs font-semibold ${
+                  isCurrent ? "text-accent-strong" : "text-ink-muted"
+                }`}
+              >
+                {label}
+              </span>
+            </li>
+          );
+        })}
+      </ol>
 
-        <div className="mt-5 flex flex-col gap-4 rounded-2xl bg-slate-950 p-5 text-white sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-[0.16em] text-teal-300">
-              Next recheck
-            </p>
-            <p className="mt-1 font-bold">{recheckLabel(alert)}</p>
-            {isVerified ? (
-              <p className="mt-2 text-sm font-semibold text-emerald-300">
-                Mastered ✓ · parent notified
-              </p>
-            ) : null}
-            {isEscalated ? (
-              <p className="mt-2 text-sm font-semibold text-amber-300">
-                Not mastered yet · a different strategy is needed
-              </p>
-            ) : null}
-          </div>
-
+      <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-rule pt-4">
+        <div className="text-xs font-semibold">
+          {isVerified ? <span className="text-success">Mastered · parent notified</span> : null}
+          {isEscalated ? (
+            <span className="text-danger">Not mastered · try a different strategy</span>
+          ) : null}
+          {!isVerified && !isEscalated ? (
+            <span className="text-ink-muted">Verification is still pending</span>
+          ) : null}
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-[11px] text-ink-muted">Simulated</span>
           <button
             type="button"
             disabled={!canRunRecheck || isRunningRecheck}
             onClick={onFastForward}
-            className="rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-slate-950 enabled:hover:bg-teal-100 disabled:cursor-not-allowed disabled:opacity-50"
-            title={
-              onFastForward
-                ? "Runs the deterministic recheck with a simulated future date"
-                : "Available when Person B's recheck service is connected"
-            }
+            className="rounded-control border border-rule bg-paper px-3 py-2 text-xs font-semibold text-ink transition-colors enabled:hover:border-accent enabled:hover:text-accent-strong disabled:cursor-not-allowed disabled:opacity-45"
+            title="Runs the deterministic recheck at the scheduled future date"
           >
-            {isRunningRecheck ? "Running recheck…" : "Fast-forward 7 days"}
+            {isRunningRecheck ? "Running recheck…" : "Simulate 7 days later"}
           </button>
         </div>
-
-        {!onFastForward ? (
-          <p className="mt-3 text-xs text-slate-500">
-            Recheck control will unlock when the shared alert service is connected.
-          </p>
-        ) : null}
       </div>
     </section>
   );

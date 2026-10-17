@@ -1,18 +1,21 @@
+import type { ReactNode } from "react";
+
 import type { Alert, AlertStatus, SkillMap, TeacherAction } from "@/lib/types";
 
 interface TeacherAlertCardProps {
   alert: Alert;
   studentName: string;
   skills: SkillMap;
-  onAction?: (action: TeacherAction) => void; // wired to apply_teacher_action by the live view
+  onAction?: (action: TeacherAction) => void;
   badge?: string;
+  loopTracker?: ReactNode;
 }
 
-const statusBadges: Record<AlertStatus, { label: string; className: string }> = {
-  open: { label: "Needs action", className: "bg-rose-100 text-rose-800" },
-  acted: { label: "Waiting for re-check", className: "bg-sky-100 text-sky-800" },
-  verified: { label: "Fixed", className: "bg-emerald-100 text-emerald-800" },
-  escalated: { label: "Escalated", className: "bg-amber-100 text-amber-900" },
+const statusLabels: Record<AlertStatus, string> = {
+  open: "Needs action",
+  acted: "Waiting for re-check",
+  verified: "Fixed",
+  escalated: "Escalated",
 };
 
 export function TeacherAlertCard({
@@ -21,16 +24,22 @@ export function TeacherAlertCard({
   skills,
   onAction,
   badge = "Simulated fixture",
+  loopTracker,
 }: TeacherAlertCardProps) {
   const isReport = alert.signal === "safety_concern" || alert.signal === "student_question";
-  const status =
-    isReport && alert.status === "verified"
-      ? { label: "Closed", className: "bg-slate-100 text-slate-700" }
-      : statusBadges[alert.status];
+  const statusLabel = isReport && alert.status === "verified" ? "Closed" : statusLabels[alert.status];
   const reportLabel =
-    alert.signal === "safety_concern" ? "Safety concern" : alert.signal === "student_question" ? "Question for you" : null;
+    alert.signal === "safety_concern"
+      ? "Safety concern"
+      : alert.signal === "student_question"
+        ? "Question for you"
+        : null;
   const canAct = Boolean(onAction) && (alert.status === "open" || alert.status === "acted");
-  const actionTitle = canAct ? undefined : onAction ? "This alert is closed" : "Connects to apply_teacher_action";
+  const actionTitle = canAct
+    ? undefined
+    : onAction
+      ? "This alert is closed"
+      : "Connects to apply_teacher_action";
   const sharedGapCount = alert.others_with_gap.length + 1;
   const skillName = skills[alert.skill_id]?.name ?? alert.skill_id;
   const rootCauseName = alert.root_cause
@@ -38,102 +47,110 @@ export function TeacherAlertCard({
     : "Still checking";
 
   return (
-    <article className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_18px_55px_-32px_rgba(15,23,42,0.45)]">
-      <div className="border-b border-slate-100 bg-gradient-to-r from-teal-50 to-white px-6 py-5 sm:px-8">
-        <div className="flex flex-wrap items-start justify-between gap-3">
+    <article
+      className={`overflow-hidden rounded-panel border bg-surface shadow-lifted ${
+        alert.signal === "safety_concern" ? "border-danger/35" : "border-rule"
+      }`}
+    >
+      <header className="border-b border-rule px-5 py-5 sm:px-7 sm:py-6">
+        <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <div className="flex flex-wrap items-center gap-2">
-              <h3 className="text-2xl font-bold">{studentName}</h3>
-              <span className={`rounded-full px-2.5 py-1 text-xs font-bold uppercase tracking-wide ${status.className}`}>
-                {status.label}
-              </span>
-              {reportLabel && (
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+              <h3 className="font-display text-3xl font-semibold tracking-[-0.025em] text-ink">
+                {studentName}
+              </h3>
+              {reportLabel ? (
                 <span
-                  className={`rounded-full px-2.5 py-1 text-xs font-bold uppercase tracking-wide ${
-                    alert.signal === "safety_concern" ? "bg-rose-600 text-white" : "bg-indigo-100 text-indigo-800"
+                  className={`text-xs font-semibold ${
+                    alert.signal === "safety_concern" ? "text-danger" : "text-accent-strong"
                   }`}
                 >
                   {reportLabel}
                 </span>
-              )}
+              ) : null}
             </div>
-            <p className="mt-1 text-sm font-medium text-slate-600">
+            <p className="mt-1 text-sm font-medium text-ink-muted">
               {skillName} · {alert.skill_id}
             </p>
           </div>
-
-          <span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-amber-900">
-            {badge}
-          </span>
+          <div className="text-right text-xs">
+            <p
+              className={`font-semibold ${
+                alert.status === "verified"
+                  ? "text-success"
+                  : alert.status === "escalated" || alert.signal === "safety_concern"
+                    ? "text-danger"
+                    : "text-accent-strong"
+              }`}
+            >
+              {statusLabel}
+            </p>
+            <p className="mt-1 text-ink-muted">{badge}</p>
+          </div>
         </div>
-      </div>
+      </header>
 
-      <div className={`grid gap-6 px-6 py-6 sm:px-8 ${isReport ? "" : "sm:grid-cols-2"}`}>
+      <div className="grid gap-6 px-5 py-6 sm:px-7 lg:grid-cols-[minmax(0,1fr)_minmax(220px,0.65fr)]">
         <div>
-          <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">
+          <p className="text-xs font-semibold text-ink-muted">
             {isReport ? "What the student wrote" : "What Rova noticed"}
           </p>
-          <p className="mt-2 leading-7 text-slate-700">{alert.evidence}</p>
+          <p className="mt-2 leading-7 text-ink">{alert.evidence}</p>
         </div>
 
-        {!isReport && (
-          <div className="rounded-2xl bg-slate-950 p-5 text-white">
-            <p className="text-xs font-bold uppercase tracking-[0.16em] text-teal-300">
-              Root cause
-            </p>
-            <p className="mt-2 text-xl font-bold">{rootCauseName}</p>
-            <p className="mt-1 text-sm text-slate-300">{alert.root_cause}</p>
+        {!isReport ? (
+          <div className="border-l-2 border-accent pl-4">
+            <p className="text-xs font-semibold text-ink-muted">Root cause</p>
+            <p className="mt-2 font-display text-xl font-semibold text-ink">{rootCauseName}</p>
+            <p className="mt-1 text-xs text-ink-muted">{alert.root_cause}</p>
           </div>
-        )}
+        ) : null}
       </div>
 
-      <div className="mx-6 mb-6 rounded-2xl border border-teal-200 bg-teal-50 p-5 sm:mx-8">
-        <p className="text-xs font-bold uppercase tracking-[0.16em] text-teal-800">
+      <div className="mx-5 mb-6 border-l-2 border-accent bg-accent-soft/55 px-4 py-4 sm:mx-7">
+        <p className="text-xs font-semibold text-accent-strong">
           {isReport ? "Suggested next step" : "Suggested 5-minute reteach"}
         </p>
-        <p className="mt-2 leading-7 text-slate-800">{alert.action}</p>
-        {alert.others_with_gap.length > 0 && (
-          <p className="mt-4 font-bold text-teal-900">
-            {sharedGapCount} students share this root cause → try a small group
+        <p className="mt-2 text-sm leading-6 text-ink">{alert.action}</p>
+        {alert.others_with_gap.length > 0 ? (
+          <p className="mt-3 text-sm font-semibold text-accent-strong">
+            {sharedGapCount} students share this root cause · try a small group
           </p>
-        )}
+        ) : null}
       </div>
 
-      <div className="flex flex-wrap gap-3 border-t border-slate-100 px-6 py-5 sm:px-8">
+      {loopTracker}
+
+      <div className="flex flex-wrap gap-2 border-t border-rule px-5 py-4 sm:px-7">
         <button
           type="button"
           disabled={!canAct}
           onClick={() => onAction?.("done")}
           title={actionTitle}
-          className="rounded-xl bg-teal-700 px-4 py-2.5 text-sm font-bold text-white enabled:hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+          className="rounded-control bg-accent px-4 py-2.5 text-sm font-semibold text-white transition-colors enabled:hover:bg-accent-strong disabled:cursor-not-allowed disabled:opacity-45"
         >
-          Done
+          Done <span aria-hidden="true" className="ml-1 text-white/65">D</span>
         </button>
         <button
           type="button"
           disabled={!canAct}
           onClick={() => onAction?.("snooze")}
           title={actionTitle}
-          className="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 enabled:hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+          className="rounded-control border border-rule bg-surface px-4 py-2.5 text-sm font-semibold text-ink transition-colors enabled:hover:border-accent disabled:cursor-not-allowed disabled:opacity-45"
         >
-          Snooze
+          Snooze <span aria-hidden="true" className="ml-1 text-ink-muted">S</span>
         </button>
-        {!isReport && (
+        {!isReport ? (
           <button
             type="button"
             disabled={!canAct}
             onClick={() => onAction?.("different_strategy")}
             title={actionTitle}
-            className="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 enabled:hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+            className="rounded-control border border-rule bg-surface px-4 py-2.5 text-sm font-semibold text-ink transition-colors enabled:hover:border-accent disabled:cursor-not-allowed disabled:opacity-45"
           >
             Different strategy
           </button>
-        )}
-        {!onAction && (
-          <p className="w-full text-xs text-slate-500">
-            Actions become available when the alert service is connected.
-          </p>
-        )}
+        ) : null}
       </div>
     </article>
   );

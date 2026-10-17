@@ -169,6 +169,11 @@ export default function StudentTutor({
     });
   }
 
+  function updateDraft(value: string) {
+    setDraft(value);
+    if (value.trim()) setTeacherReportSent(false);
+  }
+
   function startMission() {
     pendingTeacherReport.current = null;
     setScreen("problem");
@@ -206,6 +211,7 @@ export default function StudentTutor({
     const generation = requestGeneration.current;
     const skillId = activeProblem.skill_id;
     pendingTeacherReport.current = null;
+    setTeacherReportSent(false);
     setBusy(true);
     setError("");
     setStatus("");
@@ -654,7 +660,7 @@ export default function StudentTutor({
                 value={draft}
                 onChange={(event) => {
                   const value = event.target.value;
-                  setDraft(value);
+                  updateDraft(value);
                   setTableEntry(
                     classify_intent(value, mode) === "answer" ? value : "",
                   );
@@ -737,7 +743,7 @@ export default function StudentTutor({
           <TutorInput
             draft={draft}
             busy={busy}
-            onDraftChange={setDraft}
+            onDraftChange={updateDraft}
             onSubmit={onSubmit}
             placeholder="Type an equivalent fraction…"
           />
@@ -784,7 +790,7 @@ export default function StudentTutor({
           <TutorInput
             draft={draft}
             busy={busy}
-            onDraftChange={setDraft}
+            onDraftChange={updateDraft}
             onSubmit={onSubmit}
             placeholder="I multiplied both…"
           />

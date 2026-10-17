@@ -1,17 +1,10 @@
-// Owner: Person A. Placeholder from the integration owner's scaffold; replace freely.
-
-import { ComingSoon, ViewShell } from "@/components/ui/ViewShell";
+import { ViewShell } from "@/components/ui/ViewShell";
+import StudentTutor from "@/components/student/StudentTutor";
 
 export default function StudentPage() {
   return (
     <ViewShell title="Student · Maya" owner="Person A · student tutor">
-      <ComingSoon
-        items={[
-          "Home: buddy greeting, Today's Mission, skill map",
-          "Problem: ratio table, I'm stuck, 3-step hint ladder",
-          "Refresher, explain-it-back, win",
-        ]}
-      />
+      <StudentTutor />
     </ViewShell>
   );
 }

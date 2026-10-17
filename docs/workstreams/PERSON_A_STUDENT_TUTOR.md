@@ -13,14 +13,15 @@
 - [ ] A1 — `content/`: lesson sections and standard text for the 5 demo skills; `find_source(skillId, question)`
 - [ ] A2 — Student home: buddy greeting that uses memory ("Fractions were tricky last time…"), Today's Mission card, skill map with progress rings
 - [ ] A3 — Problem screen: problem text, interactive ratio table or double number line, "I'm stuck", 3-step locked hint ladder, source tag
-- [ ] A4 — `content/demo-script.ts` (D-004): the scripted steps for README section 8, steps 1–4, with preset student inputs shown as tap-to-send buttons and pre-written cited replies. Tutor turn (`app/api/tutor/`): match input to step → check math answers in code → get reply via `callLLM(step)` → log event
-- [ ] A5 — Scripted guardrail steps: "just tell me the answer" → kind refusal plus a guiding question; any unrecognized input → "Great question for your teacher!" plus Send-to-teacher. Label replies Simulated
+- [ ] A4 — `lib/tutor/responder.ts` (D-004, no AI): `respond(input, ctx)` classifies typed input with rules into an `Intent`, checks answers with `check_answer`, picks the next move (hint level, refresher, explain-back), and gets text from `content/templates/` through `callLLM`. Free text box plus quick-reply buttons; Maya can type anything and change problems at any time
+- [ ] A5 — Guardrails as rules: "just tell me the answer" → kind refusal plus a guiding question; unsafe keywords → flag the teacher; anything unrecognized → "Great question for your teacher!" plus Send-to-teacher. Several template variants per reply so it doesn't feel repetitive. Small label: "rule-based (AI planned)"
 - [ ] A6 — Refresher screen: 3 prerequisite questions from the traced root cause, scored by `check_answer`
-- [ ] A7 — Explain-it-back box, then the Win screen
-- [ ] A8 — Out of scope while the demo is scripted (D-004). Keep the 20 math-check unit tests from A0
+- [ ] A7 — Explain-it-back box (rule check for key ideas, e.g. "multiply both", "same ratio", "equivalent"; a gentle follow-up question if missing), then the Win screen
+- [ ] A8 — `eval/`: responder test set (typed input → expected intent and reply type), including misspellings, "just tell me", off-topic, and unsafe lines, plus the 20 math checks from A0. A runner prints pass rates for `STATUS.md`
 
 ## Rules
 
-- Correctness is always decided by `check_answer`, never by scripted text.
+- Correctness is always decided by `check_answer`.
 - Never call `create_alert` yourself. Log events; B's rules decide.
 - Get all reply text through `callLLM`, so a real model can be swapped in later.
+- No dead ends: every input gets a reply, and every screen has a way back.

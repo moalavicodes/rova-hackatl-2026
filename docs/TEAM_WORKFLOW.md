@@ -6,16 +6,16 @@ Checkpoints follow the weekend plan in README section 18. `CONTRIBUTING.md` cove
 
 1. Claim A, B, and C and record names in `STATUS.md`.
 2. Confirm the integration owner, demo operator, and Q&A router.
-3. Agree on the demo script steps (D-004: scripted inputs and replies, no AI model).
+3. Agree on the responder intents and reply templates (D-004: free-flowing, rule-based, no AI model).
 4. Edit and agree on `docs/INTEGRATION_CONTRACTS.md`. Mark D-001 to D-003 in `DECISIONS.md` accepted, or change them.
-5. Person B initializes Next.js + Tailwind. `create-next-app` refuses to run in a non-empty folder, so create it in a temporary folder and move the files into the repo root without overwriting the docs. Then B commits `lib/types.ts`, `lib/llm.ts` (scripted mode), the skill map seed, and the view switcher.
+5. Person B initializes Next.js + Tailwind. `create-next-app` refuses to run in a non-empty folder, so create it in a temporary folder and move the files into the repo root without overwriting the docs. Then B commits `lib/types.ts`, `lib/llm.ts` (template mode), the skill map seed, and the view switcher.
 6. Everyone branches from that commit.
 
 ## Parallel dependency strategy
 
 | Missing dependency | Stand-in |
 | --- | --- |
-| Scripted reply text not written yet | `callLLM` returns a placeholder string for the step |
+| Templates not written yet | `callLLM` returns a placeholder string for the template id |
 | Learner profile / data layer | Hard-coded Maya profile matching `LearnerProfile` |
 | Rules engine | Hard-coded `Alert` fixtures |
 | Tutor events | Scripted `Event` sequences in `fixtures/` |
@@ -41,7 +41,8 @@ Stand-ins must use the real contract types, so that integration means swapping t
 - Everything simulated is labeled Simulated
 
 ### Sat night — Test and record
-- Run the math-check unit tests and the full scripted demo 3 times; record results in `STATUS.md` (the 120-question AI test set is out of scope under D-004)
+- Run the responder test set and math-check tests; record pass rates in `STATUS.md`
+- **Demo acceptance check:** from "Reset demo", run README section 8 end to end 3 times with no errors. Then 5 minutes of free use (typing random, rude, misspelled, and off-topic things; jumping between screens) with no dead ends or blank screens
 - Record the backup demo video
 
 ### Sun 9–10 a.m. — Freeze

@@ -15,7 +15,7 @@ The integration owner consolidates this file after merges. During feature work, 
 - **Completed:** roles assigned 2026-10-17 (all three are repo collaborators); repository created with the README and the shared AI context files. No application code yet.
 - **In progress:** none.
 - **Blocked:** none.
-- **Decided:** scripted demo with hard-coded inputs and responses, no AI model (D-004, 2026-10-17).
+- **Decided:** no AI model for now; free-flowing app with a rule-based responder and templates (D-004, 2026-10-17).
 
 ## Open questions (settle at the contract freeze)
 

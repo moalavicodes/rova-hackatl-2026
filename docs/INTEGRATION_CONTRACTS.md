@@ -90,21 +90,37 @@ export interface LearnerProfile {
 | `find_source` | A | `(skillId, question) => { ref: string; text: string } \| null` |
 | `make_practice` | A | `(skillId, level, interest) => Problem[]` (each answer verified by `check_answer`) |
 | `draft_parent_message` | C | `(studentId, activity, language) => ParentMessage` |
-| `callLLM` | integration owner | `(step: DemoStepId, context?) => string` in `lib/llm.ts`. Scripted mode (D-004) returns the pre-written text for that step; a real model can replace the body later |
+| `respond` | A | `(input: string, ctx: TutorContext) => TutorReply` in `lib/tutor/responder.ts` (rules, no AI) |
+| `callLLM` | integration owner | `(templateId: string, vars: Record<string, string>) => string` in `lib/llm.ts`. Template mode (D-004) picks a variant and fills the vars; a real model can replace the body later |
 
-## Demo script (D-004)
+## Rule-based responder (D-004)
 
-Scripted inputs and replies for the student side live in `content/demo-script.ts` (Person A). Scripted parent and alert text lives in `lib/messages/` (Person C), so nobody edits the other role's file. Each step has an id, the preset student input(s) it accepts, and the buddy reply. Unrecognized input gets the fallback "Great question for your teacher!".
+Maya can type anything. `respond` classifies the input with rules, decides the next move from her state, and gets the text through `callLLM` templates. Person A owns the responder and the student templates in `content/templates/`. Person C owns the parent and alert templates in `lib/messages/`.
 
 ```ts
-export type DemoStepId = string; // e.g. "greeting", "just-tell-me", "wrong-1", "wrong-2", "root-cause-offer", ...
+export type Intent =
+  | "answer"        // contains a number/ratio/fraction → check_answer decides
+  | "ask_answer"    // "just tell me", "what's the answer"
+  | "stuck"         // "help", "hint", "idk", "stuck"
+  | "explain"       // free text while in explain-it-back
+  | "unsafe"        // safety keyword list → flag teacher
+  | "off_topic";    // everything else → "Great question for your teacher!"
 
-export interface DemoStep {
-  id: DemoStepId;
-  student_inputs: string[]; // preset choices shown as tap-to-send buttons
-  reply: string; // pre-written buddy reply
+export interface TutorContext {
+  profile: LearnerProfile;
+  problem_id: string;
+  hint_level: 0 | 1 | 2 | 3;
+  mode: "problem" | "refresher" | "explain";
+}
+
+export interface TutorReply {
+  intent: Intent;
+  text: string;
   source?: string; // citation shown on the reply
-  next: DemoStepId | null;
+  hint_level: 0 | 1 | 2 | 3;
+  next_mode?: TutorContext["mode"]; // e.g. switch to refresher after a root cause is found
+  quick_replies: string[]; // suggested taps; typing stays available
+  events: Event[]; // passed to log_event
 }
 ```
 

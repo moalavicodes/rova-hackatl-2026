@@ -10,19 +10,21 @@ AI made answers instant, not learning. Rova coaches a 6th grader with a hint lad
 
 - **Launch slice:** 6th-grade math, ratios (`6.RP.A.3`) and its prerequisites, for one student persona (Maya) and one teacher (Ms. Rivera). The parent's view is in Spanish.
 - **One web app, three views:** Student, Teacher, Parent (phone-sized). It has to run on a Chromebook browser.
-- **Working vs. simulated** (README section 8, changed by D-004): code math checks, the detection rules, root-cause trace, learner memory, alert *triggering*, and the re-check must actually work. Simulated and labeled on screen: all buddy replies, off-topic/unsafe handling, alert and parent message text (scripted, no AI model, D-004), the 25-student class, parent SMS delivery, the 7-day time jump, and Maya's earlier-grade history.
+- **Free-flowing, no AI model (D-004):** Maya types anything or taps quick replies, in any order. A rule-based responder answers from her input and state. Alerts, teacher views, and parent messages are built from the events she actually produced.
+- **Working vs. simulated** (README section 8, changed by D-004): working in code: buddy replies (rule-based, labeled "rule-based (AI planned)"), off-topic/unsafe handling, math checks, detection rules, root-cause trace, learner memory, alerts, and the re-check. Simulated and labeled on screen: the 25-student class, parent SMS delivery, the 7-day time jump, and Maya's earlier-grade history.
+- **Demo reliability:** the README section 8 demo path must work every time from a "Reset demo" state, and free exploration must never hit a dead end, a blank screen, or an error.
 
 ## Architecture (planned, not yet built)
 
 - Next.js (App Router) + Tailwind. Deployed to Vercel or similar as one URL.
-- **AI text:** scripted, no model is called (D-004). Every text-writing call goes through `callLLM` in `lib/llm.ts`, which returns the pre-written reply for the current demo step. A real model can be plugged in there later.
+- **Replies without AI (D-004):** `lib/tutor/responder.ts` classifies each input with rules (answer, ask-for-answer, stuck, explain-back, off-topic, unsafe), then gets the text through `callLLM` in `lib/llm.ts`, which fills a template for now. A real model can be plugged in there later.
 - **Data:** JSON seed files or SQLite. No external database.
 - **Math checking:** a small expression and fraction evaluator in code (`check_answer`).
 - **Detection rules run in code** (README section 17, "Detection rules"), so they are consistent and explainable.
 
 ## The loop
 
-LEARN → DETECT → DIAGNOSE → ALERT → ACT → VERIFY. Text comes from the script (later an AI model). Code decides when things happen and whether an answer is correct.
+LEARN → DETECT → DIAGNOSE → ALERT → ACT → VERIFY. Text comes from templates chosen by rules (later an AI model). Code decides when things happen and whether an answer is correct.
 
 ## Invariants (guardrails)
 

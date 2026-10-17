@@ -231,7 +231,7 @@ None of the products we reviewed combine all three:
 | Teacher alert generation | | Pulling in data from other tools (i-Ready, etc.) |
 | Off-topic / unsafe message handling | | Human-tutor escalation |
 
-> **Build note (2026-10-17, D-004 in `DECISIONS.md`):** the prototype uses a scripted demo with hard-coded inputs and responses and no live AI model. Tutor replies, off-topic/unsafe handling, alert text, and parent messages therefore count as **Simulated**, not Working. Math checks, detection rules, root-cause trace, and re-check still run in code.
+> **Build note (2026-10-17, D-004 in `DECISIONS.md`):** for now the prototype calls no AI model. It's still a free-flowing app: students type anything, and a rule-based responder in code picks the reply from templates. Tutor replies are labeled "rule-based (AI planned)" and must not be called AI in the pitch. Math checks, detection rules, root-cause trace, alerts, and re-check run in code.
 
 **Backup:** record the full demo video Saturday night. Pre-load data, log in, mute notifications.
 

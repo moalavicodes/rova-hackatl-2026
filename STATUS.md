@@ -21,6 +21,7 @@ The integration owner consolidates this file after merges. During feature work, 
   - PR #7: Person A connected the student view to the store. The full demo works live: Student → alert → Teacher → re-check → Parent (checked in Chrome).
   - PR #8: `reportToTeacher` for safety concerns and student questions (signals `safety_concern` and `student_question`; safety first in the inbox; Done closes them with no re-check or parent message); `onDemoReset` reset signal (`RovaState.session`); rules count only mistakes after an alert is resolved (`resolved_after_event`), verified alerts clear misconceptions, and older saved state is migrated on load (`migrate_state`).
 - **In progress:** Person A wires the student view to PR #8: `reportToTeacher` for unsafe messages and "Send to my teacher" ("Sent to Ms. Rivera"), `onDemoReset` to clear the chat, and removing the student-page Reset button.
+- **Next for Person C:** UI redesign (D-008, `docs/workstreams/PERSON_C_UI_REDESIGN.md`): design tokens and type, a two-pane teacher workspace with an evidence timeline and an interactive class map, the parent phone thread, and a home page that guides the demo.
 - **Not built (cut):** drop and disengagement rules, review queue (C6).
 - **Blocked:** none.
 - **Decided:** demo's group of 5 shown as `others_with_gap` on Maya's alert, class-gap rule stays at 30% (D-007); buddy name stays "Rova" for now; data in JSON seed files with live state in the browser (D-005); hosting on Vercel (D-006); no AI model for now; free-flowing app with a rule-based responder and templates (D-004).
@@ -34,8 +35,9 @@ The integration owner consolidates this file after merges. During feature work, 
 ## Next actions
 
 1. Person A: call `reportToTeacher` for unsafe messages and "Send to my teacher", listen to `onDemoReset`, and remove the student-page Reset button (steps in `docs/workstreams/PERSON_A_STUDENT_TUTOR.md`, "Next steps"). Person B reviews and reruns the full demo, including a safety message and a header reset.
-2. Demo acceptance check (`docs/TEAM_WORKFLOW.md`) on one laptop: Student → Teacher → Parent, 3 runs from Reset demo, then 5 minutes of free use.
-3. Person B: deploy to Vercel (B9) once the Vercel owner is decided.
+2. Person C: UI redesign, starting with C7 (tokens and fonts), in small PRs; demo behavior must not change.
+3. Demo acceptance check (`docs/TEAM_WORKFLOW.md`) on one laptop: Student → Teacher → Parent, 3 runs from Reset demo, then 5 minutes of free use.
+4. Person B: deploy to Vercel (B9) once the Vercel owner is decided.
 
 ## Verification
 

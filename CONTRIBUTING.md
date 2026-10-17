@@ -52,8 +52,8 @@ Until upstream code exists:
 | --- | --- |
 | `app/student/`, `components/student/`, `lib/tutor/`, `lib/math/`, `app/api/tutor/`, `content/` (lesson sources), `eval/` (tutor test set) | Person A |
 | `lib/data/`, `lib/rules/`, `fixtures/`, `app/api/events/`, `app/api/alerts/` | Person B |
-| `app/teacher/`, `app/parent/`, `components/teacher/`, `components/parent/`, `lib/messages/` | Person C |
-| `lib/types.ts`, `lib/llm.ts`, `app/layout.tsx`, `app/page.tsx` (view switcher), `components/ui/`, `package.json`, config files, global CSS | Integration owner |
+| `app/teacher/`, `app/parent/`, `components/teacher/`, `components/parent/`, `lib/messages/`; since D-008 also `app/globals.css` (design tokens), `app/layout.tsx` (fonts), `app/page.tsx` (home), `components/ui/` | Person C |
+| `lib/types.ts`, `lib/llm.ts`, `package.json`, config files | Integration owner |
 | `STATUS.md`, accepted entries in `DECISIONS.md` | Integration owner, after the team agrees |
 
 Don't reformat or refactor someone else's area during feature work. If a shared file has to change, isolate it in a small commit and tell the owner.

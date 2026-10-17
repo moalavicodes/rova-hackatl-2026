@@ -33,4 +33,5 @@ yarn-debug.log*
 
 # testing
 /coverage
+.rova/
 *.pem

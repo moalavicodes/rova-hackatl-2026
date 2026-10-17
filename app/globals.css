@@ -1,17 +1,18 @@
 @import "tailwindcss";
+@import "./product.css";
 
 @theme inline {
   --font-sans: var(--font-public-sans);
   --font-display: var(--font-fraunces);
 
-  --color-paper: #f6f2e8;
+  --color-paper: #f8f8f2;
   --color-paper-deep: #ede7d8;
   --color-surface: #fffdf7;
-  --color-ink: #172735;
-  --color-ink-muted: #5f6b72;
+  --color-ink: #243d30;
+  --color-ink-muted: #6b736b;
   --color-rule: #d8d1c1;
-  --color-accent: #0f6b64;
-  --color-accent-strong: #09534e;
+  --color-accent: #31563e;
+  --color-accent-strong: #244330;
   --color-accent-soft: #dcece7;
   --color-danger: #9c3f3f;
   --color-danger-soft: #f5e2dc;
@@ -34,10 +35,7 @@
   }
 
   body {
-    background:
-      linear-gradient(rgb(23 39 53 / 0.025) 1px, transparent 1px),
-      var(--color-paper);
-    background-size: 100% 2rem;
+    background: var(--color-paper);
     color: var(--color-ink);
     font-variant-numeric: tabular-nums;
   }

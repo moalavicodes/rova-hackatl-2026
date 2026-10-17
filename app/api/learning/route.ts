@@ -1,0 +1,41 @@
+import { randomUUID } from "node:crypto";
+import { currentAccount, database, sameOrigin, visibleWorkspace } from "@/lib/product/server";
+import { gradeAnswer, questions, topics } from "@/lib/product/curriculum";
+
+export const runtime = "nodejs";
+export async function POST(request: Request) {
+  if (!sameOrigin(request)) return Response.json({ error: "Invalid request origin." }, { status: 403 });
+  try {
+    const body = await request.json();
+    return await database(async (db) => {
+      const account = await currentAccount(db);
+      if (!account) return Response.json({ error: "Please sign in." }, { status: 401 });
+      const now = new Date().toISOString();
+      let correct: boolean | undefined;
+      if (body.action === "attempt" && account.role === "student") {
+        const question = questions.find((q) => q.id === body.questionId);
+        if (!question || typeof body.answer !== "string" || body.answer.length > 100) return Response.json({ error: "Choose a valid practice question." }, { status: 400 });
+        const id = String(body.id ?? "");
+        if (!/^[a-zA-Z0-9-]{8,100}$/.test(id)) return Response.json({ error: "Invalid attempt." }, { status: 400 });
+        const previous = db.workspace.attempts.find((a) => a.id === id && a.studentId === account.id);
+        correct = previous?.correct ?? gradeAnswer(question.id, body.answer);
+        if (!previous) db.workspace.attempts.push({ id, studentId: account.id, questionId: question.id, topic: question.topic, correct, hints: Math.max(0, Math.min(3, Number(body.hints) || 0)), at: now });
+      } else if (body.action === "plan" && account.role === "teacher") {
+        const topic = topics.find((t) => t.id === body.topic);
+        const studentIds = db.workspace.students.filter((s) => Array.isArray(body.studentIds) && body.studentIds.includes(s.id)).map((s) => s.id);
+        if (!topic || !studentIds.length) return Response.json({ error: "Select a topic and at least one student." }, { status: 400 });
+        if (!db.workspace.plans.some((p) => p.topic === topic.id && !p.completed && p.studentIds.length === studentIds.length && p.studentIds.every((id) => studentIds.includes(id)))) db.workspace.plans.push({ id: randomUUID(), topic: topic.id, studentIds, at: now });
+      } else if (body.action === "complete-plan" && account.role === "teacher") {
+        const plan = db.workspace.plans.find((p) => p.id === body.id); if (plan) plan.completed = true;
+      } else if (body.action === "note" && account.role === "teacher") {
+        const text = String(body.text ?? "").trim().slice(0, 1000);
+        if (!text || !db.workspace.students.some((s) => s.id === body.studentId)) return Response.json({ error: "Choose a student and write a message." }, { status: 400 });
+        db.workspace.notes.push({ id: randomUUID(), studentId: body.studentId, text, author: account.name, at: now });
+      } else if (body.action === "check" && account.role === "parent") {
+        const key = `${account.id}:${String(body.key).slice(0, 80)}`;
+        db.workspace.checks = db.workspace.checks.includes(key) ? db.workspace.checks.filter((k) => k !== key) : [...db.workspace.checks, key];
+      } else return Response.json({ error: "This action isn’t available for your account." }, { status: 403 });
+      return Response.json({ workspace: visibleWorkspace(db.workspace, account), correct });
+    });
+  } catch { return Response.json({ error: "Your update couldn’t be saved. Please try again." }, { status: 500 }); }
+}

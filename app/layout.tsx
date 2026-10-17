@@ -15,8 +15,8 @@ const fraunces = Fraunces({
 });
 
 export const metadata: Metadata = {
-  title: "Rova",
-  description: "A study buddy that coaches with hints, not answers, and keeps teachers and parents in the loop.",
+  title: "Rova — Every learner. A way forward.",
+  description: "A clearer picture of learning. Fourth-grade math practice that connects students, teachers, and families around real understanding.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

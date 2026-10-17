@@ -9,10 +9,10 @@
 
 ## Tasks
 
-- [ ] C0 — Fixtures-first: render a hard-coded Maya `Alert` and a Spanish `ParentMessage` so the views work before B's rules land. Then switch to live data, so whatever Maya actually did shows up here
-- [ ] C1 — Action inbox: alert cards (student · skill · evidence · root cause · suggested reteach · "4 others share this gap") with Done / Snooze / Different strategy, which call `apply_teacher_action`
+- [x] C0 — Fixtures-first: render a hard-coded Maya `Alert` and a Spanish `ParentMessage` so the views work before B's rules land. Then switch to live data, so whatever Maya actually did shows up here (wired by B: `TeacherLiveView`, `ParentLiveView`)
+- [x] C1 — Action inbox: alert cards (student · skill · evidence · root cause · suggested reteach · "4 others share this gap") with Done / Snooze / Different strategy, which call `apply_teacher_action` (wired by B via `onAction` on `TeacherAlertCard`)
 - [x] C2 — Class heatmap: students × skills, with the "group of 5 share this root cause" callout, read from the alert's `others_with_gap` (D-007). Labeled Simulated
-- [ ] C3 — Loop tracker: open → acted → verified, average days to fix, a "fast-forward 7 days" button that calls `run_recheck(nowOverride)`, then "Mastered ✅, parent notified"
+- [x] C3 — Loop tracker: open → acted → verified, average days to fix, a "fast-forward 7 days" button that calls `run_recheck(nowOverride)`, then "Mastered ✅, parent notified" (wired by B: fast-forward runs `recheck` at the alert's `recheck_at`)
 - [x] C4 — `lib/messages/draftParentMessage.ts`: Spanish templates (D-004) for activity, win, and weekly messages, filled from the real alert (skill, root cause, activity) through `callLLM`. Include the recipe-ratio activity. Delivery is labeled Simulated
 - [x] C5 — Parent view at phone width: SMS mock-up (labeled Simulated), weekly card (learned · working on · try at home), win message
 - [ ] C6 — Review queue: held-back answers and "this seems wrong" flags (cut first if short on time)
@@ -21,4 +21,4 @@
 
 - Never change alert status directly. Always go through B's functions.
 - Everything simulated gets a visible Simulated label.
-- Alert text templates live in `lib/messages/` (C owns the wording; B's rules fill and trigger them).
+- Alert wording lives in `lib/rules/alertTemplates.ts` (B's rules fill and trigger it); C may edit the wording there.

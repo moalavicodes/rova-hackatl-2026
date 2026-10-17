@@ -19,6 +19,12 @@
 - [ ] A7 — Explain-it-back box (rule check for key ideas, e.g. "multiply both", "same ratio", "equivalent"; a gentle follow-up question if missing), then the Win screen
 - [ ] A8 — `eval/`: responder test set (typed input → expected intent and reply type), including misspellings, "just tell me", off-topic, and unsafe lines, plus the 20 math checks from A0. A runner prints pass rates for `STATUS.md`
 
+## Connecting to the store (after PR #4 merges)
+
+- After each tutor reply, call `logEvents(reply.events)` from `@/lib/data/store`. It runs the detection rules and creates the teacher alert.
+- Read Maya's profile with `get_learner_profile(useRovaState(), "maya")` (`@/lib/rules/engine`, `@/lib/data/store`) instead of keeping a separate copy, so misconceptions and mastery match what the teacher sees.
+- The student "Reset demo" should also call `resetDemo()` (the header button already does).
+
 ## Rules
 
 - Correctness is always decided by `check_answer`.

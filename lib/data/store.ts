@@ -9,11 +9,12 @@ import { resetLLM } from "@/lib/llm";
 import {
   apply_teacher_action,
   log_event,
+  report_to_teacher,
   run_recheck,
   seedState,
   type RovaState,
 } from "@/lib/rules/engine";
-import type { Alert, Event, TeacherAction } from "@/lib/types";
+import type { Alert, Event, TeacherAction, TeacherReport } from "@/lib/types";
 
 const STORAGE_KEY = "rova-demo-v1";
 const serverSnapshot = seedState();
@@ -82,6 +83,14 @@ export function logEvents(events: Event[]): Alert[] {
   }
   commit(state);
   return created;
+}
+
+// For the student view: the safety screen and "Send to my teacher". Returns the new alert,
+// or null if the same report is already open.
+export function reportToTeacher(report: TeacherReport): Alert | null {
+  const result = report_to_teacher(getState(), report);
+  if (result.alert) commit(result.state);
+  return result.alert;
 }
 
 export function teacherAction(alertId: string, action: TeacherAction) {

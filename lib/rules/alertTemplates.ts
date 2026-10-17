@@ -19,6 +19,12 @@ export const alertTemplates: TemplateBank = {
   "alert.action.none": [
     "Sit with {student} for 5 minutes and ask them to talk through one problem out loud.",
   ],
+  "alert.action.safety_concern": [
+    "Check in with {student} privately today, and follow your school's safety procedure if needed.",
+  ],
+  "alert.action.student_question": [
+    "Answer {student}'s question at the start of the next class, or reply when you have a minute.",
+  ],
   "alert.different_strategy": [
     "Try a different model: draw a double number line with the student and scale both rows by the same number.",
   ],

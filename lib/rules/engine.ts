@@ -19,6 +19,7 @@ import type {
   SkillState,
   Student,
   TeacherAction,
+  TeacherReport,
 } from "@/lib/types";
 
 export interface RovaState {
@@ -89,6 +90,7 @@ function hasUnresolvedAlert(state: RovaState, studentId: string, skillId: SkillI
     (a) =>
       a.student_id === studentId &&
       a.skill_id === skillId &&
+      !is_report(a) &&
       (a.status === "open" || a.status === "acted"),
   );
 }
@@ -159,6 +161,48 @@ export function log_event(
   return { state: { ...next, alerts: [...next.alerts, ...newAlerts] }, newAlerts };
 }
 
+// Student-sent reports: no root cause, no re-check, no parent message.
+export function is_report(alert: Alert): boolean {
+  return alert.signal === "safety_concern" || alert.signal === "student_question";
+}
+
+const MAX_REPORT_MESSAGE = 300;
+
+// Sends what the student wrote straight to the teacher's inbox. A repeat of the same open
+// report is ignored, so tapping "Send to my teacher" twice doesn't create two alerts.
+export function report_to_teacher(
+  state: RovaState,
+  report: TeacherReport,
+  now: Date = new Date(),
+): { state: RovaState; alert: Alert | null } {
+  const message = report.message.trim().slice(0, MAX_REPORT_MESSAGE);
+  const evidenceFor = (name: string) =>
+    report.kind === "safety_concern"
+      ? `${name} wrote something that may need a check-in: "${message}"`
+      : `${name} asked: "${message}"`;
+  const name = studentName(state, report.student_id);
+  const evidence = evidenceFor(name);
+  const duplicate = state.alerts.some(
+    (a) => a.student_id === report.student_id && a.signal === report.kind && a.status === "open" && a.evidence === evidence,
+  );
+  if (duplicate) return { state, alert: null };
+
+  const alert: Alert = {
+    id: `alert-${state.alerts.length + 1}`,
+    student_id: report.student_id,
+    skill_id: report.skill_id,
+    signal: report.kind,
+    evidence,
+    root_cause: null,
+    action: callLLM(`alert.action.${report.kind}`, { student: name }, alertTemplates),
+    others_with_gap: [],
+    status: "open",
+    recheck_at: null,
+    created_at: now.toISOString(),
+  };
+  return { state: { ...state, alerts: [...state.alerts, alert] }, alert };
+}
+
 function parentMessage(
   state: RovaState,
   alert: Alert,
@@ -198,6 +242,10 @@ export function apply_teacher_action(
 
   if (action === "snooze") {
     return updateAlert(state, alertId, (a) => ({ ...a, recheck_at: daysLater(now, SNOOZE_DAYS) }));
+  }
+  // A report is closed once the teacher handles it: nothing to re-check, nothing to tell the parent.
+  if (is_report(alert)) {
+    return updateAlert(state, alertId, (a) => ({ ...a, status: "verified", recheck_at: null }));
   }
 
   const acted = updateAlert(state, alertId, (a) => ({

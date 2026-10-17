@@ -31,6 +31,7 @@
 - After each tutor reply, call `logEvents(reply.events)` from `@/lib/data/store`. It runs the detection rules and creates the teacher alert.
 - Read Maya's profile with `get_learner_profile(useRovaState(), "maya")` (`@/lib/rules/engine`, `@/lib/data/store`) instead of keeping a separate copy, so misconceptions and mastery match what the teacher sees.
 - The student "Reset demo" should also call `resetDemo()` (the header button already does).
+- Teacher reports (A5): when a reply's intent is `unsafe`, call `reportToTeacher({ student_id, skill_id, kind: "safety_concern", message: input })` right away (the safety screen sends it; Maya doesn't have to tap anything). On "Send to my teacher", call it with `kind: "student_question"` and the message she typed, or `"safety_concern"` if that message was unsafe. Replace the "Simulated: no alert was sent" banner with "Sent to Ms. Rivera". Sending the same open report twice is ignored.
 
 ## Rules
 

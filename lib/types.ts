@@ -68,9 +68,19 @@ export type AlertSignal =
   | "repeated_misconception"
   | "drop"
   | "disengagement"
-  | "class_gap";
+  | "class_gap"
+  | "safety_concern" // student wrote something concerning (safety screen or Send to my teacher)
+  | "student_question"; // student sent an off-topic question to the teacher
 export type AlertStatus = "open" | "acted" | "verified" | "escalated";
 export type TeacherAction = "done" | "snooze" | "different_strategy";
+
+// A report the student view sends straight to the teacher (no rules involved).
+export interface TeacherReport {
+  student_id: string;
+  skill_id: SkillId; // the skill being practiced when it was sent
+  kind: "safety_concern" | "student_question";
+  message: string; // what the student wrote; teachers can see every conversation
+}
 
 export interface Alert {
   id: string;

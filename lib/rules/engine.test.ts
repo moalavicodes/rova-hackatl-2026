@@ -128,3 +128,56 @@ describe("the loop: detect → diagnose → alert → act → verify", () => {
     expect(seedState().skillStates[0].misconceptions).toEqual([]);
   });
 });
+
+describe("reports from the student view", () => {
+  beforeEach(() => resetLLM());
+  const safety = {
+    student_id: "maya",
+    skill_id: "6.RP.A.3",
+    kind: "safety_concern" as const,
+    message: "I want to hurt myself",
+  };
+
+  it("creates a safety alert with what the student wrote and no root cause", async () => {
+    const { report_to_teacher } = await import("@/lib/rules/engine");
+    const { state, alert } = report_to_teacher(seedState(), safety, t0);
+    expect(alert).toMatchObject({
+      signal: "safety_concern",
+      status: "open",
+      root_cause: null,
+      others_with_gap: [],
+      recheck_at: null,
+    });
+    expect(alert?.evidence).toBe('Maya wrote something that may need a check-in: "I want to hurt myself"');
+    expect(alert?.action).toContain("Check in with Maya");
+    expect(state.alerts).toHaveLength(1);
+  });
+
+  it("ignores the same open report sent twice", async () => {
+    const { report_to_teacher } = await import("@/lib/rules/engine");
+    const first = report_to_teacher(seedState(), safety, t0).state;
+    const second = report_to_teacher(first, safety, t0);
+    expect(second.alert).toBeNull();
+    expect(second.state.alerts).toHaveLength(1);
+  });
+
+  it("closes a question on Done, without a re-check or parent message", async () => {
+    const { report_to_teacher } = await import("@/lib/rules/engine");
+    const { state, alert } = report_to_teacher(
+      seedState(),
+      { ...safety, kind: "student_question", message: "Can you write a poem?" },
+      t0,
+    );
+    expect(alert?.evidence).toBe('Maya asked: "Can you write a poem?"');
+    const done = apply_teacher_action(state, alert!.id, "done", t0);
+    expect(done.alerts[0]).toMatchObject({ status: "verified", recheck_at: null });
+    expect(done.parentMessages).toEqual([]);
+  });
+
+  it("does not block learning alerts for the same skill", async () => {
+    const { report_to_teacher } = await import("@/lib/rules/engine");
+    let state = report_to_teacher(seedState(), safety, t0).state;
+    state = run(state, [attempt(false, "adds-across-ratio-table"), attempt(false, "adds-across-ratio-table")]);
+    expect(state.alerts.map((a) => a.signal)).toEqual(["safety_concern", "repeated_misconception"]);
+  });
+});

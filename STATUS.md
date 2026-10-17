@@ -18,7 +18,7 @@ The integration owner consolidates this file after merges. During feature work, 
   - PR #3: Person C's teacher and parent views on the shared seed.
   - PR #5: B2 to B8. Browser store (`lib/data/store.ts`), root-cause trace, detection rules, the alert loop (`lib/rules/engine.ts`), live Teacher and Parent views, and Reset demo in every header.
   - PR #4: Person A's student tutor. Rule-based responder, exact math checker, hint ladder, fraction refresher, explain-it-back, win screen; 27-case responder test set.
-- **In progress:** connecting the student view to the store (Person A). Until then, Maya's mistakes stay on the student screen and don't create the teacher alert.
+- **In progress:** connecting the student view to the store (Person A, not pushed yet). Person A asked for a way to send unsafe and off-topic messages to the teacher: added on branch `feat/teacher-reports` as `reportToTeacher` (new alert signals `safety_concern` and `student_question`; safety concerns go to the top of the inbox; Done closes them with no re-check and no parent message).
 - **Not built (cut):** drop and disengagement rules, review queue (C6).
 - **Blocked:** none.
 - **Decided:** demo's group of 5 shown as `others_with_gap` on Maya's alert, class-gap rule stays at 30% (D-007); buddy name stays "Rova" for now; data in JSON seed files with live state in the browser (D-005); hosting on Vercel (D-006); no AI model for now; free-flowing app with a rule-based responder and templates (D-004).
@@ -31,11 +31,13 @@ The integration owner consolidates this file after merges. During feature work, 
 
 ## Next actions
 
-1. Person A connects the student view to the store (steps in `docs/workstreams/PERSON_A_STUDENT_TUTOR.md`, "Connecting to the store"): `logEvents(reply.events)` after each reply, read the profile from the store, and make the student Reset call `resetDemo()`. That also removes the duplicate Reset demo button on `/student`.
+1. Person A connects the student view to the store (steps in `docs/workstreams/PERSON_A_STUDENT_TUTOR.md`, "Connecting to the store"): `logEvents(reply.events)` after each reply, read the profile from the store, and make the student Reset call `resetDemo()`. That also removes the duplicate Reset demo button on `/student`. Also call `reportToTeacher` for unsafe messages and "Send to my teacher" (see the guide).
 2. Demo acceptance check (`docs/TEAM_WORKFLOW.md`) on one laptop: Student → Teacher → Parent, 3 runs from Reset demo, then 5 minutes of free use.
 3. Person B: deploy to Vercel (B9) once the Vercel owner is decided.
 
 ## Verification
+
+- 2026-10-17 on `feat/teacher-reports`: 130/130 tests (4 new report tests), tsc, lint, and build clean. Chrome: a safety concern, a question, and Maya's learning alert in the inbox; safety listed first without root cause; Done → Closed, count dropped, no parent message, loop tracker still followed the learning alert.
 
 - 2026-10-17 `main` after PR #4 (2cdbf0d): `npm run test` 126/126 pass, `tsc --noEmit`, lint, and build clean. Before merge, the student path was checked in Chrome on PR #4 combined with PR #5: refusal → two `9`s → refresher → `12` → explain-it-back → Win.
 

@@ -1,14 +1,14 @@
 "use client";
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { mayaProfile } from "@/lib/data/seed";
-import { skillMap } from "@/lib/data/seed";
+import { getState, logEvents, resetDemo as resetRovaDemo, useRovaState } from "@/lib/data/store";
+import { get_learner_profile } from "@/lib/rules/engine";
 import { find_source } from "@/content/lessons";
 import { getRatioTable, make_practice, demoProblems } from "@/lib/tutor/problems";
 import { classify_intent, explain_is_complete } from "@/lib/tutor/intent";
 import type {
-  Event,
   Intent,
+  SkillId,
   TutorContext,
   TutorMode,
   TutorReply,
@@ -64,13 +64,14 @@ export default function StudentTutor({
 }) {
   const [screen, setScreen] = useState<Screen>("home");
   const [mode, setMode] = useState<TutorMode>("problem");
-  const [profile, setProfile] = useState(mayaProfile);
+  const state = useRovaState();
+  const profile = get_learner_profile(state, "maya");
   const [problemIndex, setProblemIndex] = useState(0);
   const [refresherIndex, setRefresherIndex] = useState(0);
+  const [refresherSkillId, setRefresherSkillId] = useState<SkillId | null>(null);
   const [hintLevel, setHintLevel] = useState<0 | 1 | 2 | 3>(0);
   const [tableEntry, setTableEntry] = useState("");
   const [messages, setMessages] = useState<ConversationMessage[]>([]);
-  const [events, setEvents] = useState<Event[]>([]);
   const [draft, setDraft] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -81,10 +82,13 @@ export default function StudentTutor({
 
   const student = profile.student;
   const problem = demoProblems[problemIndex];
-  const rootCauseSkill = "4.NF.A.1";
-  const refresherQuestions = make_practice(rootCauseSkill, 0, "");
+  const refresherQuestions = refresherSkillId
+    ? make_practice(refresherSkillId, 0, "")
+    : [];
   const activeProblem =
-    screen === "refresher" ? refresherQuestions[refresherIndex] : problem;
+    screen === "refresher"
+      ? (refresherQuestions[refresherIndex] ?? problem)
+      : problem;
   const table = getRatioTable(problem.id);
   const recentReply = [...messages].reverse().find((message) => message.sender === "buddy");
   const source = find_source(activeProblem.skill_id, activeProblem.prompt);
@@ -191,47 +195,40 @@ export default function StudentTutor({
         hintLevel: reply.hint_level,
         quickReplies: reply.quick_replies,
       });
-      setEvents((current) => [...current, ...reply.events]);
+      const createdAlerts = reply.events.length > 0 ? logEvents(reply.events) : [];
 
       if (reply.intent === "unsafe") setTeacherReviewNeeded(true);
       if (reply.hint_level !== hintLevel) setHintLevel(reply.hint_level);
       if (reply.next_mode === "refresher") {
-        setRefresherIndex(0);
-        setMode("refresher");
-        setScreen("refresher");
-        setStatus("Simulated root-cause refresher: equivalent fractions (4.NF.A.1).");
+        const latestState = getState();
+        const alert = [...createdAlerts, ...latestState.alerts].find(
+          (item) =>
+            item.student_id === student.id &&
+            item.skill_id === problem.skill_id &&
+            (item.status === "open" || item.status === "acted"),
+        );
+        const rootCause = alert?.root_cause;
+        if (rootCause && make_practice(rootCause, 0, "").length > 0) {
+          setRefresherSkillId(rootCause);
+          setRefresherIndex(0);
+          setMode("refresher");
+          setScreen("refresher");
+          setStatus(
+            `Root-cause refresher: ${latestState.skillMap[rootCause]?.name ?? rootCause}.`,
+          );
+        } else {
+          setMode("problem");
+          setScreen("problem");
+          setStatus(
+            "We couldn't find a practice set for the traced skill, so let's keep working on this ratio.",
+          );
+        }
       } else if (reply.next_mode === "explain") {
         setMode("explain");
         setScreen("explain");
       }
 
       const correctAnswer = reply.events.some((item) => item.correct === true);
-      const wrongAnswer = reply.events.find(
-        (item) => item.correct === false && item.error_type,
-      );
-      if (wrongAnswer?.error_type) {
-        setProfile((current) => ({
-          ...current,
-          skills: current.skills.map((skill) =>
-            skill.skill_id === wrongAnswer.skill_id
-              ? {
-                  ...skill,
-                  misconceptions: [...skill.misconceptions, wrongAnswer.error_type!],
-                }
-              : skill,
-          ),
-        }));
-      }
-      if (correctAnswer && mode === "problem") {
-        setProfile((current) => ({
-          ...current,
-          skills: current.skills.map((skill) =>
-            skill.skill_id === problem.skill_id
-              ? { ...skill, mastery: Math.min(1, skill.mastery + 0.15) }
-              : skill,
-          ),
-        }));
-      }
       if (correctAnswer && mode === "refresher") {
         if (refresherIndex + 1 < refresherQuestions.length) {
           setRefresherIndex((index) => index + 1);
@@ -246,14 +243,6 @@ export default function StudentTutor({
       }
       if (mode === "explain" && explain_is_complete(input)) {
         setScreen("win");
-        setProfile((current) => ({
-          ...current,
-          skills: current.skills.map((skill) =>
-            skill.skill_id === problem.skill_id
-              ? { ...skill, mastery: 1 }
-              : skill,
-          ),
-        }));
       }
     } catch (requestError) {
       setError(
@@ -274,14 +263,14 @@ export default function StudentTutor({
       if (!response.ok) {
         throw new Error(`Could not reset reply templates (${response.status}).`);
       }
+      resetRovaDemo();
       setScreen("home");
       setMode("problem");
-      setProfile(mayaProfile);
       setProblemIndex(0);
       setRefresherIndex(0);
+      setRefresherSkillId(null);
       setHintLevel(0);
       setMessages([]);
-      setEvents([]);
       setTableEntry("");
       setTeacherReviewNeeded(false);
       setStatus("Demo reset to Maya's seeded learning profile.");
@@ -431,7 +420,7 @@ export default function StudentTutor({
             </div>
             <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
               {profile.skills.map((skill) => {
-                const details = skillMap[skill.skill_id];
+                const details = state.skillMap[skill.skill_id];
                 const progress = Math.round(skill.mastery * 100);
                 return (
                   <div key={skill.skill_id} className="rounded-xl bg-slate-50 p-3">
@@ -636,37 +625,46 @@ export default function StudentTutor({
       {screen === "refresher" && (
         <section className="mx-auto max-w-3xl space-y-4">
           <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5">
-            <p className="text-sm font-semibold text-amber-900">Quick refresher · Simulated root-cause path</p>
+            <p className="text-sm font-semibold text-amber-900">Quick refresher · Traced root cause</p>
             <h2 className="mt-1 text-xl font-semibold text-slate-900">
-              Let’s practice equivalent fractions
+              Let’s practice {state.skillMap[refresherSkillId ?? ""]?.name ?? "this skill"}
             </h2>
             <p className="mt-1 text-sm text-slate-700">
-              Skill {rootCauseSkill} · Check {refresherIndex + 1} of {refresherQuestions.length}
+              Skill {refresherSkillId} · Check {refresherIndex + 1} of {refresherQuestions.length}
             </p>
           </div>
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <p className="text-xs font-semibold uppercase tracking-wide text-indigo-700">
-              {source?.ref ?? "4.NF.A.1 · Equivalent fractions"}
+              {source?.ref ?? refresherSkillId}
             </p>
             <h3 className="mt-2 text-xl font-semibold text-slate-900">
               {activeProblem.prompt}
             </h3>
-            <div
-              className="mt-4 flex h-10 max-w-xs overflow-hidden rounded-lg border border-slate-200"
-              aria-label={`${fractionModels[activeProblem.id].numerator} of ${fractionModels[activeProblem.id].denominator} equal parts shaded`}
-            >
-              {Array.from({ length: fractionModels[activeProblem.id].denominator }, (_, index) => (
+            {fractionModels[activeProblem.id] && (
+              <>
                 <div
-                  key={index}
-                  className={`flex-1 border-r border-white last:border-r-0 ${
-                    index < fractionModels[activeProblem.id].numerator
-                      ? "bg-indigo-500"
-                      : "bg-indigo-100"
-                  }`}
-                />
-              ))}
-            </div>
-            <p className="mt-1 text-xs text-slate-500">A visual model: equal parts can name the same amount.</p>
+                  className="mt-4 flex h-10 max-w-xs overflow-hidden rounded-lg border border-slate-200"
+                  aria-label={`${fractionModels[activeProblem.id].numerator} of ${fractionModels[activeProblem.id].denominator} equal parts shaded`}
+                >
+                  {Array.from(
+                    { length: fractionModels[activeProblem.id].denominator },
+                    (_, index) => (
+                      <div
+                        key={index}
+                        className={`flex-1 border-r border-white last:border-r-0 ${
+                          index < fractionModels[activeProblem.id].numerator
+                            ? "bg-indigo-500"
+                            : "bg-indigo-100"
+                        }`}
+                      />
+                    ),
+                  )}
+                </div>
+                <p className="mt-1 text-xs text-slate-500">
+                  A visual model: equal parts can name the same amount.
+                </p>
+              </>
+            )}
           </div>
           <Conversation messages={messages} busy={busy} />
           {recentReply?.quickReplies && (
@@ -770,8 +768,10 @@ export default function StudentTutor({
       )}
 
       <footer className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-200 pt-3 text-xs text-slate-500">
-        <span>Events: {events.length} · local fixture only until Person B’s event service is connected</span>
-        <span>Nothing here is sent to a real teacher or parent.</span>
+        <span>
+          Events: {state.events.filter((event) => event.student_id === student.id).length} · shared with the Teacher view in this browser
+        </span>
+        <span>Parent message delivery is simulated.</span>
       </footer>
     </div>
   );

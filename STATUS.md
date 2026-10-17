@@ -19,10 +19,8 @@ The integration owner consolidates this file after merges. During feature work, 
   - PR #5: B2 to B8. Browser store (`lib/data/store.ts`), root-cause trace, detection rules, the alert loop (`lib/rules/engine.ts`), live Teacher and Parent views, and Reset demo in every header.
   - PR #4: Person A's student tutor. Rule-based responder, exact math checker, hint ladder, fraction refresher, explain-it-back, win screen; 27-case responder test set.
   - PR #7: Person A connected the student view to the store. The full demo works live: Student → alert → Teacher → re-check → Parent (checked in Chrome).
-- **In progress (branch `feat/teacher-reports`):**
-  - `reportToTeacher` for safety concerns and student questions: new alert signals `safety_concern` and `student_question`; safety concerns go to the top of the inbox; Done closes them with no re-check and no parent message.
-  - `onDemoReset` reset signal, so the header Reset also clears the student chat (`RovaState.session`).
-  - Rules fix: only mistakes after an alert is resolved count (cut-off = `resolved_after_event`, an event count, since the re-check uses a simulated date), and misconceptions are cleared when an alert is verified. Saved state from an older version is migrated on load (`migrate_state`): it gets a session, so cross-tab reset still fires, and resolved alerts without a cut-off are treated as resolved at the end of the saved log. All from the PR #8 review.
+  - PR #8: `reportToTeacher` for safety concerns and student questions (signals `safety_concern` and `student_question`; safety first in the inbox; Done closes them with no re-check or parent message); `onDemoReset` reset signal (`RovaState.session`); rules count only mistakes after an alert is resolved (`resolved_after_event`), verified alerts clear misconceptions, and older saved state is migrated on load (`migrate_state`).
+- **In progress:** Person A wires the student view to PR #8: `reportToTeacher` for unsafe messages and "Send to my teacher" ("Sent to Ms. Rivera"), `onDemoReset` to clear the chat, and removing the student-page Reset button.
 - **Not built (cut):** drop and disengagement rules, review queue (C6).
 - **Blocked:** none.
 - **Decided:** demo's group of 5 shown as `others_with_gap` on Maya's alert, class-gap rule stays at 30% (D-007); buddy name stays "Rova" for now; data in JSON seed files with live state in the browser (D-005); hosting on Vercel (D-006); no AI model for now; free-flowing app with a rule-based responder and templates (D-004).
@@ -35,11 +33,13 @@ The integration owner consolidates this file after merges. During feature work, 
 
 ## Next actions
 
-1. Merge `feat/teacher-reports`. Then Person A calls `reportToTeacher` for unsafe messages and "Send to my teacher", listens to `onDemoReset`, and removes the student-page Reset button (steps in `docs/workstreams/PERSON_A_STUDENT_TUTOR.md`, "Next steps").
+1. Person A: call `reportToTeacher` for unsafe messages and "Send to my teacher", listen to `onDemoReset`, and remove the student-page Reset button (steps in `docs/workstreams/PERSON_A_STUDENT_TUTOR.md`, "Next steps"). Person B reviews and reruns the full demo, including a safety message and a header reset.
 2. Demo acceptance check (`docs/TEAM_WORKFLOW.md`) on one laptop: Student → Teacher → Parent, 3 runs from Reset demo, then 5 minutes of free use.
 3. Person B: deploy to Vercel (B9) once the Vercel owner is decided.
 
 ## Verification
+
+- 2026-10-17 `main` after PR #8 (0176df5): 141/141 tests, build succeeds.
 
 - 2026-10-17 PR #8 second review fix: 141/141 tests (new: legacy resolved alert doesn't re-alert on one new mistake but does on two; open alerts untouched; store applies the migration on load), tsc, lint, and build clean.
 

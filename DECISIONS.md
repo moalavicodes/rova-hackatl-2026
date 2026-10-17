@@ -57,3 +57,11 @@ Accepted tradeoffs only. Format is in `docs/AI_WORKFLOW.md`. Entries marked `pro
 - Decision: The class-gap rule keeps its README threshold (≥30% of a class shares a root cause). The demo's 5 students with the `4.NF.A.1` gap (20% of 25) appear as `others_with_gap` on Maya's alert ("4 others share this gap → small-group refresher"), not as a separate class-gap alert.
 - Reason: Matches the README's example teacher card (section 5), and keeps the 30% rule for real class-wide problems.
 - Consequence: In the demo seed the class-gap rule does not fire. `create_alert` must fill `others_with_gap` from students whose `4.NF.A.1` mastery shows the same gap. The teacher heatmap callout ("group of 5 share this root cause") reads from that list.
+
+## D-008 — Person C owns the visual design system and leads the UI redesign
+
+- Date: 2026-10-17
+- Status: accepted (Person B, integration owner)
+- Decision: Person C takes over `app/globals.css` (design tokens), `app/layout.tsx` (fonts), `app/page.tsx` (home), and `components/ui/` from the integration owner, and leads the redesign in `docs/workstreams/PERSON_C_UI_REDESIGN.md`. The student view's styling follows after Person A's in-flight PR, together with Person A.
+- Reason: The prototype works end to end but looks like a generic template. One person owning the visual system keeps the three views consistent.
+- Consequence: Person B still owns data, rules, the store, and `lib/types.ts`; the redesign must not change behavior and reads and acts only through `lib/data/store.ts`. `ResetDemoButton` must keep calling `resetDemo()`.

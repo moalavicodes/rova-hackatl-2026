@@ -17,6 +17,10 @@
 - [x] C5 — Parent view at phone width: SMS mock-up (labeled Simulated), weekly card (learned · working on · try at home), win message
 - [ ] C6 — Review queue: held-back answers and "this seems wrong" flags (cut first if short on time)
 
+## UI redesign (D-008)
+
+Next: the redesign in [`PERSON_C_UI_REDESIGN.md`](PERSON_C_UI_REDESIGN.md), tasks C7–C15. Person C now also owns the design tokens, fonts, home page, and `components/ui/`.
+
 ## Rules
 
 - Never change alert status directly. Always go through B's functions.

@@ -65,3 +65,11 @@ Accepted tradeoffs only. Format is in `docs/AI_WORKFLOW.md`. Entries marked `pro
 - Decision: Person C takes over `app/globals.css` (design tokens), `app/layout.tsx` (fonts), `app/page.tsx` (home), and `components/ui/` from the integration owner, and leads the redesign in `docs/workstreams/PERSON_C_UI_REDESIGN.md`. The student view's styling follows after Person A's in-flight PR, together with Person A.
 - Reason: The prototype works end to end but looks like a generic template. One person owning the visual system keeps the three views consistent.
 - Consequence: Person B still owns data, rules, the store, and `lib/types.ts`; the redesign must not change behavior and reads and acts only through `lib/data/store.ts`. `ResetDemoButton` must keep calling `resetDemo()`.
+
+## D-009 — Keep the new app
+
+- Date: 2026-10-17
+- Status: accepted (team, via Person B)
+- Decision: Keep the app pushed to `main` in commit 3439f5a ("new UI"): a grade 4 math product with Student, Teacher, and Parent workspaces behind logins, in `components/product/` and `lib/product/`. The README, `PROJECT_CONTEXT.md`, and `STATUS.md` describe it as the current app.
+- Reason: It looks and feels like a real product, which the team preferred for the pitch.
+- Consequence: The earlier closed loop (root cause, alerts, re-check, safety reports, reset) and the earlier views are no longer on screen; they stay in the repo, tested, until reconnected or removed. It conflicts with D-005 and D-006 (the app writes a JSON file at runtime, which Vercel can't do) and with the README's "no child accounts" privacy plan; both must be resolved before deploying. The D-008 redesign brief (C7–C15) targeted the earlier screens and no longer applies as written.

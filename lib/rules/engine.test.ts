@@ -252,3 +252,41 @@ describe("resolution point (review P1)", () => {
     expect(state.alerts).toHaveLength(2);
   });
 });
+
+describe("migrating state saved by an older version (review P2, follow-up)", () => {
+  beforeEach(() => {
+    resetLLM();
+    tick = 0;
+  });
+
+  it("does not let old mistakes behind a resolved alert trigger a new alert", async () => {
+    const { migrate_state } = await import("@/lib/rules/engine");
+    // Build an old-style state: a verified alert with no resolved_after_event and no session.
+    let state = run(seedState(), [attempt(false, "adds-across-ratio-table"), attempt(false, "adds-across-ratio-table")]);
+    const id = state.alerts[0].id;
+    state = run(state, [refresher(true), refresher(true), attempt(true)]);
+    state = apply_teacher_action(state, id, "done", t0);
+    state = run_recheck(state, id, new Date(state.alerts[0].recheck_at!));
+    const legacy = JSON.parse(JSON.stringify(state));
+    delete legacy.session;
+    delete legacy.alerts[0].resolved_after_event;
+    // Without migration, the two old mistakes plus one new one would re-alert.
+    expect(run(legacy, [attempt(false, "adds-across-ratio-table")]).alerts).toHaveLength(2);
+
+    const migrated = migrate_state(legacy);
+    expect(migrated.session).toBe("seed");
+    expect(migrated.alerts[0].resolved_after_event).toBe(legacy.events.length);
+    expect(run(migrated, [attempt(false, "adds-across-ratio-table")]).alerts).toHaveLength(1);
+    expect(
+      run(migrated, [attempt(false, "adds-across-ratio-table"), attempt(false, "adds-across-ratio-table")]).alerts,
+    ).toHaveLength(2);
+  });
+
+  it("leaves open alerts and already-migrated alerts unchanged", async () => {
+    const { migrate_state } = await import("@/lib/rules/engine");
+    const state = run(seedState(), [attempt(false, "adds-across-ratio-table"), attempt(false, "adds-across-ratio-table")]);
+    const migrated = migrate_state(state);
+    expect(migrated.alerts[0]).toEqual(state.alerts[0]);
+    expect(migrated.session).toBe("seed");
+  });
+});

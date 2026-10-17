@@ -54,6 +54,21 @@ export function seedState(): RovaState {
   };
 }
 
+// Brings state saved by an older version up to date. Resolved alerts saved before
+// resolved_after_event existed are treated as resolved at the end of the saved log: their real
+// resolution point is unknown, and counting all earlier events could raise a false alert.
+export function migrate_state(saved: RovaState): RovaState {
+  return {
+    ...saved,
+    session: saved.session ?? "seed",
+    alerts: saved.alerts.map((a) =>
+      (a.status === "verified" || a.status === "escalated") && a.resolved_after_event === undefined
+        ? { ...a, resolved_after_event: saved.events.length }
+        : a,
+    ),
+  };
+}
+
 export function get_learner_profile(state: RovaState, studentId: string): LearnerProfile {
   const student = state.students.find((s) => s.id === studentId);
   if (!student) throw new Error(`Unknown student: ${studentId}`);

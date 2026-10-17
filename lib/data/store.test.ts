@@ -59,3 +59,24 @@ describe("store reset signal (review P2)", () => {
     vi.unstubAllGlobals();
   });
 });
+
+describe("store migration on load", () => {
+  beforeEach(() => vi.resetModules());
+
+  it("applies migrate_state to legacy saved state", async () => {
+    const { win, items } = fakeWindow();
+    vi.stubGlobal("window", win);
+    const { seedState } = await import("@/lib/rules/engine");
+    const legacy = {
+      ...seedState(),
+      events: [{ student_id: "maya", skill_id: "6.RP.A.3", type: "attempt", correct: false, seconds: 1, ts: "t1" }],
+      alerts: [{ id: "alert-1", student_id: "maya", skill_id: "6.RP.A.3", signal: "stuck", evidence: "", root_cause: null, action: "", others_with_gap: [], status: "verified", recheck_at: null }],
+    } as Record<string, unknown>;
+    delete legacy.session;
+    items.set("rova-demo-v1", JSON.stringify(legacy));
+    const store = await import("@/lib/data/store");
+    expect(store.getState().alerts[0].resolved_after_event).toBe(1);
+    expect(store.getState().session).toBe("seed");
+    vi.unstubAllGlobals();
+  });
+});

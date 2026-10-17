@@ -9,6 +9,7 @@ import { resetLLM } from "@/lib/llm";
 import {
   apply_teacher_action,
   log_event,
+  migrate_state,
   report_to_teacher,
   run_recheck,
   seedState,
@@ -27,8 +28,8 @@ function read(): RovaState {
     const saved = window.localStorage.getItem(STORAGE_KEY);
     if (saved) {
       const parsed = JSON.parse(saved) as RovaState;
-      // State saved before sessions existed gets one, so the next reset is still noticed.
-      if (parsed?.version === 1) return { ...parsed, session: parsed.session ?? "seed" };
+      // Older saved state: fill in session and resolved-alert cut-offs (see migrate_state).
+      if (parsed?.version === 1) return migrate_state(parsed);
     }
   } catch {
     // Private window or blocked storage: run from the seed without saving.

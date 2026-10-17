@@ -15,14 +15,14 @@ The integration owner consolidates this file after merges. During feature work, 
 - **Completed:** roles assigned 2026-10-17 (all three are repo collaborators); repository created with the README and the shared AI context files. No application code yet.
 - **In progress:** none.
 - **Blocked:** none.
+- **Decided:** scripted demo with hard-coded inputs and responses, no AI model (D-004, 2026-10-17).
 
 ## Open questions (settle at the contract freeze)
 
-1. Which LLM provider and model? (README: whichever the team has credits for.)
-2. JSON files or SQLite for data?
-3. Deploy host (Vercel assumed) and who owns the deploy account?
-4. Who is the demo operator and the Q&A router?
-5. Do all three agree on the draft contracts in `docs/INTEGRATION_CONTRACTS.md`?
+1. JSON files or SQLite for data?
+2. Deploy host (Vercel assumed) and who owns the deploy account?
+3. Who is the demo operator and the Q&A router?
+4. Do all three agree on the draft contracts in `docs/INTEGRATION_CONTRACTS.md`?
 
 ## Next actions
 

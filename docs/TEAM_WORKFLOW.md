@@ -6,16 +6,16 @@ Checkpoints follow the weekend plan in README section 18. `CONTRIBUTING.md` cove
 
 1. Claim A, B, and C and record names in `STATUS.md`.
 2. Confirm the integration owner, demo operator, and Q&A router.
-3. Pick the LLM provider and model, and put the key in `.env.local` (never commit it).
+3. Agree on the demo script steps (D-004: scripted inputs and replies, no AI model).
 4. Edit and agree on `docs/INTEGRATION_CONTRACTS.md`. Mark D-001 to D-003 in `DECISIONS.md` accepted, or change them.
-5. Person B initializes Next.js + Tailwind. `create-next-app` refuses to run in a non-empty folder, so create it in a temporary folder and move the files into the repo root without overwriting the docs. Then B commits `lib/types.ts`, `lib/llm.ts` (a stub is fine), the skill map seed, and the view switcher.
+5. Person B initializes Next.js + Tailwind. `create-next-app` refuses to run in a non-empty folder, so create it in a temporary folder and move the files into the repo root without overwriting the docs. Then B commits `lib/types.ts`, `lib/llm.ts` (scripted mode), the skill map seed, and the view switcher.
 6. Everyone branches from that commit.
 
 ## Parallel dependency strategy
 
 | Missing dependency | Stand-in |
 | --- | --- |
-| LLM provider or key | `callLLM` stub that returns canned hints |
+| Scripted reply text not written yet | `callLLM` returns a placeholder string for the step |
 | Learner profile / data layer | Hard-coded Maya profile matching `LearnerProfile` |
 | Rules engine | Hard-coded `Alert` fixtures |
 | Tutor events | Scripted `Event` sequences in `fixtures/` |
@@ -41,7 +41,7 @@ Stand-ins must use the real contract types, so that integration means swapping t
 - Everything simulated is labeled Simulated
 
 ### Sat night — Test and record
-- Run the 120-question test set (README section 17 test plan) and record the real numbers in `STATUS.md`
+- Run the math-check unit tests and the full scripted demo 3 times; record results in `STATUS.md` (the 120-question AI test set is out of scope under D-004)
 - Record the backup demo video
 
 ### Sun 9–10 a.m. — Freeze

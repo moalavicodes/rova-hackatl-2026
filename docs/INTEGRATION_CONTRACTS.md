@@ -90,7 +90,23 @@ export interface LearnerProfile {
 | `find_source` | A | `(skillId, question) => { ref: string; text: string } \| null` |
 | `make_practice` | A | `(skillId, level, interest) => Problem[]` (each answer verified by `check_answer`) |
 | `draft_parent_message` | C | `(studentId, activity, language) => ParentMessage` |
-| `callLLM` | integration owner | `(messages, { model: "small" \| "strong" }) => string` in `lib/llm.ts` |
+| `callLLM` | integration owner | `(step: DemoStepId, context?) => string` in `lib/llm.ts`. Scripted mode (D-004) returns the pre-written text for that step; a real model can replace the body later |
+
+## Demo script (D-004)
+
+Scripted inputs and replies for the student side live in `content/demo-script.ts` (Person A). Scripted parent and alert text lives in `lib/messages/` (Person C), so nobody edits the other role's file. Each step has an id, the preset student input(s) it accepts, and the buddy reply. Unrecognized input gets the fallback "Great question for your teacher!".
+
+```ts
+export type DemoStepId = string; // e.g. "greeting", "just-tell-me", "wrong-1", "wrong-2", "root-cause-offer", ...
+
+export interface DemoStep {
+  id: DemoStepId;
+  student_inputs: string[]; // preset choices shown as tap-to-send buttons
+  reply: string; // pre-written buddy reply
+  source?: string; // citation shown on the reply
+  next: DemoStepId | null;
+}
+```
 
 ## Detection rules (code, Person B)
 

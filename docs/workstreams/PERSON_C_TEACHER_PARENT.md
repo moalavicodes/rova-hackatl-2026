@@ -13,7 +13,7 @@
 - [ ] C1 — Action inbox: alert cards (student · skill · evidence · root cause · suggested reteach · "4 others share this gap") with Done / Snooze / Different strategy, which call `apply_teacher_action`
 - [ ] C2 — Class heatmap: students × skills, with the "group of 5 share this root cause" callout. Labeled Simulated
 - [ ] C3 — Loop tracker: open → acted → verified, average days to fix, a "fast-forward 7 days" button that calls `run_recheck(nowOverride)`, then "Mastered ✅, parent notified"
-- [ ] C4 — `lib/messages/draftParentMessage.ts`: activity, win, and weekly kinds, in the home language (Spanish for the demo). Include the recipe-ratio activity
+- [ ] C4 — `lib/messages/draftParentMessage.ts`: pre-written (D-004) activity, win, and weekly messages in Spanish, fetched through `callLLM`. Include the recipe-ratio activity. Labeled Simulated
 - [ ] C5 — Parent view at phone width: SMS mock-up (labeled Simulated), weekly card (learned · working on · try at home), win message
 - [ ] C6 — Review queue: held-back answers and "this seems wrong" flags (cut first if short on time)
 

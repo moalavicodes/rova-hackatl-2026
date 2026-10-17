@@ -94,6 +94,9 @@ export interface Alert {
   status: AlertStatus;
   recheck_at: string | null;
   created_at?: string; // ISO; set by create_alert, used by run_recheck to read only later events
+  // Number of events in the log when the alert was verified or escalated. Detection ignores
+  // events before it. An event count, not a time, because the re-check uses a simulated future date.
+  resolved_after_event?: number;
 }
 
 export interface ParentMessage {

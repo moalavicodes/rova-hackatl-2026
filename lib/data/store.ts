@@ -27,7 +27,8 @@ function read(): RovaState {
     const saved = window.localStorage.getItem(STORAGE_KEY);
     if (saved) {
       const parsed = JSON.parse(saved) as RovaState;
-      if (parsed?.version === 1) return parsed;
+      // State saved before sessions existed gets one, so the next reset is still noticed.
+      if (parsed?.version === 1) return { ...parsed, session: parsed.session ?? "seed" };
     }
   } catch {
     // Private window or blocked storage: run from the seed without saving.

@@ -220,3 +220,35 @@ describe("after an alert is resolved", () => {
     expect(seedState().session).toBe("seed");
   });
 });
+
+describe("resolution point (review P1)", () => {
+  beforeEach(() => {
+    resetLLM();
+    tick = 0;
+  });
+
+  it("ignores a mistake made while the alert was open when counting after verification", () => {
+    let state = run(seedState(), [attempt(false, "adds-across-ratio-table"), attempt(false, "adds-across-ratio-table")]);
+    const id = state.alerts[0].id;
+    // A third mistake while the alert is open (no new alert: one is unresolved).
+    state = run(state, [attempt(false, "adds-across-ratio-table"), refresher(true), refresher(true), attempt(true)]);
+    state = apply_teacher_action(state, id, "done", t0);
+    state = run_recheck(state, id, new Date(state.alerts[0].recheck_at!));
+    expect(state.alerts[0]).toMatchObject({ status: "verified", resolved_after_event: 6 });
+
+    state = run(state, [attempt(false, "adds-across-ratio-table")]);
+    expect(state.alerts).toHaveLength(1); // one in-cycle + one new mistake must not re-alert
+    state = run(state, [attempt(false, "adds-across-ratio-table")]);
+    expect(state.alerts).toHaveLength(2); // two new mistakes do
+  });
+
+  it("uses the event count, not the simulated re-check date, so later real mistakes still count", () => {
+    let state = run(seedState(), [attempt(false, "adds-across-ratio-table"), attempt(false, "adds-across-ratio-table")]);
+    const id = state.alerts[0].id;
+    state = apply_teacher_action(state, id, "done", t0);
+    state = run_recheck(state, id, new Date("2030-01-01T00:00:00.000Z")); // escalates, far-future clock
+    expect(state.alerts[0].status).toBe("escalated");
+    state = run(state, [attempt(false, "adds-across-ratio-table"), attempt(false, "adds-across-ratio-table")]);
+    expect(state.alerts).toHaveLength(2);
+  });
+});

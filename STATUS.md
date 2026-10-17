@@ -22,7 +22,7 @@ The integration owner consolidates this file after merges. During feature work, 
 - **In progress (branch `feat/teacher-reports`):**
   - `reportToTeacher` for safety concerns and student questions: new alert signals `safety_concern` and `student_question`; safety concerns go to the top of the inbox; Done closes them with no re-check and no parent message.
   - `onDemoReset` reset signal, so the header Reset also clears the student chat (`RovaState.session`).
-  - Rules fix: only mistakes since the last resolved alert count, and misconceptions are cleared when an alert is verified.
+  - Rules fix: only mistakes after an alert is resolved count (cut-off = `resolved_after_event`, an event count, since the re-check uses a simulated date), and misconceptions are cleared when an alert is verified. Saved state from before sessions existed gets one, so cross-tab reset still fires. Both from the PR #8 review.
 - **Not built (cut):** drop and disengagement rules, review queue (C6).
 - **Blocked:** none.
 - **Decided:** demo's group of 5 shown as `others_with_gap` on Maya's alert, class-gap rule stays at 30% (D-007); buddy name stays "Rova" for now; data in JSON seed files with live state in the browser (D-005); hosting on Vercel (D-006); no AI model for now; free-flowing app with a rule-based responder and templates (D-004).
@@ -40,6 +40,8 @@ The integration owner consolidates this file after merges. During feature work, 
 3. Person B: deploy to Vercel (B9) once the Vercel owner is decided.
 
 ## Verification
+
+- 2026-10-17 PR #8 review fixes: 138/138 tests (new: in-cycle mistake + one post-resolution mistake doesn't re-alert; simulated far-future re-check doesn't hide later mistakes; legacy saved state still triggers a cross-tab reset; same-tab reset and unsubscribe), tsc, lint, and build clean.
 
 - 2026-10-17 `feat/teacher-reports` with `main` (PR #7) merged in: 134/134 tests (4 new: misconceptions cleared on verify, no re-alert on one new mistake, re-alert on two, session seed), tsc, lint, and build clean.
 

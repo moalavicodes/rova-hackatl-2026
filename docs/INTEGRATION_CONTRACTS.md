@@ -73,6 +73,7 @@ export interface Alert {
   status: AlertStatus;
   recheck_at: string | null;
   created_at?: string; // set by create_alert; run_recheck reads only events after it
+  resolved_after_event?: number; // event count when verified/escalated; detection ignores earlier events
 }
 
 export interface ParentMessage {

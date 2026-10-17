@@ -142,21 +142,22 @@ export function create_alert(
   return created;
 }
 
-// Once an alert is verified or escalated, the mistakes that caused it shouldn't count again:
-// detection only looks at events after that alert was raised.
+// Once an alert is verified or escalated, nothing from before that point counts again,
+// including mistakes made while the alert was open: detection only looks at later events.
 function eventsSinceLastResolved(state: RovaState, studentId: string, skillId: SkillId): Event[] {
-  const resolved = state.alerts
-    .filter(
-      (a) =>
-        a.student_id === studentId &&
-        a.skill_id === skillId &&
-        !is_report(a) &&
-        (a.status === "verified" || a.status === "escalated"),
-    )
-    .map((a) => a.created_at ?? "")
-    .sort();
-  const cutoff = resolved.at(-1);
-  return cutoff ? state.events.filter((e) => e.ts > cutoff) : state.events;
+  const cutoff = Math.max(
+    0,
+    ...state.alerts
+      .filter(
+        (a) =>
+          a.student_id === studentId &&
+          a.skill_id === skillId &&
+          !is_report(a) &&
+          (a.status === "verified" || a.status === "escalated"),
+      )
+      .map((a) => a.resolved_after_event ?? 0),
+  );
+  return state.events.slice(cutoff);
 }
 
 // Records one event; returns the next state and any alerts it created.
@@ -305,10 +306,18 @@ export function run_recheck(state: RovaState, alertId: string, nowOverride?: Dat
   if (!alert || alert.status !== "acted") return state;
   const now = nowOverride ?? new Date();
   if (!is_mastered(state, alert)) {
-    return updateAlert(state, alertId, (a) => ({ ...a, status: "escalated" }));
+    return updateAlert(state, alertId, (a) => ({
+      ...a,
+      status: "escalated",
+      resolved_after_event: state.events.length,
+    }));
   }
   const verified: RovaState = {
-    ...updateAlert(state, alertId, (a) => ({ ...a, status: "verified" })),
+    ...updateAlert(state, alertId, (a) => ({
+      ...a,
+      status: "verified",
+      resolved_after_event: state.events.length,
+    })),
     // Mastered: the student's recorded misconceptions on this skill are cleared.
     skillStates: state.skillStates.map((s) =>
       s.student_id === alert.student_id && s.skill_id === alert.skill_id

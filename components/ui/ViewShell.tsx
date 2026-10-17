@@ -1,6 +1,7 @@
 // Shared frame for every view: a header with a way back home, so no screen is a dead end.
 
 import Link from "next/link";
+import { ResetDemoButton } from "@/components/ui/ResetDemoButton";
 
 export function ViewShell({
   title,
@@ -19,7 +20,10 @@ export function ViewShell({
         <Link href="/" className="text-sm font-medium text-indigo-700 hover:underline">
           ← Rova home
         </Link>
-        <span className="text-xs text-slate-400">{owner}</span>
+        <div className="flex items-center gap-3">
+          <span className="hidden text-xs text-slate-400 sm:inline">{owner}</span>
+          <ResetDemoButton />
+        </div>
       </header>
       <main className={`mx-auto w-full flex-1 px-4 py-6 ${narrow ? "max-w-sm" : "max-w-5xl"}`}>
         <h1 className="mb-4 text-2xl font-semibold text-slate-900">{title}</h1>

@@ -83,6 +83,7 @@ export interface Alert {
   others_with_gap: string[]; // student ids
   status: AlertStatus;
   recheck_at: string | null;
+  created_at?: string; // ISO; set by create_alert, used by run_recheck to read only later events
 }
 
 export interface ParentMessage {

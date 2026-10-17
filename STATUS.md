@@ -12,34 +12,33 @@ The integration owner consolidates this file after merges. During feature work, 
 
 ## Current state
 
-- **Completed (on `main`):**
-  - PR #1: B0 app skeleton (Next.js + Tailwind, `lib/types.ts`, `callLLM` template mode, home view switcher).
-  - PR #2: B1 seed data, class of 25 in `lib/data/seed/*.json` (5 share the `4.NF.A.1` gap), plus D-005 to D-007.
-  - PR #3: Person C's teacher and parent views on the shared seed.
-  - PR #5: B2 to B8. Browser store (`lib/data/store.ts`), root-cause trace, detection rules, the alert loop (`lib/rules/engine.ts`), live Teacher and Parent views, and Reset demo in every header.
-  - PR #4: Person A's student tutor. Rule-based responder, exact math checker, hint ladder, fraction refresher, explain-it-back, win screen; 27-case responder test set.
-  - PR #7: Person A connected the student view to the store. The full demo works live: Student → alert → Teacher → re-check → Parent (checked in Chrome).
-  - PR #8: `reportToTeacher` for safety concerns and student questions (signals `safety_concern` and `student_question`; safety first in the inbox; Done closes them with no re-check or parent message); `onDemoReset` reset signal (`RovaState.session`); rules count only mistakes after an alert is resolved (`resolved_after_event`), verified alerts clear misconceptions, and older saved state is migrated on load (`migrate_state`).
-- **In progress:** Person A wires the student view to PR #8: `reportToTeacher` for unsafe messages and "Send to my teacher" ("Sent to Ms. Rivera"), `onDemoReset` to clear the chat, and removing the student-page Reset button.
-- **Next for Person C:** UI redesign (D-008, `docs/workstreams/PERSON_C_UI_REDESIGN.md`): design tokens and type, a two-pane teacher workspace with an evidence timeline and an interactive class map, the parent phone thread, and a home page that guides the demo.
-- **Not built (cut):** drop and disengagement rules, review queue (C6).
-- **Blocked:** none.
-- **Decided:** demo's group of 5 shown as `others_with_gap` on Maya's alert, class-gap rule stays at 30% (D-007); buddy name stays "Rova" for now; data in JSON seed files with live state in the browser (D-005); hosting on Vercel (D-006); no AI model for now; free-flowing app with a rule-based responder and templates (D-004).
+- **Current app (D-009):** commit 3439f5a ("new UI", pushed to `main` without a PR) replaced all four pages with a new grade 4 app in `components/product/` and `lib/product/`. The team chose to keep it. See README §8 and §17.
+  - Working: sample logins and sign-up with class/family codes; student practice on six topics with 3-step hints and code-checked answers; teacher shared-gap view, class table, learning plans, notes to families; parent progress, activity checklists, teacher notes.
+  - Not tested: the new screens and `lib/product/` have no tests yet.
+- **Built but not connected:** the earlier closed loop and views (PRs #1–#13 and e390088): root-cause trace, alerts, 7-day re-check, parent texts, safety reports, Reset demo, the free-text tutor, and C7/C8 of the earlier redesign. All tested; nothing on screen uses them.
+- **Blocked:** deploying to Vercel (the app writes a JSON file at runtime).
+- **Decided:** keep the new app (D-009); no AI model for now (D-004); hosting on Vercel (D-006, blocked by storage).
 
 ## Open questions
 
-1. Who owns the Vercel account?
-2. Who is the demo operator and the Q&A router?
-3. Maya's interests (shape her practice problems)?
+1. Who owns `components/product/` and `lib/product/` (the current screens)?
+2. Grade 4 or 6th-grade ratios? The README's market and pilot sections still assume middle school.
+3. Bring back the closed loop (root cause → alert → re-check → parent win) inside the new screens, or remove the old code?
+4. Storage for Vercel: browser storage, a hosted database, or demo on a laptop only?
+5. Student accounts: keep passwords, or switch to teacher-issued class codes (README privacy plan)?
+6. Who owns the Vercel account, and who runs the demo and answers Q&A?
 
 ## Next actions
 
-1. Person A: call `reportToTeacher` for unsafe messages and "Send to my teacher", listen to `onDemoReset`, and remove the student-page Reset button (steps in `docs/workstreams/PERSON_A_STUDENT_TUTOR.md`, "Next steps"). Person B reviews and reruns the full demo, including a safety message and a header reset.
-2. Person C: UI redesign, starting with C7 (tokens and fonts), in small PRs; demo behavior must not change.
-3. Demo acceptance check (`docs/TEAM_WORKFLOW.md`) on one laptop: Student → Teacher → Parent, 3 runs from Reset demo, then 5 minutes of free use.
-4. Person B: deploy to Vercel (B9) once the Vercel owner is decided.
+1. Team: answer open questions 1–4.
+2. Add a Reset demo control to the new app (today: stop the server and delete `.rova/`).
+3. Add tests for `lib/product/` (scoring, grading, per-role visibility) and the two API routes.
+4. Fix storage, then deploy to Vercel.
+5. Demo acceptance check from README §8: 3 full runs, then 5 minutes of free use.
 
 ## Verification
+
+- 2026-10-17 `main` at 3439f5a: 151/151 tests (old code), lint clean. Chrome: student login → fractions practice (wrong answers get "Not quite yet", hints work) → teacher sees "A shared gap in fractions" and class table.
 
 - 2026-10-17 `main` after PR #8 (0176df5): 141/141 tests, build succeeds.
 

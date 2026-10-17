@@ -1,26 +1,37 @@
 # Rova project context
 
-Stable facts and boundaries. Change this file only when a durable fact changes. Full detail lives in `README.md`.
+Stable facts and boundaries. Change this file only when a durable fact changes. Full detail lives in `README.md` (§8 demo, §17 build spec).
 
 ## Product in one line
 
-AI made answers instant, not learning. Rova coaches a 6th grader with a hint ladder, remembers what they understand, finds where a struggle started in earlier-grade skills, alerts the teacher and parent, and re-checks that the fix worked.
+AI made answers instant, not learning. Rova helps a 4th grader practice math with hints instead of answers, shows the teacher where the class needs support so they can act in small groups, and keeps the family in the loop.
 
-## Demo scope (weekend MVP)
+## The app today (D-009)
 
-- **Launch slice:** 6th-grade math, ratios (`6.RP.A.3`) and its prerequisites, for one student persona (Maya) and one teacher (Ms. Rivera). The parent's view is in Spanish.
-- **One web app, three views:** Student, Teacher, Parent (phone-sized). It has to run on a Chromebook browser.
-- **Free-flowing, no AI model (D-004):** Maya types anything or taps quick replies, in any order. A rule-based responder answers from her input and state. Alerts, teacher views, and parent messages are built from the events she actually produced.
-- **Working vs. simulated** (README section 8, changed by D-004): working in code: buddy replies (rule-based, labeled "rule-based (AI planned)"), off-topic/unsafe handling, math checks, detection rules, root-cause trace, learner memory, alerts, and the re-check. Simulated and labeled on screen: the 25-student class, parent SMS delivery, the 7-day time jump, and Maya's earlier-grade history.
-- **Demo reliability:** the README section 8 demo path must work every time from a "Reset demo" state, and free exploration must never hit a dead end, a blank screen, or an error.
+- **Grade 4 math, six foundations:** place value, multiplication, division, fractions, measurement, shapes & angles; 18 practice questions with 3 hints each (`lib/product/curriculum.ts`).
+- **Three workspaces behind logins:** Student (`/student`), Teacher (`/teacher`), Parent (`/parent`), plus home (`/`), `/login`, and `/signup`. Sample accounts are in `lib/product/mock-accounts.json`; sign-up needs class code `MAPLE4` (student) or family code `MAYA4` (parent).
+- **Teacher:** class understanding by topic, the class's shared gap, a student × topic table, small-group learning plans, notes to families.
+- **Parent:** progress, at-home activity checklists, teacher notes.
+- **No AI model is called (D-004).** Answers are checked by code (`lib/math/checkAnswer.ts`).
+- **Simulated:** the 18-student sample class and starting scores, Maya's last 7 days of practice. Names are fictional.
 
-## Architecture (planned, not yet built)
+## Architecture (as built)
 
-- Next.js (App Router) + Tailwind. Deployed to Vercel or similar as one URL.
-- **Replies without AI (D-004):** `lib/tutor/responder.ts` classifies each input with rules (answer, ask-for-answer, stuck, explain-back, off-topic, unsafe), then gets the text through `callLLM` in `lib/llm.ts`, which fills a template for now. A real model can be plugged in there later.
-- **Data (D-005):** JSON seed files in the repo; live state in the browser, reset by "Reset demo". No database. Nothing writes files at runtime (Vercel, D-006).
-- **Math checking:** a small expression and fraction evaluator in code (`check_answer`).
-- **Detection rules run in code** (README section 17, "Detection rules"), so they are consistent and explainable.
+- Next.js 16 (App Router) + React 19, Tailwind 4 and a hand-written stylesheet (`app/product.css`).
+- **Screens:** `components/product/` (`WorkspaceApp` routes each role to its dashboard).
+- **Accounts:** scrypt-hashed passwords, HMAC-signed session cookie (7 days), same-origin checks on writes, per-role data visibility (`lib/product/server.ts`).
+- **Data:** one JSON file at `.rova/workspace.json` (or `ROVA_DATA_DIR`), created on first run from the sample accounts and class. Writes go through a queue and an atomic rename. Delete `.rova/` to start over.
+- **APIs:** `app/api/account` (login, sign-up, profile, logout), `app/api/learning` (practice attempts, plans, notes, parent checklist).
+
+## Built but not connected to the current screens
+
+`lib/rules/` (root-cause trace, detection rules, alerts, 7-day re-check, safety reports), `lib/data/store.ts` (browser store, reset signal), `lib/tutor/` (free-text rule-based tutor), and the earlier views in `components/{student,teacher,parent,ui}/`. Tested (most of the 151 tests), but nothing on screen uses them. Don't claim these features in the demo unless they are reconnected.
+
+## Known conflicts to resolve
+
+- **Storage vs. hosting:** the app writes a file on every request, including login. That works locally but not on Vercel (D-005, D-006).
+- **Accounts vs. privacy plan:** students have password accounts; the README's privacy plan says no child accounts.
+- **Grade:** the app is grade 4; the business sections of the README still assume middle school.
 
 ## Commands
 
@@ -32,23 +43,16 @@ npm run lint
 npm run build
 ```
 
-Stack as built: Next.js 16.3.8 (App Router, Turbopack), React 19.2, Tailwind 4, Vitest 4.1. Next.js 16 differs from older versions; its docs ship in `node_modules/next/dist/docs/`.
+Next.js 16 differs from older versions; its docs ship in `node_modules/next/dist/docs/`.
 
-## The loop
+## Invariants
 
-LEARN → DETECT → DIAGNOSE → ALERT → ACT → VERIFY. Text comes from templates chosen by rules (later an AI model). Code decides when things happen and whether an answer is correct.
-
-## Invariants (guardrails)
-
-1. Never give the final answer before an attempt and the hint ladder (guiding question → picture/model → worked step).
-2. Math correctness is decided by code only.
-3. Every explanation cites a lesson section or standard. If confidence is low, don't answer; send the item to the teacher review queue.
-4. Out-of-scope questions get "Great question for your teacher!" plus a Send-to-teacher action.
-5. Every message passes a safety screen. Anything concerning goes to the teacher.
-6. Replies are short, grade-level, and length-capped.
-7. Memory stores learning facts only, with no emotional or personality profiling.
-8. No real student data, no secrets in the repo. API keys go in `.env.local` only.
+1. Math correctness is decided by code only.
+2. Hints guide; the final answer is never shown before the student solves it.
+3. Students and parents see only their own data.
+4. No real student data and no real secrets in the repo. The demo password in `mock-accounts.json` is for sample accounts only.
+5. Label simulated data as Simulated; don't present planned features as working.
 
 ## Roles
 
-See `CONTRIBUTING.md`. A = student tutor and agent, B = data, rules, and integration (owner), C = teacher and parent views.
+See `CONTRIBUTING.md`. Ownership of `components/product/` and `lib/product/` is not assigned yet (see `STATUS.md`).

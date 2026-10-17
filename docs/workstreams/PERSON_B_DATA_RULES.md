@@ -13,7 +13,7 @@
 - [ ] B2 — Store (D-005): load JSON seeds, keep students, skill states, events, alerts, and parent messages in browser storage, with a reset to seed
 - [ ] B3 — `trace_prerequisites`: walks `needs` back, nearest first. Test: `6.RP.A.3` → includes `4.NF.A.1`
 - [ ] B4 — Detection rules as pure functions with scripted-event tests (start with stuck, answer-seeking, repeated misconception, and class gap)
-- [ ] B5 — `log_event` → rules → `create_alert`, with root cause and `others_with_gap` filled in. Alert text comes from C's templates through `callLLM`, filled with the real evidence; the rules decide when
+- [ ] B5 — `log_event` → rules → `create_alert`, with root cause and `others_with_gap` filled in (D-007: the demo's 4 classmates come from this list, not from a class-gap alert). Alert text comes from C's templates through `callLLM`, filled with the real evidence; the rules decide when
 - [ ] B6 — Alert lifecycle: `apply_teacher_action`, `schedule_recheck`, `run_recheck(nowOverride)` for the simulated 7-day jump. Verified → triggers a parent win message (through C's `draft_parent_message`)
 - [ ] B7 — Profile update after a session (mastery, misconceptions, last_seen)
 - [ ] B8 — "Reset demo" control that restores the seeded state, so the README section 8 demo path can be rerun any time

@@ -15,15 +15,14 @@ The integration owner consolidates this file after merges. During feature work, 
 - **Completed:** B1 seed data (2026-10-17, branch `feat/data-rules`): class of 25 in `lib/data/seed/*.json`, 5 sharing the `4.NF.A.1` gap. B0 app skeleton (2026-10-17, merged to `main` as PR #1): Next.js + Tailwind, shared types in `lib/types.ts`, `callLLM` template mode in `lib/llm.ts`, skill map and Maya seed in `lib/data/`, home page with links to placeholder Student / Teacher / Parent pages, empty template files for A (`content/templates/`) and C (`lib/messages/templates.ts`). Roles assigned 2026-10-17 (all three are repo collaborators); repository created with the README and the shared AI context files. No application code yet.
 - **In progress:** none.
 - **Blocked:** none.
-- **Decided:** buddy name stays "Rova" for now; data in JSON seed files with live state in the browser (D-005); hosting on Vercel (D-006); no AI model for now; free-flowing app with a rule-based responder and templates (D-004, 2026-10-17).
+- **Decided:** demo's group of 5 shown as `others_with_gap` on Maya's alert, class-gap rule stays at 30% (D-007); buddy name stays "Rova" for now; data in JSON seed files with live state in the browser (D-005); hosting on Vercel (D-006); no AI model for now; free-flowing app with a rule-based responder and templates (D-004, 2026-10-17).
 
 ## Open questions (settle at the contract freeze)
 
 1. Who owns the Vercel account?
 2. Who is the demo operator and the Q&A router?
 3. Maya's interests (shape her practice problems)?
-4. **README conflict:** the class-gap rule fires at ≥30% of a class, but the demo's group is 5 of 25 (20%), so the rule as written won't fire. Options: lower the threshold to 20%, add 3 more students to the gap (8 of 25 = 32%), or show the 5 as `others_with_gap` on Maya's alert instead of a separate class-gap alert.
-5. Do all three agree on the draft contracts in `docs/INTEGRATION_CONTRACTS.md`?
+4. Do all three agree on the draft contracts in `docs/INTEGRATION_CONTRACTS.md`?
 
 ## Next actions
 

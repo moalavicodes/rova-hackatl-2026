@@ -49,3 +49,11 @@ Accepted tradeoffs only. Format is in `docs/AI_WORKFLOW.md`. Entries marked `pro
 - Decision: Deploy the app to Vercel as one URL.
 - Reason: Free tier, built for Next.js, and it deploys straight from GitHub.
 - Consequence: Someone needs a Vercel account connected to the repo (still to decide who). Nothing in the app may depend on writing files at runtime (see D-005).
+
+## D-007 — The demo's "group of 5" is shown on Maya's alert, not as a class-gap alert
+
+- Date: 2026-10-17
+- Status: accepted (Person B, integration owner)
+- Decision: The class-gap rule keeps its README threshold (≥30% of a class shares a root cause). The demo's 5 students with the `4.NF.A.1` gap (20% of 25) appear as `others_with_gap` on Maya's alert ("4 others share this gap → small-group refresher"), not as a separate class-gap alert.
+- Reason: Matches the README's example teacher card (section 5), and keeps the 30% rule for real class-wide problems.
+- Consequence: In the demo seed the class-gap rule does not fire. `create_alert` must fill `others_with_gap` from students whose `4.NF.A.1` mastery shows the same gap. The teacher heatmap callout ("group of 5 share this root cause") reads from that list.

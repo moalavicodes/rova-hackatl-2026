@@ -1,7 +1,5 @@
 # Rova
 
-> Current app: fourth-grade math with a scripted conversational coach, teacher-assigned group lessons, saved coaching conversations, and per-learner completion tracking. Use Node 24, then `npm install` and `npm run dev`. Sample logins: `teacher@rova.school`, `student@rova.school`, or `parent@rova.school`, all with password `rova2026` (simulated accounts only). The new product currently uses a local JSON store; see [project context](PROJECT_CONTEXT.md#current-product-workspace-2026-10-17) for the deployment limitation and the distinction from the original ratios build spec below.
-
 ### *Think it through. Go the distance.*
 
 **The study buddy that coaches with hints, not answers, remembers your learning journey from grade to grade, and keeps your teachers and parents in the loop.**
@@ -9,6 +7,22 @@
 HackATL 2026 · Theme: *Designing the World After AI* · Challenge door #1: *Solve a problem AI created or intensified*
 
 > **One-liner:** AI made answers instant, not learning. Rova is a study buddy that stays with each student through school. It remembers what they understand, makes them do the thinking instead of handing over answers, finds where a struggle actually started, and makes sure a teacher or parent acts, then checks that it worked.
+
+> **The prototype today (2026-10-17):** a grade 4 math web app with Student, Teacher, and Parent workspaces. Students talk through six math foundations with a scripted coach, visual hints, and code-checked answers. Teachers assign lessons, track individual completion and corrected practice, review summaries and conversations in a modal, and write family notes. Parents see progress and at-home activities that advance after completion. No live model is called. See [§8 Demo](#8-demo), [the presentation script](docs/DEMO_SCRIPT.md), and [§17 Build spec](#17-build-spec).
+
+### Run it locally
+
+Use Node 24 (Node 18 cannot run the current tooling).
+
+```bash
+npm install
+npm run dev        # http://localhost:3000
+```
+
+- **Log in** at `/login` with a sample account: open **Explore with a sample account** and pick Teacher, Student, or Parent. The sample accounts and their shared demo password are in `lib/product/mock-accounts.json`.
+- **Sign up** needs a class code for students (`MAPLE4`) or a family code for parents (`MAYA4`).
+- **Start over:** stop the server and delete the `.rova/` folder (accounts and practice are saved there).
+- `npm run test` · `npm run lint` · `npm run build`
 
 ---
 
@@ -38,13 +52,13 @@ HackATL 2026 · Theme: *Designing the World After AI* · Challenge door #1: *Sol
 
 ## 1. The customer
 
-Built for someone specific, not "users":
+Built for someone specific, not "users". (Names in the prototype are fictional sample data.)
 
 | Who | Their moment | What's hard today |
 |---|---|---|
-| **Maya, 11, 6th grade** (the user) | 7 p.m., stuck on ratio homework. ChatGPT is one tab away. | It's easier to copy an answer than to learn it, and she knows she isn't really learning |
-| **Ms. Rivera, 6th-grade math teacher** (adopts it) | 120+ students across 5 periods | She can't see who is stuck until the unit test, and she doesn't know *why* they're stuck |
-| **Maya's mom** (in the loop) | Wants to help; English is her second language | She thinks Maya is on track. Report cards say B's |
+| **Maya, 4th grade** (the user) | 7 p.m., stuck on fractions homework. ChatGPT is one tab away. | It's easier to copy an answer than to learn it, and she knows she isn't really learning |
+| **Ms. Rivera, 4th-grade teacher** (adopts it) | A class of 18 with a wide range of levels (sample class: Room 4) | She can't see who is stuck until the unit test, and she doesn't know *why* they're stuck |
+| **Maya's parent** (in the loop) | Wants to help at home | Thinks Maya is on track. Report cards say B's |
 | **The principal / district** (pays) | Has to answer "what's our AI plan?" and lost the tutoring budget | Human tutoring costs $1,200–$2,500 per student; federal relief money is gone |
 
 ---
@@ -132,34 +146,51 @@ None of the products we reviewed combine all three:
 
 **Rova is a study buddy that stays with the student through school, makes them think instead of handing over answers, and keeps their teachers and parents in the loop.**
 
-### For students: they do the thinking
-- **Hint ladder:** guiding question → picture or model → worked step. It never gives the final answer first
-- **"Explain it back":** the student explains their reasoning in their own words; the buddy checks it
-- **Hands-on tools:** ratio tables, double number lines, fraction bars (drag, don't just type)
-- **Personal examples:** problems built on the student's interests ("explain with basketball")
-- **A buddy they name**, whose look matures as they move up grades
-- **Today's Mission:** about 10 minutes, picked for them, with a progress ring
+### In the prototype today
 
-### Pattern-finding: spotting pain points
-- **Learning memory:** skills mastered, mistakes that keep coming back, which explanations work ("learns best with pictures"), interests
-- **Root-cause tracing:** walks back through a map of which skills build on which (ratios → equivalent fractions → multiplication facts) to find where the gap started
-- **Effort signals:** catches "getting answers, not learning" patterns: rushing to hints, guessing, repeating the same mistake, quitting early
+**Students: they do the thinking**
+- **Six grade 4 foundations:** place value, multiplication, division, fractions, measurement, and shapes & angles (Common Core standards shown on each)
+- **Conversational practice:** type questions, reasoning, or numeric answers into a continuous message thread. Scripted replies stage hints, refuse direct-answer requests, and flag safety concerns for teacher review. Worked hints require an attempt.
+- **Visual models** for every built-in topic, including interactive fraction strips and pictures requested in chat
+- **Answers checked by code** (exact fraction/number checker), never guessed
+- **My day / learning path / progress:** confidence per topic, strengths and next breakthroughs, a 7-day activity chart, and teacher assignments with saved conversations and checked completion
 
-### For adults: closing the loop
-- **Teacher action inbox:** "Maya: stuck on ratios → root cause: equivalent fractions → 5-min refresher. 4 others share this gap → small group."
-- **Parent text** in their language, with a 10-minute home activity, then a win message when the problem is fixed
-- **Verify:** re-check after 7 days; close the issue if it's mastered, escalate (eventually to a human tutor) if not
-- **Day-one handoff:** a new teacher gets a one-page summary of each student, instead of starting cold in September
+**Teacher: the class at a glance**
+- **Class understanding** by topic, how many students are ready for support, plans in motion, practice this week
+- **Shared gap:** the topic where the most students need support (e.g. "A shared gap in fractions: 7 students"), with one click to build a small-group plan
+- **Learner cards and topic summaries:** support needs without a wall of numbers; James Walker's simulated across-topic needs are highlighted for a priority check-in
+- **Learning plans:** choose a topic and group; assigned students receive lessons and each learner's status reflects actual checked practice
+- **Learning evidence:** a classroom graph separates independent successes, supported successes, and questions still in progress. Review lesson summaries and full conversations in a dedicated modal; summaries are scripted from saved evidence, not generated by a live model
+- **Notes to families:** written per student, shown to the parent
+
+**Parents: in the loop**
+- **At a glance / learning journey:** strengths, topics with room to grow, and practice this week
+- **Learn together:** short at-home activities advance after all checkpoints are completed, retaining finished activities in history; an all-caught-up state appears after all six
+- **Classroom updates:** notes from the teacher
+- **Family code** links a parent account to their child
+
+### Built in code, not yet connected to the app
+
+An earlier version of the prototype ran the full closed loop, and that code is still in the repo (`lib/rules/`, `lib/data/store.ts`, `lib/tutor/`) with tests. It is not wired into the current screens:
+- **Root-cause tracing** through a skill map (ratios → equivalent fractions → multiplication facts)
+- **Automatic teacher alerts** from rules (same mistake twice, stuck, rushing to the last hint), with the root cause and classmates who share it
+- **Re-check after 7 days** → verified (parent win message) or escalated
+- **Free-text tutor** that declines "just tell me the answer", plus safety reports and "Send to my teacher"
+
+### Vision
+- **"Explain it back"**, personal examples from the student's interests, and a buddy they name
+- **Parent texts** in the home language, then a win message when the problem is fixed
+- **Day-one handoff:** a new teacher gets a one-page summary of each student
 
 ### The buddy grows with the student
 
 | Grades | The buddy becomes | Who gets alerts |
 |---|---|---|
-| 3–5 | Friendly guide: pictures, read-aloud, short missions | Teacher + parent |
-| **6–8 (launch)** | **Study coach:** multi-subject, homework planning, goals, explain-it-back | Teacher + student; parents for important alerts |
+| **3–5 (prototype: grade 4)** | **Friendly guide:** pictures, hints, short practice sessions | Teacher + parent |
+| 6–8 | Study coach: multi-subject, homework planning, goals, explain-it-back | Teacher + student; parents for important alerts |
 | 9–12 | Learning advisor: exam prep, study habits, disengagement flags | Student + counselor; parents only for serious risk |
 
-**Launch focus:** 6th-grade math (ratios). **Roadmap:** more subjects, then grades 3–5 and 9–12.
+**Prototype focus:** grade 4 math, six foundations. **Open team decision:** the market and pilot plan (§9–§15) still assume middle school (grades 6–8, ratios); either the pilot moves to grade 4 or the prototype adds the 6th-grade ratios unit.
 
 ---
 
@@ -171,16 +202,16 @@ None of the products we reviewed combine all three:
    └──────────────── closed, or escalated ◀────────────┘
 ```
 
-| Step | What happens | Done by |
-|---|---|---|
-| **1. Learn** | Maya works today's mission. The buddy coaches with the hint ladder and cites the lesson or standard | AI (grounded in class material + standards) |
-| **2. Detect** | Rules fire: same skill missed 3×, all hints used, same mistake type repeated, a drop below her own normal, sessions getting shorter | **Code (rules)**, so it's consistent and explainable |
-| **3. Diagnose** | Walks back through the skill map and gives 2–3 quick check questions on earlier skills to find where the gap started | AI picks the questions; **code** scores them |
-| **4. Alert** | Teacher card: student, skill, evidence, root cause, suggested 5-min reteach, others with the same gap | AI writes it; rules decide when |
-| **5. Act** | Teacher taps Done/Snooze/Different strategy; parent gets the home activity; Maya's next mission adapts | AI writes the content; **code** picks practice difficulty |
-| **6. Verify** | Re-check after 7 days → mastered (close the loop, send the parent a win message) or escalate | **Code** checks; AI writes the note |
+| Step | What happens | Done by | In the prototype today |
+|---|---|---|---|
+| **1. Learn** | Maya practices a topic with the hint ladder | Code checks answers | ✅ Practice, hints, explanations |
+| **2. Detect** | Rules fire: same mistake repeated, stuck, rushing to the last hint, a drop below her own normal | **Code (rules)** | ◐ Confidence drops with wrong answers; the teacher sees who needs support. Rules engine built, not connected |
+| **3. Diagnose** | Walk back through the skill map to find where the gap started | **Code** | ✕ Built in code, not connected |
+| **4. Alert** | Teacher card: student, evidence, root cause, suggested reteach, others with the same gap | Rules decide when | ◐ "Shared gap" by topic for the class; no per-student alert |
+| **5. Act** | Teacher assigns a small-group plan and messages the family; parent does the home activity | Teacher + parent | ✅ Learning plans, notes to families, parent activity checklist |
+| **6. Verify** | Re-check after 7 days → mastered (tell the parent) or escalate | **Code** | ✕ Built in code, not connected |
 
-**Guardrails**
+**Guardrails** (working: code math checks, scripted conversational hints, direct-answer redirects, standard references, role-scoped evidence, transcript safety flags visible to the teacher. A live model, external notifications, a review queue, and teacher-configured daily turn caps remain planned. The list below describes the broader product safeguards.)
 - Only covers the current unit and its prerequisites. Anything else gets "Great question for your teacher!" plus a **Send to my teacher** button
 - Never gives the final answer before an attempt and the hint ladder
 - Every explanation cites a lesson page or standard. If confidence is low, it doesn't answer and the item goes to the teacher's review queue
@@ -208,38 +239,36 @@ None of the products we reviewed combine all three:
 
 ## 8. Demo
 
-**Core action, end to end:** a 6th grader gets stuck on ratios → Rova finds and fixes the root cause in 4th-grade fractions → the teacher and parent are looped in → the issue is verified as fixed.
+**Core action, end to end:** the teacher shares a fractions lesson → Maya receives it and talks through the questions with a scripted coach → code checks her answers and records completion → the teacher reviews outcomes, a summary, and the conversation → the family sees progress, a teacher note, and home activities. Follow [the full presentation script](docs/DEMO_SCRIPT.md) for exact student inputs and expected outcomes.
 
 **Script (~90 seconds of demo inside the 5-minute pitch):**
 
 | # | On screen | Label |
 |---|---|---|
-| 1 | Maya logs in. Her buddy: *"Welcome back! Fractions were tricky last time, so let's finish ratios together."* | Working (memory) |
-| 2 | She types "just tell me the answer." The buddy kindly declines, asks a guiding question and opens a ratio table | Working (guardrail + hint ladder) |
-| 3 | She makes the same mistake twice. The buddy: *"I think this is really about equivalent fractions. Quick check?"* | Working (root-cause trace) |
-| 4 | 3-question fraction refresher → back to the ratio problem → solved → explain-it-back | Working |
-| 5 | Teacher view: alert card + *"5 students share this root cause → small-group refresher"* | Working alert; class data **Simulated** |
-| 6 | Parent view: text in Spanish with a 10-minute recipe-ratio activity | **Simulated** (SMS mock-up) |
-| 7 | Loop tracker: re-check in 7 days → fast-forward → *"Mastered ✅, parent notified"* | **Simulated** (time jump) |
+| 1 | Home page: "Every learner. A way forward." → Log in | Working |
+| 2 | **Teacher:** show James's priority check-in and learner cards; share a small-group fractions lesson including Maya | Working; starting profiles **Simulated** |
+| 3 | **Student:** open the assignment, ask for the answer, try `3`, request a picture, then try `2` | Working scripted coaching, refusal, visual support, and code checks |
+| 4 | Solve the remaining questions (`4`, then `9`), optionally asking for an explanation | Working; learner completion follows all three checked answers |
+| 5 | **Teacher:** Learning insights graph → Learning plans → Review lesson modal → summary and conversation tabs; send a family note | Working; summary is a **scripted AI preview** |
+| 6 | **Parent:** learning journey and teacher note; complete the home checkpoints and see the next activity | Working; no real SMS/email |
 
-**Working / Simulated / Planned (labeled on screen)**
+**Working / Simulated / Planned**
 
 | Working | Simulated | Planned |
 |---|---|---|
-| Hint-ladder tutor with guardrails | 25-student class data | Roster sync (Clever/ClassLink) |
-| Code-checked math answers | Parent SMS delivery | More subjects (ELA, science) |
-| Root-cause trace across the skill map | 7-day time jump | Grades 3–5 and 9–12 modes |
-| Learning memory (stored student profile) | Previous-grade history for Maya | Voice input / read-aloud |
-| Teacher alert generation | | Pulling in data from other tools (i-Ready, etc.) |
-| Off-topic / unsafe message handling | | Human-tutor escalation |
-
-> **Build note (2026-10-17, D-004 in `DECISIONS.md`):** for now the prototype calls no AI model. It's still a free-flowing app: students type anything, and a rule-based responder in code picks the reply from templates. Tutor replies are labeled "rule-based (AI planned)" and must not be called AI in the pitch. Math checks, detection rules, root-cause trace, alerts, and re-check run in code.
+| Sample logins and sign-up with class/family codes | 18-student sample class and starting scores | Root-cause tracing, automatic alerts, 7-day re-check (built in code, not connected) |
+| Conversational scripted coaching, direct-answer refusal, transcript safety flags, code checks | Maya's last 7 days of practice | Legacy root-cause alert lifecycle and delayed verification |
+| Per-topic confidence that updates with practice | Accounts saved in a local JSON file | AI tutor replies (no AI model is called today, D-004) |
+| Teacher learner cards, practice outcomes graph, assigned lesson completion, summary/review modals, notes | Scripted AI summary preview | Parent texts in the home language |
+| Parent progress, advancing home activities and completed history, teacher notes | | Roster sync (Clever/ClassLink), more subjects and grades |
 
 **Backup:** record the full demo video Saturday night. Pre-load data, log in, mute notifications.
 
 ---
 
 ## 9. Business model and unit economics
+
+> The market, pilot, and pricing in §9–§15 assume middle school (grades 6–8). The prototype shows grade 4; see the open decision in §5.
 
 **Model:** for-profit, B2B. **The student benefits, the teacher adopts, the school or district pays.**
 **Ramp:** free 4-week classroom pilot → school license → district contract. Title I discounts for low-income schools.
@@ -445,96 +474,40 @@ Schools won't pick Rova because it's another AI tutor. They'll pick it because i
 
 ## 17. Build spec
 
-### Stack (suggested)
-- **Web app**, responsive, runs on Chromebooks and phones. *Why:* schools use Chromebooks, which run websites, not phone apps; parents open links from texts
-- **Frontend:** React (Next.js) + Tailwind; a component library for cards
-- **AI:** one hosted LLM API (whichever the team has credits for), behind a single function so the provider is swappable. Small model by default, stronger model for hard moments
-- **Data:** JSON files or SQLite (student profiles, skill map, events, alerts)
-- **Math checking:** a small expression and fraction evaluator in code
-- **Deploy:** Vercel or similar; one URL with three views
+### Stack (as built)
+- **Next.js 16** (App Router) + React 19, Tailwind 4 plus a hand-written stylesheet (`app/product.css`), Fraunces + Public Sans fonts
+- **Accounts:** email + password (scrypt-hashed), signed session cookie (HMAC, 7 days), same-origin checks on writes; roles: student, teacher, parent
+- **Data:** one JSON file at `.rova/workspace.json` (or `ROVA_DATA_DIR`), created from `lib/product/mock-accounts.json` and a sample class on first run; every write goes through a queue and an atomic rename
+- **Math checking:** exact number/fraction checker in code (`lib/math/checkAnswer.ts`)
+- **No AI model** is called (D-004)
 
 ### Screens
+- **Home** (`/`): product story and entry to log in or sign up
+- **Login / Sign up** (`/login`, `/signup`): sample accounts; class code for students, family code for parents
+- **Student** (`/student`): My day · My learning path · My progress · continuous messaging practice modal with pinned question and optional visuals · profile (color, daily goal, family code)
+- **Teacher** (`/teacher`): Overview (class understanding, shared gap, priority check-ins) · My classroom (learner cards) · Learning insights (live practice outcomes, weekly activity) · Learning plans (per-learner completion and modal reviews) · notes to families
+- **Parent** (`/parent`): At a glance · Learning journey · Learn together (advancing activities and completed history) · Classroom updates. Sidebar destinations use URL fragments for browser history and refresh.
 
-**Student (Maya)**
-- **Home:** buddy greeting (uses memory) · Today's Mission card · skill map with progress rings
-- **Problem:** large problem text · interactive ratio table / double number line · "I'm stuck" · hint ladder (3 locked steps) · source tag
-- **Refresher:** 3 quick prerequisite questions with the root-cause message
-- **Explain it back:** free-text box; the buddy responds to her reasoning
-- **Win:** mastery celebration
-
-**Teacher (Ms. Rivera)**
-- **Action inbox:** alert cards (student · skill · evidence · root cause · suggested reteach · *Done / Snooze / Different strategy*)
-- **Class heatmap:** students × skills; "group of 5 share this root cause"
-- **Loop tracker:** open → acted → verified; average days to fix
-- **Review queue:** held-back answers + "this seems wrong" flags
-
-**Parent (phone)**
-- **Text mock-up:** in Spanish, with the activity link
-- **Weekly card:** learned · working on · try at home
-- **Win message**
-
-### The agent: steps and tools
-
-On each student message, the agent:
-1. Loads the **learner profile** (skills, recurring mistakes, preferences, interests)
-2. Runs the **safety + scope screen**, redirecting if off-topic or unsafe
-3. Finds the relevant lesson section or standard (for the citation)
-4. Decides the next move: guiding question / next hint level / check answer / refresher / explain-back
-5. **Checks math answers in code**
-6. Writes a short, grade-level reply with a citation, then **fact-checks** it against the source
-7. Logs the event; the rules check whether to **detect → diagnose → alert**
-8. Updates the profile after the session (weekly summary into memory)
-
-**Tools the agent can call**
-| Tool | Does |
+### Code map
+| Path | What |
 |---|---|
-| `get_learner_profile(student)` | Returns mastery, misconceptions, preferences |
-| `find_source(skill, question)` | Returns a lesson section or standard text for citations |
-| `check_answer(problem, answer)` | **Code:** exact check of ratio and fraction answers |
-| `trace_prerequisites(skill)` | Walks the skill map back to earlier-grade skills |
-| `make_practice(skill, level, interest)` | Generates problems; answers verified by `check_answer` |
-| `create_alert(student, skill, evidence, root_cause)` | Posts to the teacher inbox |
-| `draft_parent_message(student, activity, language)` | Writes the parent text |
-| `schedule_recheck(student, skill, days)` | Sets the verify step |
+| `components/product/` | All current screens (`WorkspaceApp`, `StudentDashboard`, `TeacherDashboard`, `ParentDashboard`, `Practice`, `AuthForm`, `Homepage`) |
+| `lib/product/curriculum.ts` | 6 grade 4 topics, 18 practice questions with hints, `gradeAnswer` |
+| `lib/product/model.ts` | Workspace data model, sample class, confidence scoring |
+| `lib/product/coaching.ts`, `lib/product/insights.ts` | Scripted coaching, server-owned lesson progress, evidence-derived summaries, family activity progression |
+| `lib/product/server.ts` | JSON file store, password hashing, sessions, per-role data visibility |
+| `app/api/account`, `app/api/learning` | Login/sign-up/profile; practice attempts, plans, notes, parent checklist |
+| `lib/rules/`, `lib/data/store.ts`, `lib/tutor/`, `components/{student,teacher,parent}/` | Earlier closed-loop engine and screens (root cause, alerts, re-check, tutor). Tested, **not used by the current screens** |
 
-### Skill map (demo slice)
-```json
-{
-  "6.RP.A.3": { "name": "Solve ratio problems with tables",      "grade": 6, "needs": ["6.RP.A.1", "4.NF.A.1"] },
-  "6.RP.A.1": { "name": "Understand ratios",                     "grade": 6, "needs": ["3.OA.C.7"] },
-  "4.NF.A.1": { "name": "Equivalent fractions",                  "grade": 4, "needs": ["3.NF.A.3", "3.OA.C.7"] },
-  "3.NF.A.3": { "name": "Compare simple fractions",              "grade": 3, "needs": [] },
-  "3.OA.C.7": { "name": "Multiplication facts within 100",       "grade": 3, "needs": [] }
-}
-```
+### Data model (current)
+- `Profile { id, name, role, school, goal, avatar }` (accounts also store a password hash and salt)
+- `Learner { id, name, scores: { [topic]: 0–100 } }`
+- `Attempt { studentId, questionId, topic, correct, hints, at, sessionId?, planId? }`
+- `CoachSession { id, studentId, topic, planId?, questionIndex, messages[], startedAt, completedAt? }`; each message records speaker, question, text, source, and support kind
+- `Plan { topic, studentIds[], at, completed? }` · `Note { studentId, text, author, at }`
 
-### Detection rules (code)
-| Signal | Rule |
-|---|---|
-| Stuck | Same skill wrong ≥3 of last 4 attempts |
-| Answer-seeking | Jumps to the last hint within 20 seconds on ≥3 problems |
-| Repeated misconception | Same error type ≥2 times (e.g. adds instead of multiplying across a ratio table) |
-| Drop | Accuracy 25+ points below the student's own 2-week average |
-| Disengagement | Sessions 50% shorter for a week, or 2+ missed missions |
-| Class gap | ≥30% of a class shares the same root cause → group alert |
-
-### Data model (minimum)
-- `Student { id, first_name, grade, buddy_name, language_home, interests[] }`
-- `SkillState { student_id, skill_id, mastery 0–1, misconceptions[], last_seen }`
-- `Event { student_id, skill_id, type: attempt|hint|explain|refresher, correct, seconds, ts }`
-- `Alert { id, student_id, skill_id, evidence, root_cause, action, status: open|acted|verified|escalated, recheck_at }`
-- `ParentMessage { student_id, language, text, sent_at }`
-
-### Test plan (report real numbers in the pitch)
-| Test set | Size | Measure | Target |
-|---|---|---|---|
-| In-scope ratio questions | 60 | Correct, helpful hint with a valid source | ≥90% |
-| Off-topic questions | 20 | Correctly redirected | ≥95% |
-| Tricky inputs ("just tell me", misspellings, unsafe) | 20 | Handled as designed | ≥95% |
-| Math answer checks | 20 | Code verdict correct | 100% |
-| Root-cause traces (scripted error patterns) | 10 | Finds the right prerequisite | ≥80% |
-
-*A 90% result we tested beats a 99% we didn't.* Optional: run the set on one closed model and one small open model (e.g. Gemma or Qwen) and report both accuracy and cost.
+### Tests
+`npm run test` runs 173 tests, including coaching guardrails and grading, assignment completion, API authorization, transcript visibility, summaries, family progression, sample-profile upgrades, and navigation destinations, alongside the earlier engine/tutor/math tests. The new UI was also checked manually in Chrome; the automated suite does not render the React screens.
 
 ---
 
@@ -571,6 +544,9 @@ On each student message, the agent:
 | Content licensing for paid use | Risk | Standards-first content; legal review before scaling |
 | Privacy (COPPA/FERPA) | Risk | No child accounts, data agreement, provider terms checked for minors and zero retention |
 | A big competitor adds follow-up checks | Risk | Move fast on multi-year memory and outcome data |
+| Prototype storage writes a file on every request | Known limitation | Works locally; on Vercel (D-006) the file can't be written, so login fails. Needs browser storage or a hosted database before deploying |
+| Prototype has student accounts with passwords | Risk | Conflicts with "no child accounts" above; replace with teacher-issued class codes or roster sign-in before any pilot |
+| Closed loop not connected in the current UI | Known limitation | Wire the existing rules engine (root cause, alerts, re-check) into the new screens |
 
 ---
 

@@ -1,6 +1,6 @@
 # Rova project guidance
 
-Rova is a three-person HackATL 2026 weekend project: a study buddy for 6th-grade math (ratios) that coaches with hints instead of answers, traces a struggle back to its root-cause skill, and loops in the teacher and parent. Protect the demo path: student gets stuck → hint ladder (math checked by code) → root-cause refresher → teacher alert → parent message → verified fix.
+Rova is a three-person HackATL 2026 weekend project: a grade 4 math app with Student, Teacher, and Parent workspaces behind logins (D-009). Students practice six topics with hints and code-checked answers; the teacher sees the class's shared gap, assigns small-group plans, and writes notes to families; parents see progress and at-home activities. The current screens live in `components/product/` and `lib/product/`. The earlier closed-loop engine (`lib/rules/`, `lib/data/store.ts`, `lib/tutor/`) is tested but not connected; don't present it as working. Protect the demo in README §8.
 
 Use the `maintaining-rova-context` skill for material planning, implementation, debugging, review, or handoff work. Read only the documentation relevant to the task:
 

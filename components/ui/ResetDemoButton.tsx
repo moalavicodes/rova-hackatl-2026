@@ -9,7 +9,7 @@ export function ResetDemoButton() {
     <button
       type="button"
       onClick={resetDemo}
-      className="rounded-md border border-slate-300 px-2.5 py-1 text-xs font-medium text-slate-600 hover:bg-slate-100"
+      className="rounded-control border border-rule bg-transparent px-3 py-1.5 text-xs font-semibold text-ink-muted transition-colors hover:border-accent hover:bg-accent-soft hover:text-accent-strong"
     >
       Reset demo
     </button>

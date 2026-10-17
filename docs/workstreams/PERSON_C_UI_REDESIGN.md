@@ -82,7 +82,7 @@ The student page belongs to Person A, and Person A is changing it right now. Don
 
 ## Tasks
 
-- [ ] C7 — Design tokens and fonts (`app/globals.css`, `app/layout.tsx`), restyled `components/ui/ViewShell` header
+- [x] C7 — Design tokens and fonts (`app/globals.css`, `app/layout.tsx`), restyled `components/ui/ViewShell` header
 - [ ] C8 — Teacher two-pane workspace: inbox rail with keyboard shortcuts, detail pane, inline loop stepper
 - [ ] C9 — Evidence timeline and root-cause trail (pure helpers + tests)
 - [ ] C10 — Group chips + Copy group plan

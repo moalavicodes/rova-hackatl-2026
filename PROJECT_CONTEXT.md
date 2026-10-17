@@ -22,6 +22,18 @@ AI made answers instant, not learning. Rova coaches a 6th grader with a hint lad
 - **Math checking:** a small expression and fraction evaluator in code (`check_answer`).
 - **Detection rules run in code** (README section 17, "Detection rules"), so they are consistent and explainable.
 
+## Commands
+
+```bash
+npm install      # once
+npm run dev      # http://localhost:3000
+npm run test     # vitest
+npm run lint
+npm run build
+```
+
+Stack as built: Next.js 16.3.8 (App Router, Turbopack), React 19.2, Tailwind 4, Vitest 4.1. Next.js 16 differs from older versions; its docs ship in `node_modules/next/dist/docs/`.
+
 ## The loop
 
 LEARN → DETECT → DIAGNOSE → ALERT → ACT → VERIFY. Text comes from templates chosen by rules (later an AI model). Code decides when things happen and whether an answer is correct.

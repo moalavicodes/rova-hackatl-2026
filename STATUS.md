@@ -6,13 +6,13 @@ The integration owner consolidates this file after merges. During feature work, 
 
 | Role | Person | GitHub | Branch |
 | --- | --- | --- | --- |
-| Person A — Student tutor and agent | _unclaimed_ | | `feat/student-tutor` |
-| Person B — Data, rules, and integration (owner) | _unclaimed_ | | `feat/data-rules` |
-| Person C — Teacher and parent views | _unclaimed_ | | `feat/adult-views` |
+| Person A — Student tutor and agent | Suvrat | suvrat23 | `feat/student-tutor` |
+| Person B — Data, rules, and integration (owner) | Mohammad | moalavicodes | `feat/data-rules` |
+| Person C — Teacher and parent views | Madhur | Madhur20 | `feat/adult-views` |
 
 ## Current state
 
-- **Completed:** repository created with the README and the shared AI context files. No application code yet.
+- **Completed:** roles assigned 2026-10-17 (all three are repo collaborators); repository created with the README and the shared AI context files. No application code yet.
 - **In progress:** none.
 - **Blocked:** none.
 
@@ -26,10 +26,9 @@ The integration owner consolidates this file after merges. During feature work, 
 
 ## Next actions
 
-1. Claim roles and fill in the table above.
-2. Contract freeze (30 minutes, all three people together); see `docs/TEAM_WORKFLOW.md`.
-3. Person B initializes the Next.js app and commits `lib/types.ts` from the frozen contracts.
-4. Everyone branches from `main` and builds against fixtures.
+1. Contract freeze (30 minutes, all three people together); see `docs/TEAM_WORKFLOW.md`.
+2. Person B (Mohammad) initializes the Next.js app and commits `lib/types.ts` from the frozen contracts.
+3. Everyone branches from `main` and builds against fixtures.
 
 ## Verification
 

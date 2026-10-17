@@ -1,5 +1,7 @@
 # Rova
 
+> Current app: fourth-grade math with a scripted conversational coach, teacher-assigned group lessons, saved coaching conversations, and per-learner completion tracking. Use Node 24, then `npm install` and `npm run dev`. Sample logins: `teacher@rova.school`, `student@rova.school`, or `parent@rova.school`, all with password `rova2026` (simulated accounts only). The new product currently uses a local JSON store; see [project context](PROJECT_CONTEXT.md#current-product-workspace-2026-10-17) for the deployment limitation and the distinction from the original ratios build spec below.
+
 ### *Think it through. Go the distance.*
 
 **The study buddy that coaches with hints, not answers, remembers your learning journey from grade to grade, and keeps your teachers and parents in the loop.**

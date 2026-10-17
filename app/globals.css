@@ -1,10 +1,54 @@
 @import "tailwindcss";
 
 @theme inline {
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-public-sans);
+  --font-display: var(--font-fraunces);
+
+  --color-paper: #f6f2e8;
+  --color-paper-deep: #ede7d8;
+  --color-surface: #fffdf7;
+  --color-ink: #172735;
+  --color-ink-muted: #5f6b72;
+  --color-rule: #d8d1c1;
+  --color-accent: #0f6b64;
+  --color-accent-strong: #09534e;
+  --color-accent-soft: #dcece7;
+  --color-danger: #9c3f3f;
+  --color-danger-soft: #f5e2dc;
+  --color-success: #39704f;
+  --color-success-soft: #e0eee3;
+
+  --radius-panel: 0.75rem;
+  --radius-control: 0.375rem;
+
+  --shadow-lifted: 0 18px 45px -28px rgb(23 39 53 / 0.45);
 }
 
-body {
-  color: #0f172a;
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  html {
+    background: var(--color-paper);
+  }
+
+  body {
+    background:
+      linear-gradient(rgb(23 39 53 / 0.025) 1px, transparent 1px),
+      var(--color-paper);
+    background-size: 100% 2rem;
+    color: var(--color-ink);
+    font-variant-numeric: tabular-nums;
+  }
+
+  ::selection {
+    background: var(--color-accent-soft);
+    color: var(--color-ink);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 3px;
+  }
 }

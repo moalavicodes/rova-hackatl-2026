@@ -15,22 +15,19 @@
 - [x] A3 — Problem screen: problem text, interactive ratio table or double number line, "I'm stuck", 3-step locked hint ladder, source tag
 - [x] A4 — `lib/tutor/responder.ts` (D-004, no AI): `respond(input, ctx)` classifies typed input with rules into an `Intent`, checks answers with `check_answer`, picks the next move (hint level, refresher, explain-back), and gets text from `content/templates/` through `callLLM`. Free text box plus quick-reply buttons; Maya can type anything and change problems at any time
 - [ ] A5 — Guardrails as rules: "just tell me the answer" → kind refusal plus a guiding question; unsafe keywords → flag the teacher; anything unrecognized → "Great question for your teacher!" plus Send-to-teacher. Several template variants per reply so it doesn't feel repetitive. Small label: "rule-based (AI planned)"
-- [ ] A6 — Refresher screen: 3 prerequisite questions from the traced root cause, scored by `check_answer`
+- [x] A6 — Refresher screen: 3 prerequisite questions from the traced root cause, scored by `check_answer`
 - [x] A7 — Explain-it-back box (rule check for key ideas, e.g. "multiply both", "same ratio", "equivalent"; a gentle follow-up question if missing), then the Win screen
 - [x] A8 — `eval/`: responder test set (typed input → expected intent and reply type), including misspellings, "just tell me", off-topic, and unsafe lines, plus the 20 math checks from A0. A runner prints pass rates for `STATUS.md`
 
 ## Integration handoff — 2026-10-17
 
-- The student flow, responder, source content, practice bank, and exact math checker are implemented and tested on `feat/student-tutor`.
-- Until Person B's functions are available, tutor events stay in the student session, the refresher uses a clearly labeled simulated `4.NF.A.1` root cause, and teacher review is only a local simulated flag. No real alert is sent.
-- Finish A5/A6 after Person B exposes the agreed event logging, prerequisite trace, and alert/teacher handoff functions; replace the local stand-ins without changing the shared contracts.
-- Review fixes on `feat/student-tutor`: use the merged seed export, complete the suggested explain-back phrase, keep refresher errors on the fraction skill/template, tailor hints to each ratio table, and source greetings from response templates. The teacher flag and root-cause trace remain simulated pending Person B's integration.
-
-## Connecting to the store (after PR #4 merges)
-
-- After each tutor reply, call `logEvents(reply.events)` from `@/lib/data/store`. It runs the detection rules and creates the teacher alert.
-- Read Maya's profile with `get_learner_profile(useRovaState(), "maya")` (`@/lib/rules/engine`, `@/lib/data/store`) instead of keeping a separate copy, so misconceptions and mastery match what the teacher sees.
-- The student "Reset demo" should also call `resetDemo()` (the header button already does).
+- Student tutor events now go through `logEvents` in `lib/data/store.ts`; Person B's rules create and share alerts with the Teacher view.
+- The student view reads Maya's profile from `useRovaState()` and `get_learner_profile`, so mastery and misconceptions match the shared store.
+- After a repeated misconception creates or matches an active alert, the refresher uses that alert's traced root cause and asks three code-checked practice questions. Refresher events are also logged for the teacher's re-check flow.
+- The student page still has a local reset button that resets both shared demo state and the chat. Remove that duplicate button and respond to Person B's forthcoming shared reset signal so the header reset also clears the local chat.
+- Unsafe/off-topic guardrails still show the student a simulated teacher-review flag. Person B is adding `reportToTeacher` for safety and student-question reports; wire those two paths to it after the helper lands.
+- The refresher selects any active alert with a root cause, including `stuck` alerts with different mistakes. Reports without a root cause cannot be mistaken for learning alerts.
+- Review fixes: seed imports use the merged seed module, the suggested explain-back reply completes the flow, fraction mistakes stay fraction-specific, hints match each ratio problem, and greetings come from response templates.
 
 ## Rules
 

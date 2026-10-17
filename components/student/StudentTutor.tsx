@@ -205,7 +205,7 @@ export default function StudentTutor({
           (item) =>
             item.student_id === student.id &&
             item.skill_id === problem.skill_id &&
-            item.signal === "repeated_misconception" &&
+            item.root_cause !== null &&
             (item.status === "open" || item.status === "acted"),
         );
         const rootCause = alert?.root_cause;

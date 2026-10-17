@@ -1,7 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { getState, logEvents, resetDemo as resetRovaDemo, useRovaState } from "@/lib/data/store";
+import {
+  getState,
+  logEvents,
+  onDemoReset,
+  reportToTeacher,
+  useRovaState,
+} from "@/lib/data/store";
 import { get_learner_profile } from "@/lib/rules/engine";
 import { find_source } from "@/content/lessons";
 import { getRatioTable, make_practice, demoProblems } from "@/lib/tutor/problems";
@@ -24,6 +30,12 @@ interface ConversationMessage {
   intent?: Intent;
   hintLevel?: number;
   quickReplies?: string[];
+}
+
+interface PendingTeacherReport {
+  kind: "safety_concern" | "student_question";
+  message: string;
+  skillId: SkillId;
 }
 
 const fractionModels: Record<string, { numerator: number; denominator: number }> = {
@@ -76,9 +88,11 @@ export default function StudentTutor({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [status, setStatus] = useState("");
-  const [teacherReviewNeeded, setTeacherReviewNeeded] = useState(false);
+  const [teacherReportSent, setTeacherReportSent] = useState(false);
   const lastResponseAt = useRef(0);
   const messageId = useRef(0);
+  const requestGeneration = useRef(0);
+  const pendingTeacherReport = useRef<PendingTeacherReport | null>(null);
 
   const student = profile.student;
   const problem = demoProblems[problemIndex];
@@ -96,6 +110,44 @@ export default function StudentTutor({
   useEffect(() => {
     lastResponseAt.current = clockNow();
   }, []);
+
+  useEffect(
+    () =>
+      onDemoReset(() => {
+        const generation = ++requestGeneration.current;
+        pendingTeacherReport.current = null;
+        setScreen("home");
+        setMode("problem");
+        setProblemIndex(0);
+        setRefresherIndex(0);
+        setRefresherSkillId(null);
+        setHintLevel(0);
+        setMessages([]);
+        setDraft("");
+        setBusy(false);
+        setError("");
+        setTeacherReportSent(false);
+        setTableEntry("");
+        setStatus("Demo reset to Maya's seeded learning profile.");
+        lastResponseAt.current = clockNow();
+
+        void fetch("/api/tutor/reset", { method: "POST" })
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error(`Could not reset reply templates (${response.status}).`);
+            }
+          })
+          .catch((resetError: unknown) => {
+            if (generation !== requestGeneration.current) return;
+            setError(
+              resetError instanceof Error
+                ? resetError.message
+                : "Tutor reply templates could not be reset.",
+            );
+          });
+      }),
+    [],
+  );
 
   function addMessage(message: Omit<ConversationMessage, "id">) {
     messageId.current += 1;
@@ -118,6 +170,7 @@ export default function StudentTutor({
   }
 
   function startMission() {
+    pendingTeacherReport.current = null;
     setScreen("problem");
     setMode("problem");
     setHintLevel(0);
@@ -128,6 +181,7 @@ export default function StudentTutor({
   }
 
   function changeProblem() {
+    pendingTeacherReport.current = null;
     setProblemIndex((index) => (index + 1) % demoProblems.length);
     setScreen("problem");
     setMode("problem");
@@ -149,6 +203,9 @@ export default function StudentTutor({
   async function sendInput(value: string) {
     const input = value.trim();
     if (!input || busy) return;
+    const generation = requestGeneration.current;
+    const skillId = activeProblem.skill_id;
+    pendingTeacherReport.current = null;
     setBusy(true);
     setError("");
     setStatus("");
@@ -185,6 +242,7 @@ export default function StudentTutor({
       if (!isTutorReply(payload)) {
         throw new Error("Tutor returned an invalid response. Please try again.");
       }
+      if (generation !== requestGeneration.current) return;
       const reply = payload;
       lastResponseAt.current = clockNow();
       addMessage({
@@ -197,7 +255,15 @@ export default function StudentTutor({
       });
       const createdAlerts = reply.events.length > 0 ? logEvents(reply.events) : [];
 
-      if (reply.intent === "unsafe") setTeacherReviewNeeded(true);
+      if (reply.intent === "unsafe" || reply.intent === "off_topic") {
+        const report: PendingTeacherReport = {
+          kind: reply.intent === "unsafe" ? "safety_concern" : "student_question",
+          message: input,
+          skillId,
+        };
+        pendingTeacherReport.current = report;
+        if (report.kind === "safety_concern") sendTeacherReport(report);
+      }
       if (reply.hint_level !== hintLevel) setHintLevel(reply.hint_level);
       if (reply.next_mode === "refresher") {
         const latestState = getState();
@@ -246,44 +312,33 @@ export default function StudentTutor({
         setScreen("win");
       }
     } catch (requestError) {
+      if (generation !== requestGeneration.current) return;
       setError(
         requestError instanceof Error
           ? requestError.message
           : "Tutor request failed. Please try again.",
       );
     } finally {
-      setBusy(false);
+      if (generation === requestGeneration.current) setBusy(false);
     }
   }
 
-  async function resetDemo() {
-    setBusy(true);
-    setError("");
+  function sendTeacherReport(report: PendingTeacherReport) {
     try {
-      const response = await fetch("/api/tutor/reset", { method: "POST" });
-      if (!response.ok) {
-        throw new Error(`Could not reset reply templates (${response.status}).`);
-      }
-      resetRovaDemo();
-      setScreen("home");
-      setMode("problem");
-      setProblemIndex(0);
-      setRefresherIndex(0);
-      setRefresherSkillId(null);
-      setHintLevel(0);
-      setMessages([]);
-      setTableEntry("");
-      setTeacherReviewNeeded(false);
-      setStatus("Demo reset to Maya's seeded learning profile.");
-      lastResponseAt.current = clockNow();
-    } catch (resetError) {
+      reportToTeacher({
+        student_id: student.id,
+        skill_id: report.skillId,
+        kind: report.kind,
+        message: report.message,
+      });
+      setError("");
+      setTeacherReportSent(true);
+    } catch (reportError) {
       setError(
-        resetError instanceof Error
-          ? resetError.message
-          : "Demo could not be reset.",
+        reportError instanceof Error
+          ? `Could not send your message to Ms. Rivera: ${reportError.message}`
+          : "Could not send your message to Ms. Rivera.",
       );
-    } finally {
-      setBusy(false);
     }
   }
 
@@ -295,6 +350,7 @@ export default function StudentTutor({
   }
 
   function onQuickReply(reply: string) {
+    if (busy) return;
     if (reply === "Change problem") {
       changeProblem();
     } else if (reply === "Explain it back") {
@@ -304,8 +360,12 @@ export default function StudentTutor({
       setScreen("win");
     } else if (reply === "Send to my teacher") {
       dismissQuickReplies();
-      setTeacherReviewNeeded(true);
-      setStatus("Simulated: this concern is marked for teacher review, but no alert was sent.");
+      const report = pendingTeacherReport.current;
+      if (!report) {
+        setError("There is no recent message to send to your teacher.");
+        return;
+      }
+      sendTeacherReport(report);
     } else if (reply === "Back to my mission" || reply === "Back to my ratio") {
       dismissQuickReplies();
       setScreen("problem");
@@ -344,14 +404,6 @@ export default function StudentTutor({
               Change problem
             </button>
           )}
-          <button
-            type="button"
-            onClick={() => void resetDemo()}
-            disabled={busy}
-            className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 disabled:opacity-50"
-          >
-            Reset demo
-          </button>
         </div>
       </div>
 
@@ -365,9 +417,9 @@ export default function StudentTutor({
           {status}
         </div>
       )}
-      {teacherReviewNeeded && (
+      {teacherReportSent && (
         <div className="rounded-lg border border-orange-200 bg-orange-50 p-3 text-sm text-orange-900">
-          Teacher review needed. <strong>Simulated:</strong> this prototype has not sent a teacher alert.
+          <strong>Sent to Ms. Rivera</strong>
         </div>
       )}
 

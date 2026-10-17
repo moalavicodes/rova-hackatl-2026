@@ -24,6 +24,7 @@ import type {
 
 export interface RovaState {
   version: 1;
+  session: string; // changes on every Reset demo, so views can clear their own local state
   skillMap: SkillMap;
   classroom: Classroom;
   students: Student[];
@@ -42,6 +43,7 @@ export const RECHECK_REFRESHERS_NEEDED = 2;
 export function seedState(): RovaState {
   return {
     version: 1,
+    session: "seed",
     skillMap,
     classroom,
     students,
@@ -140,6 +142,23 @@ export function create_alert(
   return created;
 }
 
+// Once an alert is verified or escalated, the mistakes that caused it shouldn't count again:
+// detection only looks at events after that alert was raised.
+function eventsSinceLastResolved(state: RovaState, studentId: string, skillId: SkillId): Event[] {
+  const resolved = state.alerts
+    .filter(
+      (a) =>
+        a.student_id === studentId &&
+        a.skill_id === skillId &&
+        !is_report(a) &&
+        (a.status === "verified" || a.status === "escalated"),
+    )
+    .map((a) => a.created_at ?? "")
+    .sort();
+  const cutoff = resolved.at(-1);
+  return cutoff ? state.events.filter((e) => e.ts > cutoff) : state.events;
+}
+
 // Records one event; returns the next state and any alerts it created.
 export function log_event(
   state: RovaState,
@@ -154,7 +173,11 @@ export function log_event(
   if (event.type !== "attempt" && event.type !== "hint") return { state: next, newAlerts: [] };
   if (hasUnresolvedAlert(next, event.student_id, event.skill_id)) return { state: next, newAlerts: [] };
 
-  const detection = detect(next.events, event.student_id, event.skill_id);
+  const detection = detect(
+    eventsSinceLastResolved(next, event.student_id, event.skill_id),
+    event.student_id,
+    event.skill_id,
+  );
   if (!detection) return { state: next, newAlerts: [] };
 
   const newAlerts = create_alert(next, event.student_id, event.skill_id, detection, now);
@@ -284,7 +307,15 @@ export function run_recheck(state: RovaState, alertId: string, nowOverride?: Dat
   if (!is_mastered(state, alert)) {
     return updateAlert(state, alertId, (a) => ({ ...a, status: "escalated" }));
   }
-  const verified = updateAlert(state, alertId, (a) => ({ ...a, status: "verified" }));
+  const verified: RovaState = {
+    ...updateAlert(state, alertId, (a) => ({ ...a, status: "verified" })),
+    // Mastered: the student's recorded misconceptions on this skill are cleared.
+    skillStates: state.skillStates.map((s) =>
+      s.student_id === alert.student_id && s.skill_id === alert.skill_id
+        ? { ...s, misconceptions: [] }
+        : s,
+    ),
+  };
   const message = parentMessage(verified, alert, "win", now);
   return message ? { ...verified, parentMessages: [...verified.parentMessages, message] } : verified;
 }

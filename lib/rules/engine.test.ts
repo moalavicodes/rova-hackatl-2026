@@ -181,3 +181,42 @@ describe("reports from the student view", () => {
     expect(state.alerts.map((a) => a.signal)).toEqual(["safety_concern", "repeated_misconception"]);
   });
 });
+
+describe("after an alert is resolved", () => {
+  beforeEach(() => {
+    resetLLM();
+    tick = 0;
+  });
+
+  function verifiedState(): RovaState {
+    let state = run(seedState(), [attempt(false, "adds-across-ratio-table"), attempt(false, "adds-across-ratio-table")]);
+    const id = state.alerts[0].id;
+    state = run(state, [refresher(true), refresher(true), attempt(true)]);
+    state = apply_teacher_action(state, id, "done", t0);
+    return run_recheck(state, id, new Date(state.alerts[0].recheck_at!));
+  }
+
+  it("clears the student's misconceptions on that skill when verified", () => {
+    const state = verifiedState();
+    expect(state.alerts[0].status).toBe("verified");
+    expect(get_learner_profile(state, "maya").skills.find((s) => s.skill_id === "6.RP.A.3")?.misconceptions).toEqual([]);
+  });
+
+  it("does not re-alert on one new mistake; old mistakes no longer count", () => {
+    const state = run(verifiedState(), [attempt(false, "adds-across-ratio-table")]);
+    expect(state.alerts).toHaveLength(1);
+  });
+
+  it("alerts again if the same mistake comes back twice", () => {
+    const state = run(verifiedState(), [
+      attempt(false, "adds-across-ratio-table"),
+      attempt(false, "adds-across-ratio-table"),
+    ]);
+    expect(state.alerts).toHaveLength(2);
+    expect(state.alerts[1]).toMatchObject({ status: "open", signal: "repeated_misconception" });
+  });
+
+  it("gives every seed the same session id; Reset demo changes it in the store", () => {
+    expect(seedState().session).toBe("seed");
+  });
+});

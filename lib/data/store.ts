@@ -19,6 +19,7 @@ import type { Alert, Event, TeacherAction, TeacherReport } from "@/lib/types";
 const STORAGE_KEY = "rova-demo-v1";
 const serverSnapshot = seedState();
 const listeners = new Set<() => void>();
+const resetListeners = new Set<() => void>();
 let current: RovaState | null = null;
 
 function read(): RovaState {
@@ -48,18 +49,25 @@ function commit(next: RovaState) {
   notify();
 }
 
+function notifyReset() {
+  for (const listener of resetListeners) listener();
+}
+
 function onStorage(event: StorageEvent) {
   if (event.key !== STORAGE_KEY && event.key !== null) return;
+  const before = current?.session;
   current = read();
   notify();
+  // Reset demo pressed in another tab.
+  if (before !== undefined && current.session !== before) notifyReset();
 }
 
 function subscribe(listener: () => void) {
-  if (listeners.size === 0) window.addEventListener("storage", onStorage);
+  if (listeners.size === 0 && resetListeners.size === 0) window.addEventListener("storage", onStorage);
   listeners.add(listener);
   return () => {
     listeners.delete(listener);
-    if (listeners.size === 0) window.removeEventListener("storage", onStorage);
+    if (listeners.size === 0 && resetListeners.size === 0) window.removeEventListener("storage", onStorage);
   };
 }
 
@@ -104,5 +112,18 @@ export function recheck(alertId: string, nowOverride?: Date) {
 
 export function resetDemo() {
   resetLLM();
-  commit(seedState());
+  commit({ ...seedState(), session: String(Date.now()) });
+  notifyReset();
+}
+
+// Runs the listener whenever Reset demo is pressed, in this tab or another one, so a view can
+// clear its own local state (chat, current screen). Returns an unsubscribe function, so it
+// fits straight into useEffect: useEffect(() => onDemoReset(clearChat), []).
+export function onDemoReset(listener: () => void): () => void {
+  if (listeners.size === 0 && resetListeners.size === 0) window.addEventListener("storage", onStorage);
+  resetListeners.add(listener);
+  return () => {
+    resetListeners.delete(listener);
+    if (listeners.size === 0 && resetListeners.size === 0) window.removeEventListener("storage", onStorage);
+  };
 }

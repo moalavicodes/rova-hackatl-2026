@@ -24,8 +24,9 @@
 - Student tutor events now go through `logEvents` in `lib/data/store.ts`; Person B's rules create and share alerts with the Teacher view.
 - The student view reads Maya's profile from `useRovaState()` and `get_learner_profile`, so mastery and misconceptions match the shared store.
 - After a repeated misconception creates or matches an active alert, the refresher uses that alert's traced root cause and asks three code-checked practice questions. Refresher events are also logged for the teacher's re-check flow.
-- Student-side reset clears shared demo state and resets the tutor templates.
-- Unsafe/off-topic guardrails still show the student a simulated teacher-review flag. The current `Event`/`log_event` contract does not represent safety or off-topic reports, so no Teacher alert is created for those messages; coordinate a contract addition with Person B before changing this.
+- The student page still has a local reset button that resets both shared demo state and the chat. Remove that duplicate button and respond to Person B's forthcoming shared reset signal so the header reset also clears the local chat.
+- Unsafe/off-topic guardrails still show the student a simulated teacher-review flag. Person B is adding `reportToTeacher` for safety and student-question reports; wire those two paths to it after the helper lands.
+- The refresher selects only an active `repeated_misconception` learning alert, so a future safety/student-question report cannot be mistaken for its root-cause alert.
 - Review fixes: seed imports use the merged seed module, the suggested explain-back reply completes the flow, fraction mistakes stay fraction-specific, hints match each ratio problem, and greetings come from response templates.
 
 ## Rules

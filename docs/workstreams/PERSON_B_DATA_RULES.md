@@ -9,7 +9,7 @@
 ## Tasks
 
 - [x] B0 — Contract freeze. Initialize Next.js + Tailwind without deleting the docs. Add `lib/types.ts` from `docs/INTEGRATION_CONTRACTS.md`, `lib/llm.ts` in template mode (D-004: `callLLM(templateId, vars)` fills a pre-written template variant, no AI model), and a view switcher (Student / Teacher / Parent) on `app/page.tsx`. Push to `main` quickly so A and C can branch
-- [x] B1 — Seed data (D-005) in `lib/data/seed/*.json`, typed through `lib/data/seed.ts`: skill map (README section 17), Ms. Rivera's class of 25 incl. Maya (Simulated), exactly 5 sharing the `4.NF.A.1` gap (Maya, Noah, Diego, Amara, Ryan), plus a separate `3.OA.C.7` gap (Kai, Omar). Regenerate with `scripts/gen_class_seed.py`. Interests still empty
+- [x] B1 — Seed data (D-005) in `lib/data/seed/*.json`, typed through `lib/data/seed.ts`: skill map (README section 17), Ms. Rivera's class of 25 incl. Maya (Simulated), exactly 5 sharing the `4.NF.A.1` gap (Maya, s04, s12, s15, s24), plus a separate `3.OA.C.7` gap (s14, s18). Classmates have generic labels ("Student 2"…"Student 25"), no person names. Regenerate with `scripts/gen_class_seed.py`. Interests still empty
 - [ ] B2 — Store (D-005): load JSON seeds, keep students, skill states, events, alerts, and parent messages in browser storage, with a reset to seed
 - [ ] B3 — `trace_prerequisites`: walks `needs` back, nearest first. Test: `6.RP.A.3` → includes `4.NF.A.1`
 - [ ] B4 — Detection rules as pure functions with scripted-event tests (start with stuck, answer-seeking, repeated misconception, and class gap)

@@ -5,18 +5,18 @@ out = sys.argv[1]
 random.seed(6)
 T = "2026-10-17T19:00:00.000Z"
 skills = ["6.RP.A.3", "6.RP.A.1", "4.NF.A.1", "3.NF.A.3", "3.OA.C.7"]
-names = ["Maya","Liam","Sofia","Noah","Aaliyah","Ethan","Priya","Mateo","Zoe","Jamal",
-         "Emma","Diego","Hannah","Kai","Amara","Lucas","Grace","Omar","Isabella","Wei",
-         "Chloe","Andre","Fatima","Ryan","Lily"]
-langs = {"Maya":"es","Mateo":"es","Diego":"es","Isabella":"es","Wei":"zh","Fatima":"ar","Priya":"en"}
+# Maya is the README persona; classmates get generic labels (no person names), ids s02..s25.
+names = ["Maya"] + [f"Student {i}" for i in range(2, 26)]
+langs = {"Maya": "es", "Student 8": "es", "Student 12": "es", "Student 19": "es",
+         "Student 20": "zh", "Student 23": "ar"}
 # Exactly 5 share the 4th-grade equivalent-fractions gap (README: "group of 5 share this root cause").
-fraction_gap = {"Maya","Noah","Diego","Amara","Ryan"}
+fraction_gap = {"Maya", "Student 4", "Student 12", "Student 15", "Student 24"}
 # A smaller, separate gap so the heatmap is not one-dimensional.
-mult_gap = {"Kai","Omar"}
+mult_gap = {"Student 14", "Student 18"}
 def r(lo, hi): return round(random.uniform(lo, hi), 2)
 students, states = [], []
 for n in names:
-    sid = n.lower()
+    sid = "maya" if n == "Maya" else f"s{int(n.split()[1]):02d}"
     students.append({"id": sid, "first_name": n, "grade": 6,
                      "buddy_name": "Rova", "language_home": langs.get(n, "en"), "interests": []})
     for sk in skills:

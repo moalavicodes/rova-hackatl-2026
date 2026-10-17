@@ -2,7 +2,8 @@
 // The 25-student class and Maya's earlier-grade history are Simulated (README section 8).
 // Persona facts come from README section 1 (Maya, 11, 6th grade; mom's first language is Spanish).
 // Mastery values are invented demo data. Exactly 5 students (Maya + 4) share the 4.NF.A.1 gap
-// ("group of 5 share this root cause", README section 17); Kai and Omar have a separate 3.OA.C.7 gap.
+// ("group of 5 share this root cause", README section 17); s14 and s18 have a separate 3.OA.C.7 gap.
+// Classmates are labeled "Student 2"…"Student 25" (no person names); only Maya, the README persona, is named.
 // TODO(team): interests are not in the README yet; agree on them and update students.json.
 
 import type { Classroom, LearnerProfile, SkillMap, SkillState, Student } from "@/lib/types";

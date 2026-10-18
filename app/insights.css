@@ -6,10 +6,10 @@
   --ink-soft: #4f5a52;
   --rule: #d7dfd1;
   --paper: #fffefa;
-  --status-on_track: #cfe0c3;
-  --status-behind: #f1e2b3;
-  --status-stagnant: #f1cdc1;
-  --status-no_data: #e4e6df;
+  --status-on_track: #a9cf96;
+  --status-behind: #ecd38c;
+  --status-stagnant: #ebb9a8;
+  --status-no_data: #d8dbd2;
   --status-on_track-ink: #2f6b4f;
   --status-behind-ink: #8d6514;
   --status-stagnant-ink: #a4432f;
@@ -52,9 +52,9 @@ button.status-segment { cursor: pointer; }
 .compact-heading { margin-bottom: 18px; }
 .compact-heading h1 { margin: 0; }
 .kpi-row { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin-bottom: 22px; }
-.kpi { background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; padding: 18px 20px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.kpi { background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; padding: 14px 18px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
 .kpi h2 { font: 600 14px/1.3 var(--font-public-sans), sans-serif; color: var(--ink-soft); margin: 0; }
-.kpi-value { font: 600 40px/1 var(--font-public-sans), sans-serif; color: var(--ink); }
+.kpi-value { font: 600 34px/1 var(--font-public-sans), sans-serif; color: var(--ink); }
 .kpi-value small { font-size: 16px; font-weight: 500; color: var(--ink-soft); }
 .kpi-topic { font: 600 24px/1.15 var(--font-fraunces), serif; color: var(--ink); }
 .kpi p { margin: 0; font-size: 14px; color: var(--ink); }
@@ -62,10 +62,10 @@ button.status-segment { cursor: pointer; }
 .kpi-split { display: flex; flex-wrap: wrap; gap: 4px 12px; }
 .kpi-split button { background: none; border: 0; padding: 0; font: inherit; color: var(--ink); text-decoration: underline; text-decoration-color: var(--rule); text-underline-offset: 3px; }
 .kpi-split button strong { font-size: 22px; }
-.kpi-people { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
-.kpi-people button { display: flex; align-items: center; gap: 8px; width: 100%; background: none; border: 0; padding: 4px; border-radius: 8px; text-align: left; color: var(--ink); font: inherit; }
+.kpi-people { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.kpi-people button { display: flex; align-items: center; gap: 8px; width: 100%; background: none; border: 0; padding: 2px 4px; border-radius: 8px; text-align: left; color: var(--ink); font: inherit; }
 .kpi-people button:hover { background: #f1f4ea; }
-.kpi-people span { display: flex; flex-direction: column; font-size: 14px; font-weight: 600; }
+.kpi-people span { display: flex; flex-direction: column; font-size: 14px; font-weight: 600; line-height: 1.25; }
 .kpi-people small { font-weight: 400; font-size: 12px; color: var(--ink-soft); }
 .kpi .text-link, .kpi .btn { align-self: flex-start; margin-top: auto; }
 .btn-small { padding: 7px 12px; font-size: 13px; }
@@ -296,7 +296,10 @@ button.status-segment { cursor: pointer; }
 .kpi-status:hover { border-top-color: inherit; }
 .kpi-title { display: inline-flex; align-items: center; gap: 8px; font: 600 14px/1.3 var(--font-public-sans), sans-serif; color: var(--ink-soft); }
 .kpi-status .kpi-note { margin-top: auto; }
+.kpi-status p { font-size: 14px; line-height: 1.4; }
 /* Parent: what we noticed */
 .parent-subtle { font-size: 13px; color: var(--ink-soft); margin: -4px 0 10px; }
 .parent-why { margin: 0; padding-left: 18px; color: var(--ink); line-height: 1.55; }
 .parent-why li + li { margin-top: 6px; }
+.impact-table th[scope="row"] { font-weight: 600; font-size: 14px; color: var(--ink); }
+.report-head > div > p + p { margin-top: 2px; }

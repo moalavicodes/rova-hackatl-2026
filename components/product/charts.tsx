@@ -56,7 +56,7 @@ function ChartTip({ tip }: { tip: { x: number; y: number; content: React.ReactNo
   );
 }
 
-export function StatusLegend({ statuses = ["on_track", "behind", "stagnant", "no_data"] }: { statuses?: Status[] }) {
+export function StatusLegend({ statuses = ["on_track", "behind", "stagnant"] }: { statuses?: Status[] }) {
   return (
     <ul className="status-legend" aria-label="Legend">
       {statuses.map((s) => (

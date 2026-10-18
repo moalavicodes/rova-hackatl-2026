@@ -101,7 +101,10 @@ export function ProgressReport({
         <div>
           <h2>{report.className}</h2>
           <p>
-            {profile.name} · Grade 4 math · Unit {shortDate(unit.start)}–{shortDate(unit.end)} · Target {TARGET}%
+            {profile.name} · Grade 4 mathematics · {workspace.students.length} learners
+          </p>
+          <p>
+            Current unit {shortDate(unit.start)} – {shortDate(unit.end)}. Goal: every learner at {TARGET}% confidence in each topic by the end of the unit.
           </p>
         </div>
         <div className="report-actions">
@@ -275,17 +278,40 @@ export function ProgressReport({
 
       {impacts.length > 0 && (
         <section className="surface">
-          <h3>Is it working?</h3>
-          <ul className="impact-list">
-            {impacts.map((i) => (
-              <li key={i.plan.id}>
-                <strong>{topicById(i.plan.topic).name} group</strong>
-                <span>{i.members.length} learners · {shortDate(new Date(i.plan.at))}</span>
-                <span>{i.practiced ? `${i.improved} of ${i.practiced} who practiced rose 5+ points` : "Nobody has practiced yet"}</span>
-                <span className={`impact-verdict verdict-${i.verdict.replace(/ /g, "-").toLowerCase()}`}>{i.verdict}</span>
-              </li>
-            ))}
-          </ul>
+          <div className="section-heading">
+            <div>
+              <h3>Is it working?</h3>
+              <p>For each group lesson: how many learners practiced that topic since it was shared, and how many rose 5 or more points.</p>
+            </div>
+          </div>
+          <div className="report-table-wrap">
+            <table className="report-table impact-table">
+              <thead>
+                <tr>
+                  <th scope="col">Group lesson</th>
+                  <th scope="col">Shared</th>
+                  <th scope="col">Learners</th>
+                  <th scope="col">Practiced since</th>
+                  <th scope="col">Rose 5+ points</th>
+                  <th scope="col">Result</th>
+                </tr>
+              </thead>
+              <tbody>
+                {impacts.map((i) => (
+                  <tr key={i.plan.id}>
+                    <th scope="row">{topicById(i.plan.topic).name}</th>
+                    <td className="nowrap">{shortDate(new Date(i.plan.at))}</td>
+                    <td>{i.members.length}</td>
+                    <td>{i.practiced ? `${i.practiced} of ${i.members.length}` : "None yet"}</td>
+                    <td>{i.practiced ? `${i.improved} of ${i.practiced}` : "—"}</td>
+                    <td>
+                      <span className={`impact-verdict verdict-${i.verdict.replace(/ /g, "-").toLowerCase()}`}>{i.verdict === "No practice yet" ? "Waiting for practice" : i.verdict}</span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </section>
       )}
 

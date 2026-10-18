@@ -93,3 +93,16 @@ describe("simulated across-topic priority learner", () => {
     expect(practiced.students[17].scores).toEqual(scores);
   });
 });
+
+describe("family activity order", () => {
+  it("puts the root cause Rova traced first, ahead of the lowest score", () => {
+    const workspace = sampleWorkspace();
+    const maya = workspace.students.find(s => s.id === "maya")!;
+    const before = familyActivities(workspace, "alex", maya).next?.id;
+    const ratios = startCoaching(workspace, "maya", "ratios", "ratios-1", at);
+    coachingTurn(workspace, "maya", ratios.id, "miss-0001", "7", at);
+    coachingTurn(workspace, "maya", ratios.id, "miss-0002", "8", at);
+    expect(familyActivities(workspace, "alex", maya).next?.id).toBe("fractions");
+    expect(before).toBeDefined();
+  });
+});

@@ -2,6 +2,7 @@ import { gradeAnswer, hasChatPicture, questions, topicById, type PracticeQuestio
 import type { CoachMessage, CoachSession, Plan, Workspace } from "./model";
 import { hasSafetyConcern } from "./safety";
 import { detectRootCause, skillPhrase } from "./rootCause";
+import { classifyMistake } from "./mistakes";
 
 // Deterministic coaching adapter. A future model may write replies; this code still grades
 // answers, owns hint progression, and decides lesson completion.
@@ -75,6 +76,7 @@ function replyFor(workspace: Workspace, session: CoachSession, input: string): {
     const specific = q.topic === "fractions" && /^(?:1|3)$/.test(numeric.trim()) && q.id === "fr1"
       ? "You may be counting the original pieces instead of the smaller pieces. Keep the shaded area the same. "
       : additiveAnswers[q.id] === numeric.trim() ? "It looks like you added the same amount to both parts. A ratio stays the same when we multiply both parts by the same number. "
+      : classifyMistake(q.id, numeric) ? `${classifyMistake(q.id, numeric)!.nudge} `
       : "That doesn’t match yet. Let’s look at one step together. ";
     return { text: specific + q.hints[Math.min(hints, 2)] + " Try again when you’re ready.", kind: "retry", correct, hints };
   }
@@ -137,7 +139,7 @@ export function coachingTurn(workspace: Workspace, studentId: string, sessionId:
     const skill = skillPhrase[trace.prerequisite] ?? earlier.name.toLowerCase();
     session.messages.push({ id: `${id}-reply`, role: "coach", kind: "trace", questionId: q.id, at, source: trace.standard,
       text: `Two tries on this one, and that tells us something useful. Ratios are built on ${skill}: multiplying both parts by the same number keeps the amount the same. Your three-question ${skill} refresher is ready on your dashboard. Close this chat to start it, then come back to this question.` });
-    familyUpdate(workspace, studentId, `${id}-family`, at, `hit a tricky spot in ${topicById(session.topic).name.toLowerCase()} today. Rova traced it to an earlier skill, ${skill} (${earlier.standard}). Try “${earlier.activity}” together in Learn together; it takes about 10 minutes.`);
+    familyUpdate(workspace, studentId, `${id}-family`, at, `hit a tricky spot in ${topicById(session.topic).name.toLowerCase()} today. Rova traced it to an earlier skill, ${skill} (${earlier.standard}). Try “${earlier.activity}” together under Tonight’s 10 minutes; it takes about 10 minutes.`);
   } else session.messages.push({ id: `${id}-reply`, role: "coach", text: reply.text, kind: reply.kind, questionId: q.id, at, source });
   if (reply.correct && session.trace && !session.trace.fixedAt && session.trace.questionId === q.id) {
     session.trace.fixedAt = at;

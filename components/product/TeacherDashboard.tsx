@@ -1,68 +1,334 @@
 "use client";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { topicById, topics, type TopicId } from "@/lib/product/curriculum";
-import { average, band, scoreFor, type Learner, type Profile, type Workspace } from "@/lib/product/model";
+import type { Learner, Profile, Workspace } from "@/lib/product/model";
+import {
+  classStatuses,
+  countByStatus,
+  momentumHistory,
+  statusLabel,
+  topicStatusCounts,
+  type Status,
+} from "@/lib/product/progress";
+import { needYouToday, strengthLine, whyLine } from "@/lib/product/why";
 import { Icon } from "./Brand";
-import { ActivityChart, Avatar, Empty, Modal, type Mutate } from "./Shared";
-import { ClassroomLearningChart, ConversationEvidence, LessonMonitor } from "./LearningEvidence";
-import { PrioritySupport } from "./PrioritySupport";
-import { supportTopics } from "@/lib/product/insights";
-import { SafetyConcerns } from "./SafetyConcerns";
+import { MomentumChart, Sparkline, StatusBadge, StatusBar, StatusIcon, StatusLegend } from "./charts";
+import { ClassroomLearningChart } from "./LearningEvidence";
+import { ProgressReport, type ReportFilters } from "./ProgressReport";
 import { RootCauseAlerts } from "./RootCauseAlerts";
-import { ProgressReport } from "./ProgressReport";
+import { SafetyConcerns } from "./SafetyConcerns";
+import { Avatar, Empty, Modal, type Mutate } from "./Shared";
+import { StudentInsight } from "./StudentInsight";
 
-export function TeacherDashboard({ profile, workspace, section, mutate }: { profile: Profile; workspace: Workspace; section: string; mutate: Mutate }) {
+const goTo = (section: string) => {
+  window.location.hash = section;
+};
+
+// What each status means, in the words shown on the overview tiles.
+const statusMeaning: Record<Status, string> = {
+  on_track: "At 70%, or on pace to get there by the unit’s end",
+  behind: "Improving, but too slowly to reach 70% in time",
+  stagnant: "Little or no change over the last two weeks",
+  no_data: "Too few checked answers to judge",
+};
+
+export function TeacherDashboard({
+  profile,
+  workspace,
+  section,
+  mutate,
+}: {
+  profile: Profile;
+  workspace: Workspace;
+  section: string;
+  mutate: Mutate;
+}) {
   const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState<TopicId | "all">("all");
+  const [statusFilter, setStatusFilter] = useState<Status | "all">("all");
+  const [topicFilter, setTopicFilter] = useState<TopicId | "all">("all");
   const [selected, setSelected] = useState<Learner | null>(null);
   const [group, setGroup] = useState<TopicId | null>(null);
   const [members, setMembers] = useState<string[]>([]);
-  const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
   const [feedback, setFeedback] = useState("");
-  const topicStats = topics.map(t => ({ ...t, score: average(workspace.students.map(s => scoreFor(s, t.id, workspace.attempts))), struggling: workspace.students.filter(s => { const score = scoreFor(s, t.id, workspace.attempts); return score !== null && score < 60; }) }));
-  const gaps = [...topicStats].sort((a, b) => b.struggling.length - a.struggling.length);
-  const biggest = gaps[0];
-  const needsSupport = workspace.students.filter(s => topicStats.some(t => t.struggling.some(learner => learner.id === s.id)));
-  const visible = workspace.students.filter(s => s.name.toLowerCase().includes(search.toLowerCase()) && (filter === "all" || topicStats.find(t => t.id === filter)!.struggling.some(x => x.id === s.id))).sort((a, b) => Number(supportTopics(b, workspace).length === topics.length) - Number(supportTopics(a, workspace).length === topics.length) || a.name.localeCompare(b.name));
-  const focus = topicStats.find(t => t.id === group);
-  const sessions = workspace.sessions ?? [];
-  function openGroup(topic: TopicId, preset?: string[]) { setGroup(topic); setMembers(preset ?? topicStats.find(t => t.id === topic)!.struggling.map(s => s.id)); }
+  const [reportFilters, setReportFilters] = useState<ReportFilters>({ status: "all", topic: "all" });
+
+  const statuses = useMemo(() => classStatuses(workspace), [workspace]);
+  const counts = countByStatus(statuses);
+  const history = useMemo(() => momentumHistory(workspace), [workspace]);
+  const byTopic = useMemo(() => topicStatusCounts(workspace), [workspace]);
+  const today = needYouToday(workspace, statuses);
+
+  function openGroup(topic: TopicId, preset?: string[]) {
+    setGroup(topic);
+    setMembers(
+      preset ??
+        statuses
+          .filter((s) => ["behind", "stagnant"].includes(s.topics.find((t) => t.topic === topic)!.status))
+          .map((s) => s.student.id),
+    );
+  }
   async function createPlan() {
-    if (!focus || busy || !members.length) return;
+    if (!group || busy || !members.length) return;
     setBusy(true);
-    const result = await mutate({ action: "plan", topic: focus.id, studentIds: members });
-    if (result) { setFeedback(`A ${focus.name.toLowerCase()} lesson was shared with ${members.length} learners. Track it in Learning plans.`); setGroup(null); }
+    const result = await mutate({ action: "plan", topic: group, studentIds: members });
+    if (result) {
+      setFeedback(`${topicById(group).name} lesson shared with ${members.length} learner${members.length === 1 ? "" : "s"}.`);
+      setGroup(null);
+    }
     setBusy(false);
   }
-  return <>
-    <SafetyConcerns workspace={workspace}/>
-    <div className="page-heading"><div><span className="eyebrow">Your classroom, a little clearer</span><h1>Good to see you, {profile.name.split(" ")[0]}.</h1><p>See the next step, the support, and the progress behind every learner.</p></div><div className="class-select"><Icon name="people" size={18}/><div><strong>{workspace.name}</strong><span>Grade 4 · {workspace.students.length} learners</span></div></div></div>
-    {feedback && <div className="inline-success" role="status"><Icon name="check" size={18}/>{feedback}<button onClick={() => setFeedback("")} aria-label="Dismiss confirmation"><Icon name="close" size={16}/></button></div>}
-    {section === "overview" && <RootCauseAlerts workspace={workspace} mutate={mutate} onGroup={openGroup}/>}
-    {(section === "overview" || section === "classroom") && <PrioritySupport workspace={workspace} onSelect={setSelected}/>}
-    {section === "overview" && <>
-      <div className="teacher-stats"><div><span>Class understanding</span><strong>{average(topicStats.map(t => t.score)) ?? "—"}<small>%</small></strong><p>Practice signal across six foundations</p></div><div><span>Ready for support</span><strong>{needsSupport.length}<small> learners</small></strong><p>At least one topic to revisit</p></div><div><span>Lessons in motion</span><strong>{workspace.plans.filter(p => !p.completed).length}<small> groups</small></strong><p>Assigned to learners’ dashboards</p></div><div><span>Coached lessons completed</span><strong>{sessions.filter(s => s.completedAt).length}</strong><p>Three questions checked in each lesson</p></div></div>
-      <div className="teacher-insight-grid"><section className="priority-panel"><div className="priority-label"><Icon name="leaf" size={18}/><span>A place to make a difference</span></div><h2>A fresh way into<br/><em>{biggest.name.toLowerCase()}.</em></h2><p>{biggest.struggling.length} learners could benefit from a focused refresher. Share a lesson, then follow their conversations and checked progress.</p><div className="avatar-stack">{biggest.struggling.slice(0, 5).map(s => <Avatar key={s.id} name={s.name} id={s.id} color={s.avatar} small/>)}{biggest.struggling.length > 5 && <span>+{biggest.struggling.length - 5}</span>}</div><button className="btn btn-dark" onClick={() => openGroup(biggest.id)}>Build a small-group lesson<Icon name="arrow" size={17}/></button></section>
-        <section className="surface topic-trends"><div className="section-heading"><div><h2>Where does the class need you?</h2><p>People first, instead of a wall of scores.</p></div></div><div className="outcome-legend"><span><i className="independent"/>Confident</span><span><i className="coached"/>Growing</span><span><i className="practicing"/>Needs support</span></div>{topicStats.map(t => {
-          const counts = { strong: 0, growing: 0, support: 0, unstarted: 0 };
-          workspace.students.forEach(s => { counts[band(scoreFor(s, t.id, workspace.attempts)) as keyof typeof counts]++; });
-          return <button className="class-pulse-row" key={t.id} onClick={() => { setFilter(t.id); document.getElementById("class-map")?.scrollIntoView({ behavior: "smooth", block: "start" }); }}><span className={`topic-symbol small ${t.color}`}>{t.symbol}</span><span>{t.name}<small>{t.struggling.length ? `${t.struggling.length} learners to check in with` : "No shared support gap"}</small></span><span className="class-pulse-track" aria-label={`${counts.strong} confident, ${counts.growing} growing, ${counts.support} need support, ${counts.unstarted} not explored`}>{Object.entries(counts).map(([key, count]) => <i key={key} className={key} style={{ width: `${count / Math.max(1, workspace.students.length) * 100}%` }}/>)}</span><Icon name="chevron" size={16}/></button>;
-        })}<p className="data-caption">Starting confidence includes simulated class profiles; live practice updates it. Gray means not explored.</p></section></div>
-      <ClassroomLearningChart workspace={workspace}/>
-    </>}
-    {(section === "overview" || section === "classroom") && <section className="surface class-map" id="class-map"><div className="section-heading"><div><span className="eyebrow">Every learner has a next step</span><h2>Your classroom, at a glance.</h2><p>Open a learner to see their progress and conversations with Rova.</p></div><div className="map-tools"><label className="search-field"><Icon name="search" size={17}/><input placeholder="Find a learner…" value={search} onChange={e => setSearch(e.target.value)} aria-label="Search learners"/></label><select aria-label="Filter learners needing support" value={filter} onChange={e => setFilter(e.target.value as TopicId | "all")}><option value="all">All learners</option>{topics.map(t => <option key={t.id} value={t.id}>{t.name} · support</option>)}</select></div></div><div className="learner-card-grid">{visible.map(student => {
-      const skills = topics.map(t => ({ ...t, score: scoreFor(student, t.id, workspace.attempts) }));
-      const weakest = [...skills].sort((a, b) => (a.score ?? -1) - (b.score ?? -1))[0];
-      const learnerSessions = sessions.filter(s => s.studentId === student.id);
-      const live = workspace.attempts.filter(a => a.studentId === student.id && !a.id.startsWith("sample-"));
-      const priority = supportTopics(student, workspace).length === topics.length;
-      return <button className={`learner-card ${priority ? "learner-priority" : ""}`} aria-label={`Open ${student.name}’s learning story${priority ? ", priority check-in across all topics" : ""}`} key={student.id} onClick={() => setSelected(student)}><header><Avatar name={student.name} id={student.id} color={student.avatar}/><strong>{student.name}</strong><Icon name="chevron" size={16}/></header><span className={`status-pill ${priority ? "priority-pill" : band(weakest.score)}`}>{priority ? "Priority check-in · 6 topics" : weakest.score === null ? "Ready to explore" : (weakest.score ?? 0) < 60 ? "A little support will help" : "Building confidence"}</span><p>Next step: <strong>{weakest.name}</strong></p><div className="learner-topic-dots" aria-label="Topic confidence">{skills.map(t => <span key={t.id} title={`${t.name}: ${t.score === null ? "not explored" : `${t.score}%`}`}><i className={band(t.score)}/><small>{t.short}</small></span>)}</div><footer>{live.length ? `${live.length} live attempts · ${learnerSessions.filter(s => s.completedAt).length} lessons completed` : "Awaiting first live practice"}</footer></button>;
-    })}</div>{!visible.length && <Empty title="No learners match." text="Try another name or topic."/>}<div className="map-footer"><span>Colors guide your next check-in; they are not report-card grades.</span><span>Class code: <strong>{workspace.code}</strong></span></div></section>}
-    {section === "progress" && <><ClassroomLearningChart workspace={workspace}/><div className="dashboard-bottom-grid"><section className="surface"><h2>Practice across the classroom</h2><p>All attempts, including simulated starting history.</p><ActivityChart attempts={workspace.attempts}/></section><section className="surface"><h2>The concepts to revisit</h2>{gaps.map(t => <button key={t.id} className="gap-list-row" onClick={() => openGroup(t.id)}><span className={`topic-symbol small ${t.color}`}>{t.symbol}</span><span>{t.name}</span><strong>{t.struggling.length} learners</strong><Icon name="chevron" size={16}/></button>)}</section></div></>}
-    {section === "plans" && <><RootCauseAlerts workspace={workspace} mutate={mutate} onGroup={openGroup}/><LessonMonitor workspace={workspace} onCreate={() => openGroup(biggest.id)}/></>}
-    {section === "report" && <ProgressReport workspace={workspace} profile={profile}/>}
-    {focus && <Modal title={`${focus.name}: a way forward`} onClose={() => setGroup(null)}><div className="group-dialog"><label htmlFor="lesson-topic">Choose a topic</label><select id="lesson-topic" value={group ?? ""} onChange={e => openGroup(e.target.value as TopicId)}>{topics.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}</select><span className={`topic-symbol ${focus.color}`}>{focus.symbol}</span><h3>{focus.activity}</h3><p>A three-question coached lesson · About 5–10 minutes</p><ol>{focus.steps.map(s => <li key={s}>{s}</li>)}</ol><h4>Choose your group · {members.length} selected</h4><p>Suggested learners are selected. Adjust the group before sharing.</p><div className="group-member-list">{workspace.students.map(student => <label key={student.id}><input type="checkbox" checked={members.includes(student.id)} onChange={e => setMembers(current => e.target.checked ? [...current, student.id] : current.filter(id => id !== student.id))}/><Avatar name={student.name} id={student.id} color={student.avatar} small/><span>{student.name}</span></label>)}</div><button className="btn btn-dark" onClick={createPlan} disabled={busy || !members.length}>{busy ? "Sharing…" : "Share lesson with this group"}<Icon name="arrow" size={17}/></button><small className="field-help">The lesson appears on each learner’s dashboard. Track completion and conversations in Learning plans.</small></div></Modal>}
-    {selected && <Modal title={`${selected.name.split(" ")[0]}’s learning story`} onClose={() => { setSelected(null); setNote(""); }} wide><div className="student-detail"><div className="student-detail-header"><Avatar name={selected.name} id={selected.id} color={selected.avatar}/><div><h3>{selected.name}</h3><p>Grade 4 · {workspace.name}</p></div></div><div className="detail-skills">{topics.map(t => { const value = scoreFor(selected, t.id, workspace.attempts); return <div key={t.id}><span>{t.name}</span><div className={`progress-track ${band(value)}`}><i style={{ width: `${value ?? 0}%` }}/></div><strong>{value === null ? "—" : `${value}%`}</strong></div>; })}</div><h4>How Rova supported the learning</h4>{sessions.filter(s => s.studentId === selected.id).slice().reverse().map(session => <ConversationEvidence key={session.id} workspace={workspace} session={session}/>)}{!sessions.some(s => s.studentId === selected.id) && <p className="quiet">Conversations will appear after this learner starts a coached lesson.</p>}<h4>Recent checked practice</h4><div className="attempt-list">{workspace.attempts.filter(a => a.studentId === selected.id).slice(-8).reverse().map(a => <div key={a.id}><span className={`attempt-dot ${a.correct ? "strong" : "support"}`}><Icon name={a.correct ? "check" : "leaf"} size={14}/></span><strong>{topicById(a.topic).name}</strong><span>{a.correct ? "Understood" : "Another try"}</span><small>{a.hints ? `${a.hints} support steps` : "Independent attempt"}</small></div>)}</div><form onSubmit={async e => { e.preventDefault(); setBusy(true); const result = await mutate({ action: "note", studentId: selected.id, text: note }); if (result) { setNote(""); setFeedback(`A family update for ${selected.name.split(" ")[0]} has been shared.`); setSelected(null); } setBusy(false); }}><label htmlFor="family-note">Keep their family in the loop</label><textarea id="family-note" required maxLength={1000} value={note} onChange={e => setNote(e.target.value)} placeholder="Share a win, a next step, or a way to help at home…"/><button className="btn btn-dark" disabled={busy || !note.trim()}>Share family update<Icon name="arrow" size={16}/></button></form></div></Modal>}
-  </>;
+  function openReport(filters: Partial<ReportFilters>) {
+    setReportFilters({ status: "all", topic: "all", ...filters });
+    goTo("report");
+  }
+
+  const visible = statuses.filter(
+    (s) =>
+      s.student.name.toLowerCase().includes(search.toLowerCase()) &&
+      (statusFilter === "all" || s.status === statusFilter) &&
+      (topicFilter === "all" || ["behind", "stagnant"].includes(s.topics.find((t) => t.topic === topicFilter)!.status)),
+  );
+
+  return (
+    <>
+      <SafetyConcerns workspace={workspace} />
+      {section === "overview" && (
+        <div className="page-heading compact-heading">
+          <div>
+            <h1>Good to see you, {profile.name.split(" ")[0]}.</h1>
+          </div>
+          <div className="class-select">
+            <Icon name="people" size={18} />
+            <div>
+              <strong>{workspace.name}</strong>
+              <span>Grade 4 · {workspace.students.length} learners</span>
+            </div>
+          </div>
+        </div>
+      )}
+      {feedback && (
+        <div className="inline-success" role="status">
+          <Icon name="check" size={18} />
+          {feedback}
+          <button onClick={() => setFeedback("")} aria-label="Dismiss">
+            <Icon name="close" size={16} />
+          </button>
+        </div>
+      )}
+
+      {section === "overview" && (
+        <>
+          <section className="kpi-row" aria-label="Today at a glance">
+            <article className="kpi">
+              <h2>Need you today</h2>
+              <strong className="kpi-value">{today.length}</strong>
+              <ul className="kpi-people">
+                {today.slice(0, 3).map((p) => (
+                  <li key={p.student.id}>
+                    <button onClick={() => setSelected(p.student)}>
+                      <Avatar name={p.student.name} id={p.student.id} color={p.student.avatar} small />
+                      <span>
+                        {p.student.name.split(" ")[0]}
+                        <small>{p.reason}</small>
+                      </span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+              {today.length > 3 && (
+                <button className="text-link" onClick={() => openReport({ status: "stagnant" })}>
+                  See all {today.length}
+                </button>
+              )}
+            </article>
+            {(["on_track", "behind", "stagnant"] as Status[]).map((s) => (
+              <button key={s} type="button" className={`kpi kpi-status kpi-${s}`} onClick={() => openReport({ status: s })} aria-label={`${counts[s]} ${statusLabel[s].toLowerCase()}: open in the progress report`}>
+                <span className="kpi-title">
+                  <StatusIcon status={s} />
+                  {statusLabel[s]}
+                </span>
+                <strong className="kpi-value">{counts[s]}</strong>
+                <p>{statusMeaning[s]}</p>
+                <small className="kpi-note">Target 70% by the unit’s end</small>
+              </button>
+            ))}
+          </section>
+
+          <RootCauseAlerts workspace={workspace} mutate={mutate} onGroup={openGroup} />
+
+          <section className="surface">
+            <div className="section-heading">
+              <div>
+                <h2>Topics by status</h2>
+                <p>Select a segment to see those learners.</p>
+              </div>
+              <StatusLegend />
+            </div>
+            <div className="topic-status-chart">
+              {byTopic.map((row) => (
+                <div key={row.topic.id} className="topic-status-row">
+                  <span className="topic-status-name">
+                    <span className={`topic-symbol small ${row.topic.color}`}>{row.topic.symbol}</span>
+                    {row.topic.name}
+                  </span>
+                  <StatusBar
+                    counts={row.counts}
+                    label={row.topic.name}
+                    onSelect={(status) => openReport({ status, topic: row.topic.id })}
+                  />
+                </div>
+              ))}
+            </div>
+            <p className="data-caption">Before today, trends use each learner’s simulated history.</p>
+          </section>
+        </>
+      )}
+
+      {section === "classroom" && (
+        <section className="surface class-map" id="class-map">
+          <div className="map-tools">
+            <label className="search-field">
+              <Icon name="search" size={17} />
+              <input placeholder="Find a learner" value={search} onChange={(e) => setSearch(e.target.value)} aria-label="Search learners" />
+            </label>
+            <div className="chip-filter" role="group" aria-label="Filter by status">
+              {(["all", "stagnant", "behind", "on_track"] as const).map((s) => (
+                <button key={s} aria-pressed={statusFilter === s} onClick={() => setStatusFilter(s)}>
+                  {s === "all" ? `All ${statuses.length}` : `${statusLabel[s]} ${counts[s]}`}
+                </button>
+              ))}
+            </div>
+            <select aria-label="Show learners who need support in a topic" value={topicFilter} onChange={(e) => setTopicFilter(e.target.value as TopicId | "all")}>
+              <option value="all">Any topic</option>
+              {topics.map((t) => (
+                <option key={t.id} value={t.id}>
+                  Needs support: {t.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="learner-card-grid">
+            {visible.map((s) => {
+              const line = whyLine(workspace, s);
+              return (
+                <button
+                  key={s.student.id}
+                  className={`learner-card status-card-${s.status}`}
+                  onClick={() => setSelected(s.student)}
+                  aria-label={`Open ${s.student.name}: ${statusLabel[s.status]}`}
+                >
+                  <header>
+                    <Avatar name={s.student.name} id={s.student.id} color={s.student.avatar} />
+                    <strong>{s.student.name}</strong>
+                    <StatusBadge status={s.status} />
+                  </header>
+                  {s.focus && (
+                    <div className="learner-card-trend">
+                      <span>
+                        {topicById(s.focus.topic).name}
+                        <strong>{s.focus.score}%</strong>
+                      </span>
+                      <Sparkline points={s.focus.points} label={`${topicById(s.focus.topic).name} trend`} />
+                    </div>
+                  )}
+                  <p>{line ?? strengthLine(s)}</p>
+                </button>
+              );
+            })}
+          </div>
+          {!visible.length && <Empty title="No learners match." text="Try another name, status, or topic." />}
+          <div className="map-footer">
+            <span>Status compares each learner’s pace with the 70% target by the unit’s end.</span>
+            <span>
+              Class code <strong>{workspace.code}</strong>
+            </span>
+          </div>
+        </section>
+      )}
+
+      {section === "progress" && (
+        <>
+          <section className="surface">
+            <div className="section-heading">
+              <div>
+                <h2>Class momentum</h2>
+                <p>Each learner’s overall status at the unit start and today.</p>
+              </div>
+            </div>
+            <MomentumChart history={history} onSelect={(s) => openReport({ status: s })} />
+          </section>
+          <ClassroomLearningChart workspace={workspace} />
+        </>
+      )}
+
+      {section === "report" && (
+        <ProgressReport
+          workspace={workspace}
+          profile={profile}
+          filters={reportFilters}
+          onFilters={setReportFilters}
+          onOpenStudent={setSelected}
+        />
+      )}
+
+      {group && (
+        <Modal title={`${topicById(group).name} lesson`} onClose={() => setGroup(null)}>
+          <div className="group-dialog">
+            <label htmlFor="lesson-topic">Topic</label>
+            <select id="lesson-topic" value={group} onChange={(e) => openGroup(e.target.value as TopicId)}>
+              {topics.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.name}
+                </option>
+              ))}
+            </select>
+            <h3>{topicById(group).activity}</h3>
+            <p>Three coached questions · about 5–10 minutes</p>
+            <h4>Group · {members.length} selected</h4>
+            <p>Learners behind or stagnant in this topic are preselected.</p>
+            <div className="group-member-list">
+              {statuses.map((s) => {
+                const t = s.topics.find((x) => x.topic === group)!;
+                return (
+                  <label key={s.student.id}>
+                    <input
+                      type="checkbox"
+                      checked={members.includes(s.student.id)}
+                      onChange={(e) =>
+                        setMembers((current) =>
+                          e.target.checked ? [...current, s.student.id] : current.filter((id) => id !== s.student.id),
+                        )
+                      }
+                    />
+                    <Avatar name={s.student.name} id={s.student.id} color={s.student.avatar} small />
+                    <span>{s.student.name}</span>
+                    <StatusBadge status={t.status} />
+                  </label>
+                );
+              })}
+            </div>
+            <button className="btn btn-dark" onClick={createPlan} disabled={busy || !members.length}>
+              {busy ? "Sharing…" : "Share with this group"}
+              <Icon name="arrow" size={17} />
+            </button>
+          </div>
+        </Modal>
+      )}
+
+      {selected && (
+        <StudentInsight
+          workspace={workspace}
+          student={selected}
+          onClose={() => setSelected(null)}
+          onAssign={(topic, ids) => {
+            setSelected(null);
+            openGroup(topic, ids);
+          }}
+          mutate={mutate}
+          onShared={setFeedback}
+        />
+      )}
+    </>
+  );
 }

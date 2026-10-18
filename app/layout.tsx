@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Fraunces, Public_Sans } from "next/font/google";
 import "./globals.css";
 import "./coaching.css";
+import "./insights.css";
 
 const publicSans = Public_Sans({
   variable: "--font-public-sans",

@@ -8,6 +8,7 @@ describe("role-specific navigation destinations", () => {
   });
   it("falls back to overview for unknown or other-role destinations", () => {
     expect(sectionFromHash("student", "#plans")).toBe("overview");
+    expect(sectionFromHash("teacher", "#plans")).toBe("overview");
     expect(sectionFromHash("teacher", "#messages")).toBe("overview");
     expect(sectionFromHash("parent", "")).toBe("overview");
     expect(sectionFromHash("parent", "#unknown")).toBe("overview");

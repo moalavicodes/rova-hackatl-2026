@@ -73,3 +73,27 @@ Accepted tradeoffs only. Format is in `docs/AI_WORKFLOW.md`. Entries marked `pro
 - Decision: Keep the app pushed to `main` in commit 3439f5a ("new UI"): a grade 4 math product with Student, Teacher, and Parent workspaces behind logins, in `components/product/` and `lib/product/`. The README, `PROJECT_CONTEXT.md`, and `STATUS.md` describe it as the current app.
 - Reason: It looks and feels like a real product, which the team preferred for the pitch.
 - Consequence: The earlier closed loop (root cause, alerts, re-check, safety reports, reset) and the earlier views are no longer on screen; they stay in the repo, tested, until reconnected or removed. It conflicts with D-005 and D-006 (the app writes a JSON file at runtime, which Vercel can't do) and with the README's "no child accounts" privacy plan; both must be resolved before deploying. The D-008 redesign brief (C7–C15) targeted the earlier screens and no longer applies as written.
+
+## D-010 — On track / behind schedule / stagnant, against a 70% target in a 3-week unit
+
+- Date: 2026-10-18
+- Status: accepted (Person B, with the team's go-ahead)
+- Decision: Per topic: at or above 70% → on track; below but on pace to reach 70% by the unit's end → on track; rising at least 2 points a week but too slowly → behind schedule; otherwise → stagnant; fewer than 5 answers without history → not enough data. A learner's overall status is their most urgent topic. The unit started a week before today and runs three weeks. The seeded class gets a labeled, deterministic simulated history so trends exist before live practice (`lib/product/progress.ts`).
+- Reason: Teachers asked for a status they can trust and check; every label shows the numbers that produced it.
+- Consequence: Before today, trends for sample learners are simulated and shown as hollow points. The target and unit length are constants, not yet teacher settings.
+
+## D-011 — "Why" insights are rule-based, not AI-written
+
+- Date: 2026-10-18
+- Status: accepted (Person B)
+- Decision: The reasons behind a status come from code over saved evidence (root-cause traces, a common-mistake catalog for every question, hint reliance, answer requests, trends, and skill-map links), each tagged with its source (`lib/product/why.ts`, `lib/product/mistakes.ts`).
+- Reason: Reliable, explainable, free, and consistent with D-004; no claim is made that evidence doesn't support.
+- Consequence: Insights are only as deep as the mistake catalog and the skill map; a model could later reword the same facts.
+
+## D-012 — The parent view answers five questions on one page
+
+- Date: 2026-10-18
+- Status: accepted (Person B)
+- Decision: Parents get *This week* (how my child is doing, why, what school is doing, wins, tonight's activity, messages) and *Progress* (charts only), replacing four overlapping tabs. Wins use live practice only. Safety concerns are not shown to families.
+- Reason: The old tabs repeated each other; parents need a clear status and one action.
+- Consequence: Links to the old parent tabs fall back to *This week*.

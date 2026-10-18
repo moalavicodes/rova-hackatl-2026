@@ -453,11 +453,6 @@
 .root-cause-card footer .avatar-stack small { margin-left: 8px; color: var(--muted); }
 .auto-tag { font-size: 11px; color: var(--muted); border: 1px solid var(--line); border-radius: 99px; padding: 2px 8px; margin-left: 8px; }
 
-/* AI-written lesson summary */
-.ai-summary { border: 1px solid #b9c7e0; background: #f1f5fb; border-radius: 10px; padding: 16px; margin-bottom: 18px; }
-.ai-summary p { white-space: pre-line; }
-.ai-summary-action { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
-
 /* Principal / MTSS progress report */
 .progress-report .report-actions { display: flex; gap: 10px; flex-wrap: wrap; }
 .report-tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 18px 0 24px; }

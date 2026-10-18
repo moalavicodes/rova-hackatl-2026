@@ -6,8 +6,7 @@ export interface Attempt { id: string; studentId: string; questionId: string; to
 export interface CoachMessage { id: string; role: "student" | "coach"; text: string; questionId: string; at: string; kind?: "hint" | "correct" | "retry" | "guardrail" | "safety" | "explain" | "encouragement" | "trace"; source?: string }
 // Set by code (lib/product/rootCause.ts) when repeated checked misses point to an earlier skill.
 export interface RootCauseTrace { prerequisite: TopicId; standard: string; questionId: string; wrongAnswers: string[]; at: string; refresherSessionId?: string; refresherCompletedAt?: string; fixedAt?: string; acknowledgedAt?: string }
-export interface AiSummary { text: string; model: string; at: string; messageCount: number }
-export interface CoachSession { id: string; studentId: string; topic: TopicId; planId?: string; refresherFor?: string; questionIndex: number; messages: CoachMessage[]; startedAt: string; completedAt?: string; trace?: RootCauseTrace; aiSummary?: AiSummary }
+export interface CoachSession { id: string; studentId: string; topic: TopicId; planId?: string; refresherFor?: string; questionIndex: number; messages: CoachMessage[]; startedAt: string; completedAt?: string; trace?: RootCauseTrace }
 export interface Plan { id: string; topic: TopicId; studentIds: string[]; at: string; completed?: boolean }
 export interface Note { id: string; studentId: string; text: string; author: string; at: string; automatic?: boolean }
 export interface Workspace { name: string; code: string; students: Learner[]; attempts: Attempt[]; plans: Plan[]; notes: Note[]; checks: string[]; sessions?: CoachSession[] }

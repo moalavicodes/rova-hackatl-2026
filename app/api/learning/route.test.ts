@@ -67,20 +67,4 @@ describe("learning API coaching authorization", () => {
     expect((await request({ action: "trace-ack", sessionId: ratios.id })).status).toBe(200);
     expect(state.db.workspace.sessions?.[0].trace?.acknowledgedAt).toBeDefined();
   });
-  it("falls back to the scripted summary when no local model is configured", async () => {
-    const saved = process.env.ROVA_LLM_URL;
-    delete process.env.ROVA_LLM_URL;
-    try {
-      const session = (await (await request({ action: "coach-start", topic: "fractions" })).json()).session;
-      expect((await request({ action: "ai-summary", sessionId: session.id })).status).toBe(403);
-      state.account!.role = "teacher";
-      const response = await request({ action: "ai-summary", sessionId: session.id });
-      const body = await response.json();
-      expect(response.status).toBe(200);
-      expect(body.aiSummary).toBeNull();
-      expect(body.notice).toContain("scripted summary");
-    } finally {
-      if (saved !== undefined) process.env.ROVA_LLM_URL = saved;
-    }
-  });
 });

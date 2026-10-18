@@ -15,7 +15,7 @@ AI made answers instant, not learning. Rova helps a 4th grader think through mat
 - **Ratios root-cause loop:** a grade 6 ratios stretch challenge (6.RP.A.3) outside the six foundations. Two checked misses on one question trace the gap to equivalent fractions (4.NF.A.1) in code (`lib/product/rootCause.ts`); the student takes a three-question refresher and returns to the original question. Teachers see a learning alert with evidence, a reteach, and classmates with the same low signal; families get automatic in-app updates (no SMS). The 7-day re-check is not built.
 - **Progress report:** a teacher `#report` page for principals and MTSS meetings, with counts from code-checked evidence, support tiers, and an intervention log (print and CSV).
 - **Parent:** child progress, teacher notes, at-home activities that advance after completion, and completed activity history. Parent accounts do not receive coaching transcripts.
-- **No AI model is called by default (D-004).** The coach and summary are visibly labeled scripted. A teacher-requested AI lesson summary calls a small open model that the school runs itself (Ollama or any OpenAI-compatible local server), only when `ROVA_LLM_URL` is set (`lib/product/aiSummary.ts`); no paid API or key is used. It receives code-checked counts and a transcript without the learner’s name. Answers are always checked by code (`lib/math/checkAnswer.ts`).
+- **No AI model is called (D-004).** The coach and summary are visibly labeled scripted previews. Answers are checked by code (`lib/math/checkAnswer.ts`).
 - **Simulated:** the 18-student sample class and starting scores, including James Walker's across-topic support needs, and Maya's seeded last seven days of practice. Names are fictional. The classroom outcomes graph excludes seeded attempts.
 - **Navigation:** role-specific URL fragments preserve the selected section through refresh and browser history.
 
@@ -25,7 +25,7 @@ AI made answers instant, not learning. Rova helps a 4th grader think through mat
 - **Screens:** `components/product/` (`WorkspaceApp` routes each role to its dashboard).
 - **Accounts:** scrypt-hashed passwords, HMAC-signed session cookie (7 days), same-origin checks on writes, per-role data visibility (`lib/product/server.ts`).
 - **Data:** one JSON file at `.rova/workspace.json` (or `ROVA_DATA_DIR`), created on first run from the sample accounts and class. Writes go through a queue and an atomic rename. A new data directory starts a fresh rehearsal without removing existing work.
-- **APIs:** `app/api/account` (login, sign-up, profile, logout), `app/api/learning` (coaching sessions/turns and root-cause refreshers, checked attempts, plans, notes, alert acknowledgement, optional AI summary, parent checklist). The server owns grading, hint progression, session access, and assignment completion. Coaching turn IDs prevent duplicate attempts on retry.
+- **APIs:** `app/api/account` (login, sign-up, profile, logout), `app/api/learning` (coaching sessions/turns and root-cause refreshers, checked attempts, plans, notes, alert acknowledgement, parent checklist). The server owns grading, hint progression, session access, and assignment completion. Coaching turn IDs prevent duplicate attempts on retry.
 - **Coaching:** `lib/product/coaching.ts` supplies deterministic replies and transitions; `lib/product/insights.ts` derives summaries and activity progression from saved evidence. No external model or key is required.
 
 ## Built but not connected to the current screens

@@ -40,6 +40,6 @@ export function RootCauseAlerts({ workspace, mutate, onGroup }: { workspace: Wor
       </article>;
     })}
     <p className="data-caption">Classmate signals include simulated starting profiles. A trace is a lead for your judgment, not a diagnosis.</p>
-    {review && <LessonReview key={review.id} session={review} workspace={workspace} mutate={mutate} onClose={() => setReviewId(null)}/>}
+    {review && <LessonReview key={review.id} session={review} workspace={workspace} onClose={() => setReviewId(null)}/>}
   </section>;
 }

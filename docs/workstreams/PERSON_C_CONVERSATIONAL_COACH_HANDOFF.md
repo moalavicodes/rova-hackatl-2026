@@ -84,7 +84,7 @@ Before a public presentation, the team must also choose deployment-compatible st
 - Automated role and visibility tests cover the new contract. Browser verification used simulated accounts and isolated local data only.
 - Remaining work outside this request: production data/auth, presentation reset, the legacy detection/re-check integration, and broader scripted curriculum coverage.
 
-## Root-cause loop, progress report, and optional AI summary (2026-10-18)
+## Root-cause loop and progress report (2026-10-18)
 
 Added on top of this PR at the request of a team member preparing the venture pitch. These bring the venture case's core demo (stuck on ratios → traced to equivalent fractions → refresher → teacher and family looped in → solved) back on screen in the new product.
 
@@ -93,21 +93,19 @@ Added on top of this PR at the request of a team member preparing the venture pi
 - **Teacher learning alert (`RootCauseAlerts.tsx`):** on Overview and Learning plans. Shows evidence, root cause, a 5-minute reteach, family status, classmates with the same low signal (simulated profiles included, labeled), "Share a refresher with this group" (opens the existing group lesson dialog with those learners preselected), "Mark reteach planned" (`trace-ack`, teacher-only), and the conversation review. The 7-day re-check is labeled planned, not built.
 - **Automatic family updates:** a note when the trace fires (with the at-home activity) and a win note when the original question is solved. Saved in Rova only, tagged "Automatic update · Saved in Rova · SMS planned". No text or email is sent.
 - **Principal / MTSS progress report (`lib/product/report.ts`, `ProgressReport.tsx`):** a new teacher destination, `#report`. Tiles count live, code-checked evidence; support tiers use current confidence (simulated profiles included, labeled); an intervention log lists each lesson with what was tried, the result, and the next step. Print uses a print stylesheet; "Export intervention log (CSV)" downloads the log.
-- **Optional AI lesson summary (`lib/product/aiSummary.ts`):** teacher-only `ai-summary` action from the lesson review. It uses a small open model the school runs itself, not a paid API: with `ROVA_LLM_URL` set (for example Ollama at `http://localhost:11434/v1`; LM Studio and llama.cpp also work through the same OpenAI-compatible `/chat/completions` endpoint), it asks `ROVA_LLM_MODEL` (default `qwen2.5:3b`) for a three-line summary with plain `fetch` and a 60-second timeout. The prompt carries the code-computed counts and the transcript with role labels only (no learner name), and the model is told not to contradict the checked results. The result is cached on the session and invalidated when new messages arrive; students and parents never receive it. Without `ROVA_LLM_URL`, nothing is called and the scripted summary stays, with an on-screen notice. If the local server is down or errors, the same fallback applies. The model call runs outside the JSON write queue.
-- **Dependencies:** none added. No key or secret is needed; see `.env.example`.
+- **Dependencies:** none added. No AI model, key, or secret is used.
 
 ### Contract impact
 
-- `CoachSession` gains optional `refresherFor`, `trace`, and `aiSummary`; `CoachMessage.kind` gains `"trace"`; `Note` gains optional `automatic`; `TopicId` gains `"ratios"`. All optional, so existing JSON files load unchanged.
-- `/api/learning`: `coach-start` accepts `refresherFor` (validated: the learner's own traced session, matching prerequisite, no plan); new teacher-only `trace-ack` and `ai-summary`.
-- **D-004 (no AI model):** the default behavior is unchanged because nothing is called unless `ROVA_LLM_URL` is set. Turning the summary on is a change to D-004, so Person B should record it as a decision before anyone presents it as live AI.
+- `CoachSession` gains optional `refresherFor` and `trace`; `CoachMessage.kind` gains `"trace"`; `Note` gains optional `automatic`; `TopicId` gains `"ratios"`. All optional, so existing JSON files load unchanged.
+- `/api/learning`: `coach-start` accepts `refresherFor` (validated: the learner's own traced session, matching prerequisite, no plan); new teacher-only `trace-ack`.
 
 ### Verification
 
-- Vitest: 26 files, 223 tests (new: root-cause trace, refresher flow and ownership, report counts and CSV escaping, local-model prompt without the learner's name, the local-server request and error handling, API refresher/ack/summary authorization and the no-model fallback). TypeScript, ESLint, and the production build pass.
-- Headless Chrome against a production build on a fresh `ROVA_DATA_DIR`: student ratios → answer request redirected → `7` (additive hint) → `8` (trace) → close chat → dashboard card starts refresher 2, 4, 9 → dashboard card "Back to ratios" → `9 cups` solved; teacher alert shows "Solved after refresher", reteach acknowledged, the group dialog preselects 8 learners; Write AI summary shows the no-model notice; report tiles, one log row, CSV download, and print layout; parent sees both automatic updates. No page-level horizontal scroll at 390px on the teacher pages.
-- The summary path was also checked end to end against a stand-in OpenAI-compatible server: the request carried no learner name and the summary appeared in the teacher review. Not verified: a real Ollama model (its downloads are blocked in the build environment).
+- Vitest: 25 files, 218 tests (new: root-cause trace, refresher flow and ownership, report counts and CSV escaping, API refresher and acknowledgement authorization). TypeScript, ESLint, and the production build pass.
+- Headless Chrome against a production build on a fresh `ROVA_DATA_DIR`: student ratios → answer request redirected → `7` (additive hint) → `8` (trace) → close chat → dashboard card starts refresher 2, 4, 9 → dashboard card "Back to ratios" → `9 cups` solved; teacher alert shows "Solved after refresher", reteach acknowledged, the group dialog preselects 8 learners; report tiles, one log row, CSV download, and print layout; parent sees both automatic updates. No page-level horizontal scroll at 390px on the teacher pages.
 
 ### Chat layout (2026-10-18)
 
 - On screens 900px and wider, the practice chat is two columns: the pinned question, its standard, and the visual guide on the left (scrolls on its own); the conversation and composer on the right. The dialog widens to 1240px. Below 900px the original stacked layout (question above the chat) is unchanged. CSS only, in `app/coaching.css`; no markup changes. Checked in headless Chrome at 1440, 1024, and 390px with the visual guide open: side by side at the first two, stacked on the phone, no horizontal scroll.
+- The optional AI lesson summary added earlier on this branch was removed at the team's request (2026-10-18). Lesson reviews use the scripted, evidence-derived summary only.

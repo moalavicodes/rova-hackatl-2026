@@ -2,6 +2,7 @@ import { gradeAnswer, hasChatPicture, questions, topicById, type PracticeQuestio
 import type { CoachMessage, CoachSession, Plan, Workspace } from "./model";
 import { hasSafetyConcern } from "./safety";
 import { detectRootCause, skillPhrase } from "./rootCause";
+import { classifyMistake } from "./mistakes";
 
 // Deterministic coaching adapter. A future model may write replies; this code still grades
 // answers, owns hint progression, and decides lesson completion.
@@ -75,6 +76,7 @@ function replyFor(workspace: Workspace, session: CoachSession, input: string): {
     const specific = q.topic === "fractions" && /^(?:1|3)$/.test(numeric.trim()) && q.id === "fr1"
       ? "You may be counting the original pieces instead of the smaller pieces. Keep the shaded area the same. "
       : additiveAnswers[q.id] === numeric.trim() ? "It looks like you added the same amount to both parts. A ratio stays the same when we multiply both parts by the same number. "
+      : classifyMistake(q.id, numeric) ? `${classifyMistake(q.id, numeric)!.nudge} `
       : "That doesn’t match yet. Let’s look at one step together. ";
     return { text: specific + q.hints[Math.min(hints, 2)] + " Try again when you’re ready.", kind: "retry", correct, hints };
   }

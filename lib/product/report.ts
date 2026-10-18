@@ -1,4 +1,5 @@
-import { questions, topicById, topics } from "./curriculum";
+import { questions, topicById, topics, type TopicId } from "./curriculum";
+import { planImpact } from "./progress";
 import { scoreFor, type Workspace } from "./model";
 import { topicOutcomes } from "./coaching";
 import { classmatesWithGap, skillName, traceStatus, tracedSessions } from "./rootCause";
@@ -6,7 +7,13 @@ import { supportTopics } from "./insights";
 
 // Principal / MTSS progress report. Every figure is counted from saved evidence; live
 // coaching is kept apart from the simulated starting profiles.
-export interface InterventionRow { learner: string; focus: string; tried: string; date: string; result: string; next: string }
+export type InterventionType = "Assigned lesson" | "Coached practice" | "Group lesson assigned";
+export type InterventionOutcome = "Solved" | "In progress" | "Needs follow-up" | "Improved" | "Not yet" | "No practice yet";
+export interface InterventionRow {
+  learner: string; focus: string; tried: string; date: string; result: string; next: string;
+  // For filtering in the report (not exported to CSV).
+  studentIds?: string[]; topic?: TopicId; type?: InterventionType; outcome?: InterventionOutcome; refresher?: boolean;
+}
 export function progressReport(workspace: Workspace) {
   const sessions = workspace.sessions ?? [];
   const live = workspace.attempts.filter(a => !a.id.startsWith("sample-"));
@@ -23,7 +30,13 @@ export function progressReport(workspace: Workspace) {
     const solved = set.filter(q => attempts.some(a => a.questionId === q.id && a.correct)).length;
     const independent = set.filter(q => { const first = attempts.find(a => a.questionId === q.id); return first?.correct && !first.hints; }).length;
     const trace = session.trace;
+    const safety = session.messages.some(m => m.kind === "safety");
     rows.push({
+      studentIds: [session.studentId],
+      topic: session.topic,
+      type: session.planId ? "Assigned lesson" : "Coached practice",
+      refresher: !!trace?.refresherSessionId,
+      outcome: safety || (trace && !trace.fixedAt) ? "Needs follow-up" : solved === set.length ? "Solved" : "In progress",
       learner: name(session.studentId),
       focus: trace ? `${topic.name} (${topic.standard}) → root cause ${skillName(trace.prerequisite)} (${trace.standard})` : `${topic.name} (${topic.standard})`,
       tried: [session.planId ? "Teacher-assigned coached lesson" : "Coached practice", trace?.refresherSessionId ? `${topicById(trace.prerequisite).name.toLowerCase()} refresher` : "", trace?.acknowledgedAt ? "teacher reteach planned" : ""].filter(Boolean).join(" + "),
@@ -32,6 +45,23 @@ export function progressReport(workspace: Workspace) {
       next: session.messages.some(m => m.kind === "safety") ? "Personal check-in (safety concern flagged)" : trace && !trace.fixedAt ? "Finish refresher, return to original question" : solved === set.length ? "Check transfer with a fresh problem" : "Resume lesson",
     });
   }
+  for (const plan of workspace.plans) {
+    const impact = planImpact(workspace, plan);
+    const topic = topicById(plan.topic);
+    rows.push({
+      studentIds: plan.studentIds,
+      topic: plan.topic,
+      type: "Group lesson assigned",
+      outcome: impact.verdict,
+      learner: impact.members.map(m => m.student.name).join(", "),
+      focus: `${topic.name} (${topic.standard})`,
+      tried: `Small-group coached lesson for ${impact.members.length} learner${impact.members.length === 1 ? "" : "s"}`,
+      date: plan.at.slice(0, 10),
+      result: impact.practiced ? `${impact.improved} of ${impact.practiced} who practiced rose 5+ points` : "No practice since assigned",
+      next: impact.verdict === "Improved" ? "Check transfer with a fresh problem" : impact.practiced ? "Try a different model with this group" : "Remind the group to start the lesson",
+    });
+  }
+  rows.sort((a, b) => b.date.localeCompare(a.date));
   return {
     generatedAt: new Date().toISOString(),
     className: workspace.name,

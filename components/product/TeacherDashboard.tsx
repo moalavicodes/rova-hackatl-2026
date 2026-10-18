@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
-import { topicById, topics, type TopicId } from "@/lib/product/curriculum";
+import { topicById, topics, type PracticeQuestion, type TopicId } from "@/lib/product/curriculum";
+import { DEFAULT_LESSON_QUESTIONS, MAX_LESSON_QUESTIONS, bankFor, isBuiltIn, pickQuestionIds } from "@/lib/product/bank";
 import type { Learner, Profile, Workspace } from "@/lib/product/model";
 import {
   classStatuses,
@@ -15,6 +16,7 @@ import { Icon } from "./Brand";
 import { MomentumChart, StatusBadge, StatusBar, StatusIcon, StatusLegend } from "./charts";
 import { ClassroomLearningChart } from "./LearningEvidence";
 import { ProgressReport, type ReportFilters } from "./ProgressReport";
+import { QuestionBank } from "./QuestionBank";
 import { RootCauseAlerts } from "./RootCauseAlerts";
 import { SafetyConcerns } from "./SafetyConcerns";
 import { Avatar, Empty, Modal, type Mutate } from "./Shared";
@@ -49,6 +51,10 @@ export function TeacherDashboard({
   const [selected, setSelected] = useState<Learner | null>(null);
   const [group, setGroup] = useState<TopicId | null>(null);
   const [members, setMembers] = useState<string[]>([]);
+  // Which questions the lesson sends: a random set of `count`, or the teacher's own picks.
+  const [questionMode, setQuestionMode] = useState<"auto" | "manual">("auto");
+  const [count, setCount] = useState(DEFAULT_LESSON_QUESTIONS);
+  const [picked, setPicked] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
   const [feedback, setFeedback] = useState("");
   const [reportFilters, setReportFilters] = useState<ReportFilters>({ status: "all", topic: "all" });
@@ -66,8 +72,13 @@ export function TeacherDashboard({
   const byTopic = useMemo(() => topicStatusCounts(workspace), [workspace]);
   const today = needYouToday(workspace, statuses);
 
+  function shuffle(topic: TopicId, n = count) {
+    setPicked(pickQuestionIds(workspace, topic, n));
+  }
   function openGroup(topic: TopicId, preset?: string[]) {
     setGroup(topic);
+    setQuestionMode("auto");
+    shuffle(topic);
     setMembers(
       preset ??
         statuses
@@ -78,9 +89,10 @@ export function TeacherDashboard({
   async function createPlan() {
     if (!group || busy || !members.length) return;
     setBusy(true);
-    const result = await mutate({ action: "plan", topic: group, studentIds: members });
+    if (!picked.length) return;
+    const result = await mutate({ action: "plan", topic: group, studentIds: members, questionIds: picked });
     if (result) {
-      setFeedback(`${topicById(group).name} lesson shared with ${members.length} learner${members.length === 1 ? "" : "s"}.`);
+      setFeedback(`${topicById(group).name} lesson with ${picked.length} question${picked.length === 1 ? "" : "s"} shared with ${members.length} learner${members.length === 1 ? "" : "s"}.`);
       setGroup(null);
     }
     setBusy(false);
@@ -270,6 +282,8 @@ export function TeacherDashboard({
         </>
       )}
 
+      {section === "bank" && <QuestionBank workspace={workspace} mutate={mutate} />}
+
       {section === "report" && (
         <ProgressReport
           workspace={workspace}
@@ -292,7 +306,25 @@ export function TeacherDashboard({
               ))}
             </select>
             <h3>{topicById(group).activity}</h3>
-            <p>Three coached questions · about 5–10 minutes</p>
+            <p>
+              {picked.length} coached question{picked.length === 1 ? "" : "s"} · about {Math.max(2, picked.length * 2)}–{Math.max(4, picked.length * 3)} minutes
+            </p>
+            <LessonQuestionPicker
+              bank={bankFor(workspace, group)}
+              mode={questionMode}
+              count={count}
+              picked={picked}
+              onMode={(mode) => {
+                setQuestionMode(mode);
+                if (mode === "auto") shuffle(group);
+              }}
+              onCount={(n) => {
+                setCount(n);
+                shuffle(group, n);
+              }}
+              onShuffle={() => shuffle(group)}
+              onToggle={(id, on) => setPicked((current) => (on ? [...current, id] : current.filter((x) => x !== id)))}
+            />
             <h4>Group · {members.length} selected</h4>
             <p>Learners behind or stagnant in this topic are preselected.</p>
             <div className="group-member-list">
@@ -316,7 +348,7 @@ export function TeacherDashboard({
                 );
               })}
             </div>
-            <button className="btn btn-dark" onClick={createPlan} disabled={busy || !members.length}>
+            <button className="btn btn-dark" onClick={createPlan} disabled={busy || !members.length || !picked.length}>
               {busy ? "Sharing…" : "Share with this group"}
               <Icon name="arrow" size={17} />
             </button>
@@ -338,5 +370,77 @@ export function TeacherDashboard({
         />
       )}
     </>
+  );
+}
+
+// The questions a lesson will send: a random set the teacher can reshuffle, or hand-picked ones.
+function LessonQuestionPicker({
+  bank,
+  mode,
+  count,
+  picked,
+  onMode,
+  onCount,
+  onShuffle,
+  onToggle,
+}: {
+  bank: PracticeQuestion[];
+  mode: "auto" | "manual";
+  count: number;
+  picked: string[];
+  onMode: (mode: "auto" | "manual") => void;
+  onCount: (n: number) => void;
+  onShuffle: () => void;
+  onToggle: (id: string, on: boolean) => void;
+}) {
+  const max = Math.min(MAX_LESSON_QUESTIONS, bank.length);
+  const chosen = picked.map((id) => bank.find((q) => q.id === id)).filter((q): q is PracticeQuestion => !!q);
+  return (
+    <div className="lesson-questions">
+      <h4>Questions · {picked.length} of {bank.length} in the bank</h4>
+      <div className="lesson-question-mode" role="radiogroup" aria-label="How to choose questions">
+        <label>
+          <input type="radio" name="question-mode" checked={mode === "auto"} onChange={() => onMode("auto")} />
+          Pick at random
+        </label>
+        <label>
+          <input type="radio" name="question-mode" checked={mode === "manual"} onChange={() => onMode("manual")} />
+          Choose myself
+        </label>
+        {mode === "auto" && (
+          <>
+            <label className="lesson-count">
+              How many
+              <input type="number" min={1} max={max} value={count} onChange={(e) => onCount(Math.max(1, Math.min(max, Number(e.target.value) || 1)))} />
+            </label>
+            <button type="button" className="text-link" onClick={onShuffle}>
+              Shuffle
+            </button>
+          </>
+        )}
+      </div>
+      {mode === "auto" ? (
+        <ol className="lesson-question-list">
+          {chosen.map((q) => (
+            <li key={q.id}>
+              <span>{q.prompt}</span>
+              <small>{isBuiltIn(q.id) ? "Built in" : "Added by you"}</small>
+            </li>
+          ))}
+        </ol>
+      ) : (
+        <ul className="lesson-question-list choose">
+          {bank.map((q) => (
+            <li key={q.id}>
+              <label>
+                <input type="checkbox" checked={picked.includes(q.id)} disabled={!picked.includes(q.id) && picked.length >= MAX_LESSON_QUESTIONS} onChange={(e) => onToggle(q.id, e.target.checked)} />
+                <span>{q.prompt}</span>
+                <small>{isBuiltIn(q.id) ? "Built in" : "Added by you"}</small>
+              </label>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   );
 }

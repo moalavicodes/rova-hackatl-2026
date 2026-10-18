@@ -2,7 +2,7 @@
 // Nothing here is written by a model. Each fact says where it came from, so a teacher can tell
 // live evidence from a simulated starting history or a skill-map link.
 
-import { questions, topicById, topics, type TopicId } from "./curriculum";
+import { topicById, topics, type TopicId } from "./curriculum";
 import { classifyMistake } from "./mistakes";
 import { scoreFor, type CoachSession, type Learner, type Workspace } from "./model";
 import { classStatuses, currentUnit, statusLabel, studentStatus, TARGET, type Status, type StudentStatus } from "./progress";
@@ -254,7 +254,6 @@ export function practiceDays(workspace: Workspace, studentId: string, now = new 
 }
 
 // Every question in a topic, for counting live answers.
-export const questionCount = (topic: TopicId) => questions.filter((q) => q.topic === topic).length;
 
 // The same facts in plain words for families. Safety concerns are left out on purpose: the
 // teacher follows up on those personally.

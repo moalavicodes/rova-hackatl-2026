@@ -486,7 +486,7 @@ Schools won't pick Rova because it's another AI tutor. They'll pick it because i
 - **Home** (`/`): product story and entry to log in or sign up
 - **Login / Sign up** (`/login`, `/signup`): sample accounts; class code for students, family code for parents
 - **Student** (`/student`): My day · My learning path · My progress · continuous messaging practice modal with pinned question and optional visuals · profile (color, daily goal, family code)
-- **Teacher** (`/teacher`): Overview (need-you-today and status tiles, root-cause alerts, topics by status) · My classroom (status cards with filters) · Learning insights (class momentum, live practice outcomes) · Progress report (filters, charts, learner table, intervention log with 5-per-page paging and filters, CSV and print) · student panel
+- **Teacher** (`/teacher`): Overview (need-you-today and status tiles, root-cause alerts, topics by status) · My classroom (status cards with filters) · Learning insights (class momentum, live practice outcomes) · Progress report (filters, charts, learner table, intervention log with 5-per-page paging and filters, CSV and print) · Question bank (course materials, built-in and teacher-added questions, suggestions; lessons send a chosen or random set, default 3) · student panel
 - **Parent** (`/parent`): This week · Progress. Sidebar destinations use URL fragments for browser history and refresh.
 
 ### Code map

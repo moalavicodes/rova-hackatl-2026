@@ -1,15 +1,19 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { hasChatPicture, questions, topicById, type TopicId } from "@/lib/product/curriculum";
-import type { CoachSession } from "@/lib/product/model";
+import { hasChatPicture, topicById, type PracticeQuestion, type TopicId } from "@/lib/product/curriculum";
+import { builtInFor, isBuiltIn, questionById } from "@/lib/product/bank";
+import type { CoachSession, Workspace } from "@/lib/product/model";
 import { Icon } from "./Brand";
 import { Modal, type Mutate } from "./Shared";
 import { LessonVisual } from "./LessonVisual";
 
-export function Practice({ topicId, planId, refresherFor, sessions = [], mutate, onClose }: { topicId: TopicId; planId?: string; refresherFor?: string; sessions?: CoachSession[]; mutate: Mutate; onClose: () => void }) {
+export function Practice({ workspace, topicId, planId, refresherFor, sessions = [], mutate, onClose }: { workspace: Workspace; topicId: TopicId; planId?: string; refresherFor?: string; sessions?: CoachSession[]; mutate: Mutate; onClose: () => void }) {
   const topic = topicById(topicId);
-  const set = questions.filter(q => q.topic === topicId);
   const [session, setSession] = useState<CoachSession | null>(() => [...sessions].reverse().find(s => s.topic === topicId && s.planId === planId && s.refresherFor === refresherFor && (!s.completedAt || planId || refresherFor)) ?? null);
+  // The lesson's chosen questions once the session exists; before that, the plan's choice or the built-in set.
+  const ids = session?.questionIds?.length ? session.questionIds : planId ? workspace.plans.find(p => p.id === planId)?.questionIds : undefined;
+  const chosen = (ids ?? []).map(id => questionById(workspace, id)).filter((item): item is PracticeQuestion => !!item);
+  const set = chosen.length ? chosen : builtInFor(topicId);
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -18,7 +22,7 @@ export function Practice({ topicId, planId, refresherFor, sessions = [], mutate,
   const followLatest = useRef(true);
   const pending = useRef<{ text: string; id: string } | null>(null);
   const locked = useRef(false);
-  const q = set[session?.questionIndex ?? 0];
+  const q = set[session?.questionIndex ?? 0] ?? set[0];
   const solved = session?.messages.some(m => m.questionId === q.id && m.kind === "correct") ?? false;
   useEffect(() => {
     if (followLatest.current && thread.current) thread.current.scrollTop = thread.current.scrollHeight;
@@ -58,7 +62,7 @@ export function Practice({ topicId, planId, refresherFor, sessions = [], mutate,
         <div className="messenger-start"><Icon name="leaf" size={15}/>Rova is here to help you think</div>
         {session.messages.map((message, index) => {
           const previous = session.messages[index - 1];
-          const visual = message.kind === "hint" && previous && /picture|visual|show/i.test(previous.text) ? questions.find(item => item.id === message.questionId && hasChatPicture(item)) : null;
+          const visual = previous && ((message.kind === "hint" && /picture|visual|show/i.test(previous.text)) || message.kind === "explain") ? [questionById(workspace, message.questionId)].find(item => item && isBuiltIn(item.id) && hasChatPicture(item)) : null;
           const nextMessage = session.messages[index + 1];
           const newQuestion = message.role === "coach" && previous && previous.questionId !== message.questionId;
           return <div key={message.id} className={`messenger-turn ${message.role}`}>

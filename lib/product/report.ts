@@ -1,7 +1,7 @@
-import { questions, topicById, topics, type TopicId } from "./curriculum";
+import { topicById, topics, type TopicId } from "./curriculum";
 import { planImpact } from "./progress";
 import { scoreFor, type Workspace } from "./model";
-import { topicOutcomes } from "./coaching";
+import { topicOutcomes, sessionQuestions } from "./coaching";
 import { classmatesWithGap, skillName, traceStatus, tracedSessions } from "./rootCause";
 import { supportTopics } from "./insights";
 
@@ -26,7 +26,7 @@ export function progressReport(workspace: Workspace) {
     if (session.refresherFor) continue; // shown with the lesson that traced it
     const topic = topicById(session.topic);
     const attempts = workspace.attempts.filter(a => a.sessionId === session.id);
-    const set = questions.filter(q => q.topic === session.topic);
+    const set = sessionQuestions(workspace, session);
     const solved = set.filter(q => attempts.some(a => a.questionId === q.id && a.correct)).length;
     const independent = set.filter(q => { const first = attempts.find(a => a.questionId === q.id); return first?.correct && !first.hints; }).length;
     const trace = session.trace;

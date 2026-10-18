@@ -3,7 +3,7 @@
 // icon and a label (never color alone); every mark has a hover and keyboard tooltip, and each chart
 // has a text equivalent.
 import { useId, useState } from "react";
-import { statusLabel, statusOrder, TARGET, type Point, type Status } from "@/lib/product/progress";
+import { statusLabel, TARGET, type Point, type Status } from "@/lib/product/progress";
 
 export function StatusIcon({ status, size = 14 }: { status: Status; size?: number }) {
   const shapes: Record<Status, React.ReactNode> = {
@@ -82,7 +82,6 @@ export function StatusBar({
   active?: Status | null;
 }) {
   const tip = useTip();
-  const total = statusOrder.reduce((n, s) => n + counts[s], 0) || 1;
   const order: Status[] = ["on_track", "behind", "stagnant", "no_data"];
   return (
     <div className="status-bar-wrap" data-tip-host>

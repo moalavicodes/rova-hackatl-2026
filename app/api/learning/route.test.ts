@@ -68,3 +68,59 @@ describe("learning API coaching authorization", () => {
     expect(state.db.workspace.sessions?.[0].trace?.acknowledgedAt).toBeDefined();
   });
 });
+describe("learning API question bank", () => {
+  const teacher = () => { state.account!.role = "teacher"; state.account!.id = "rivera"; };
+  const draft = { action: "question-add", topic: "fractions", prompt: "Fill in the missing numerator: 1/2 = ?/8", answer: "4", hints: ["What did you multiply 2 by?", "Same number on top."], explanation: "Both parts × 4." };
+  it("lets only teachers add, and never a hint that gives the answer away", async () => {
+    expect((await request(draft)).status).toBe(403);
+    teacher();
+    expect((await request({ ...draft, hints: ["It is 4."] })).status).toBe(400);
+    expect((await request(draft)).status).toBe(200);
+    expect((await request(draft)).status).toBe(400);
+    const added = state.db.workspace.questions![0];
+    expect(added.origin).toBe("teacher");
+    expect(added.guide).toBe(draft.hints[0]);
+    expect(added.simple).toBe("");
+  });
+  it("keeps a question that a shared lesson uses, and removes a free one", async () => {
+    teacher();
+    await request(draft);
+    const id = state.db.workspace.questions![0].id;
+    expect((await request({ action: "question-remove", id: "fr1" })).status).toBe(400);
+    await request({ action: "plan", topic: "fractions", studentIds: ["maya"], questionIds: [id, "fr1"] });
+    expect(state.db.workspace.plans[0].questionIds).toEqual(["fr1", id]);
+    expect((await request({ action: "question-remove", id })).status).toBe(400);
+    state.db.workspace.plans = [];
+    expect((await request({ action: "question-remove", id })).status).toBe(200);
+    expect(state.db.workspace.questions).toHaveLength(0);
+  });
+  it("sends a random three by default and validates chosen ids", async () => {
+    teacher();
+    await request({ action: "plan", topic: "geometry", studentIds: ["maya"] });
+    expect(state.db.workspace.plans[0].questionIds).toEqual(["ge1", "ge2", "ge3"]);
+    await request({ action: "plan", topic: "fractions", studentIds: ["maya"], count: 1 });
+    expect(state.db.workspace.plans[1].questionIds).toHaveLength(1);
+    expect((await request({ action: "plan", topic: "fractions", studentIds: ["learner-1"], questionIds: ["ge1"] })).status).toBe(400);
+    expect((await request({ action: "plan", topic: "fractions", studentIds: ["learner-1"], questionIds: [] })).status).toBe(400);
+    expect((await request({ action: "plan", topic: "fractions", studentIds: ["learner-1"], questionIds: ["fr1", "fr1"] })).status).toBe(400);
+  });
+  it("stores course materials and clears references when one is removed", async () => {
+    teacher();
+    expect((await request({ action: "material-add", title: "H", kind: "handbook", topics: [] })).status).toBe(400);
+    expect((await request({ action: "material-add", title: "Grade 4 Handbook", kind: "handbook", topics: ["fractions"], notes: "Ch. 5" })).status).toBe(200);
+    const material = state.db.workspace.materials![0];
+    await request({ ...draft, source: material.id });
+    expect(state.db.workspace.questions![0].source).toBe(material.id);
+    await request({ action: "material-remove", id: material.id });
+    expect(state.db.workspace.materials).toHaveLength(0);
+    expect(state.db.workspace.questions![0].source).toBeUndefined();
+  });
+  it("grades a teacher-added question with code in free practice", async () => {
+    teacher();
+    await request(draft);
+    const id = state.db.workspace.questions![0].id;
+    state.account!.role = "student"; state.account!.id = "maya";
+    expect((await (await request({ action: "attempt", questionId: id, answer: "4", id: "attempt-custom-1" })).json()).correct).toBe(true);
+    expect((await (await request({ action: "attempt", questionId: id, answer: "5", id: "attempt-custom-2" })).json()).correct).toBe(false);
+  });
+});

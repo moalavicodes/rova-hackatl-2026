@@ -76,3 +76,17 @@ html{scroll-behavior:smooth;scroll-padding-top:28px}body{font-family:var(--font-
   .belief-strip>.wrap{flex-direction:column;align-items:center;gap:8px;text-align:center}
   .audience-tabs button{padding:8px 12px;font-size:13px;white-space:nowrap}
 }
+
+/* Sticky header, a numbers strip, and feature points so sections carry equal weight. */
+.marketing-nav{position:sticky;top:0;z-index:20;background:#f9f9f2f2;backdrop-filter:blur(8px);border-bottom:1px solid #e7eadf}
+.figures{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;padding:28px 0 8px}
+.figures>div{display:grid;gap:2px;padding:16px 18px;border:1px solid #e4e8db;border-radius:12px;background:var(--white)}
+.figures strong{font-family:var(--font-fraunces),serif;font-size:32px;font-weight:500;letter-spacing:-1px;color:var(--forest);line-height:1.1}
+.figures span{font-size:14px;font-weight:600;color:var(--forest)}
+.figures small{font-size:13px;color:var(--muted)}
+.audience-points{list-style:none;margin:0 0 18px;padding:0;display:grid;gap:8px}
+.audience-points li{display:flex;align-items:center;gap:10px;font-size:15px;color:var(--forest)}
+.audience-points svg{flex:none;color:#6f8a55}
+.section{padding-block:56px}
+@media(max-width:960px){.figures{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:680px){.figures{grid-template-columns:1fr 1fr;gap:10px;padding:20px 0 4px}.figures>div{padding:12px 14px}.figures strong{font-size:26px}}

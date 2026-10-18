@@ -6,7 +6,7 @@ import { Brand, Icon, Mark } from "./Brand";
 export function Homepage() {
   const [audience, setAudience] = useState(0);
   const stories = [
-    { label: "For teachers", title: "See the gap. Know the next step.", text: "A classroom is more than an average. See who’s finding their feet, spot the concepts that need another look, and bring the right students together.", link: "/login?account=teacher", cta: "Explore a classroom", heading: "A little clarity for your classroom.", sub: "Room 4 · Fourth-grade mathematics" },
+    { label: "For teachers", title: "See the gap. Know the next step.", text: "A classroom is more than an average. See who’s finding their feet, spot the concepts that need another look, and bring the right students together.", link: "/login?account=teacher", cta: "Explore a classroom", heading: "A little clarity for your classroom.", sub: "Math explorers · Fourth-grade mathematics" },
     { label: "For students", title: "A conversation that helps it click.", text: "Talk through a problem with Rova. Share a guess, ask why, and discover the next step through hints and pictures. Your own thinking leads to the answer, and your teacher can follow your progress.", link: "/login?account=student", cta: "Meet your learning buddy", heading: "Your next little breakthrough.", sub: "Maya’s learning path · Grade 4" },
     { label: "For families", title: "Stay close to their learning.", text: "Understand the wins, the work in progress, and how to help. Turn ‘How was school?’ into a conversation that actually goes somewhere.", link: "/login?account=parent", cta: "Explore the family experience", heading: "More than ‘school was fine.’", sub: "Maya’s week · Learning together" },
   ];

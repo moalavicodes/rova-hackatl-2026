@@ -59,9 +59,9 @@ Say: “When a student is stuck, the problem often started in an earlier grade. 
 | Student action | What to point out |
 | --- | --- |
 | Type `7` | Code checks it. Rova names the misconception: adding the same amount to both parts instead of multiplying. |
-| Type `8` | Two checked misses on one question: Rova traces the gap to **equivalent fractions (4.NF.A.1)** and a banner offers a refresher. |
-| **Start refresher → Start our conversation**, then `2`, **Next question**, `4`, **Next question**, `9` | A three-question fractions refresher; each answer is checked by code. |
-| **Back to ratios**, then type `9 cups` | The original ratio question is solved after the refresher. |
+| Type `8` | Two checked misses on one question: Rova traces the gap to **equivalent fractions (4.NF.A.1)** and says the refresher is ready on the dashboard. |
+| Close the chat; on the dashboard card choose **Start refresher → Start our conversation**, then `2`, **Next question**, `4`, **Next question**, `9`, **Finish lesson** | A three-question fractions refresher; each answer is checked by code. |
+| On the dashboard card choose **Back to ratios**, then type `9 cups` | The original ratio question is solved after the refresher. |
 
 ## 3. A teacher sees what happened, quickly
 

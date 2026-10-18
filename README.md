@@ -57,7 +57,7 @@ Built for someone specific, not "users". (Names in the prototype are fictional s
 | Who | Their moment | What's hard today |
 |---|---|---|
 | **Maya, 4th grade** (the user) | 7 p.m., stuck on fractions homework. ChatGPT is one tab away. | It's easier to copy an answer than to learn it, and she knows she isn't really learning |
-| **Ms. Rivera, 4th-grade teacher** (adopts it) | A class of 18 with a wide range of levels (sample class: Room 4) | She can't see who is stuck until the unit test, and she doesn't know *why* they're stuck |
+| **Ms. Rivera, 4th-grade teacher** (adopts it) | A class of 18 with a wide range of levels (sample class: Math explorers) | She can't see who is stuck until the unit test, and she doesn't know *why* they're stuck |
 | **Maya's parent** (in the loop) | Wants to help at home | Thinks Maya is on track. Report cards say B's |
 | **The principal / district** (pays) | Has to answer "what's our AI plan?" and lost the tutoring budget | Human tutoring costs $1,200–$2,500 per student; federal relief money is gone |
 

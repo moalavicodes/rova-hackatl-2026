@@ -11,7 +11,6 @@ import {
   planImpact,
   statusLabel,
   statusOrder,
-  TARGET,
   topicStatusCounts,
   type Status,
   type StudentStatus,
@@ -102,9 +101,6 @@ export function ProgressReport({
           <h2>{report.className}</h2>
           <p>
             {profile.name} · Grade 4 mathematics · {workspace.students.length} learners
-          </p>
-          <p>
-            Current unit {shortDate(unit.start)} – {shortDate(unit.end)}. Goal: every learner at {TARGET}% confidence in each topic by the end of the unit.
           </p>
         </div>
         <div className="report-actions">

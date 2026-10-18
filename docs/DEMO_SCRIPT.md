@@ -4,6 +4,8 @@ Use the simulated accounts with password `rova2026`: `teacher@rova.school`, `stu
 
 The coach and lesson summary are scripted. Math grading, assignment progress, transcript capture, and summary counts come from the actual session. Do not describe this version as a live LLM or a proven long-term mastery assessment.
 
+Safety checks are limited deterministic phrase matching. Flagged conversations appear at the top of every teacher section with a direct review action and the learner’s exact flagged words. This is an in-app flag, not an external or emergency notification. Opening a review does not resolve it. Use an isolated rehearsal data directory if testing this path; it intentionally leaves a persistent concern visible.
+
 ## Preparation
 
 Use Node 24. For a fresh rehearsal without deleting existing practice, start with a new temporary data directory:

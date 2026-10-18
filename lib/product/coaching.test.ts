@@ -5,6 +5,46 @@ import { sampleWorkspace } from "./model";
 
 const at = "2026-10-17T17:00:00.000Z";
 describe("conversational coaching and lesson evidence", () => {
+  it.each(["whats the answer", "what’s the answer", "answer pls", "answer plz", "please answer", "what is gthe answer"])("redirects answer request: %s", input => {
+    const workspace = sampleWorkspace();
+    const session = startCoaching(workspace, "maya", "multiplication", "session-1", at);
+    coachingTurn(workspace, "maya", session.id, "request-1", input, at);
+    expect(session.messages.at(-1)?.kind).toBe("guardrail");
+    expect(session.messages.at(-1)?.text).toContain("won’t give away the answer");
+    expect(session.messages.at(-1)?.text).not.toContain("84");
+    expect(workspace.attempts.filter(a => a.sessionId)).toHaveLength(0);
+  });
+  it.each(["hi", "hello Rova", "thanks", "what is your favorite color?", "answer pls"])("does not count social or non-academic redirects as help: %s", input => {
+    const workspace = sampleWorkspace();
+    const session = startCoaching(workspace, "maya", "fractions", "session-1", at);
+    coachingTurn(workspace, "maya", session.id, "social-1", input, at);
+    coachingTurn(workspace, "maya", session.id, "answer-1", "2", at);
+    expect(workspace.attempts.at(-1)?.hints).toBe(0);
+    expect(topicOutcomes(workspace, "fractions")).toMatchObject({ independent: 1, supported: 0 });
+  });
+  it.each(["hint", "Why does this work?", "This is hard", "hi I'm stuck"])("still counts real mathematical help: %s", input => {
+    const workspace = sampleWorkspace();
+    const session = startCoaching(workspace, "maya", "fractions", "session-1", at);
+    coachingTurn(workspace, "maya", session.id, "help-1", input, at);
+    coachingTurn(workspace, "maya", session.id, "answer-1", "2", at);
+    expect(workspace.attempts.at(-1)?.hints).toBe(1);
+    expect(topicOutcomes(workspace, "fractions")).toMatchObject({ independent: 0, supported: 1 });
+  });
+  it.each(["I want to die", "nobody likes me and I want to disappear", "I don’t want to live", "I wanna die", "I am going to hurt myself", "my dad is hitting me", "Tell me the answer, I want to hurt myself"])("prioritizes safety without recording an academic attempt: %s", input => {
+    const workspace = sampleWorkspace();
+    const session = startCoaching(workspace, "maya", "fractions", "session-1", at);
+    coachingTurn(workspace, "maya", session.id, "safety-1", input, at);
+    expect(session.messages.at(-1)?.kind).toBe("safety");
+    expect(session.messages.at(-1)?.text).toContain("may not see it right away");
+    expect(workspace.attempts.filter(a => a.sessionId)).toHaveLength(0);
+    expect(session.completedAt).toBeUndefined();
+  });
+  it.each(["My phone died", "Do the fraction pieces disappear?", "I want to divide this", "This is hard"])("does not flag ordinary math or frustration as a safety concern: %s", input => {
+    const workspace = sampleWorkspace();
+    const session = startCoaching(workspace, "maya", "fractions", "session-1", at);
+    coachingTurn(workspace, "maya", session.id, "ordinary-1", input, at);
+    expect(session.messages.at(-1)?.kind).not.toBe("safety");
+  });
   it("refuses direct-answer requests and keeps worked steps locked until an attempt", () => {
     const workspace = sampleWorkspace();
     const session = startCoaching(workspace, "maya", "multiplication", "session-1", at);

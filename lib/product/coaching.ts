@@ -1,5 +1,6 @@
 import { gradeAnswer, questions, topics, type PracticeQuestion, type TopicId } from "./curriculum";
 import type { CoachMessage, CoachSession, Plan, Workspace } from "./model";
+import { hasSafetyConcern } from "./safety";
 
 // Deterministic coaching adapter. A future model may write replies; this code still grades
 // answers, owns hint progression, and decides lesson completion.
@@ -48,13 +49,14 @@ export function topicOutcomes(workspace: Workspace, topic: TopicId) {
 function replyFor(workspace: Workspace, session: CoachSession, input: string): { text: string; kind: CoachMessage["kind"]; hints?: number; correct?: boolean } {
   const q = currentQuestion(session);
   const turns = session.messages.filter(m => m.questionId === q.id);
-  const hints = Math.min(3, turns.filter(m => m.role === "coach" && m.kind && ["hint", "retry", "explain", "guardrail"].includes(m.kind)).length);
+  // Only mathematical help affects independence, not greetings or redirects.
+  const hints = Math.min(3, turns.filter(m => m.role === "coach" && m.kind && ["hint", "retry", "explain"].includes(m.kind)).length);
   const attempted = workspace.attempts.some(a => a.sessionId === session.id && a.questionId === q.id);
-  if (/\b(suicid\w*|kill myself|self[ -]?harm|hurt myself|hurt someone|being abused)\b/i.test(input)) {
-    return { text: "I’m glad you told me. Please talk with a trusted adult now. I’ve flagged this conversation for your teacher to review. We can pause the math.", kind: "safety" };
+  if (hasSafetyConcern(input)) {
+    return { text: "I’m glad you told me. Please talk with a trusted adult now. I’ve saved a safety concern for your teacher to review in Rova, but they may not see it right away. You don’t need to keep doing math right now.", kind: "safety" };
   }
-  if (/\b(ignore|override|system prompt|pretend|just.*answer|give.*answer|tell.*answer|solve.*for me|what(?:’s|'s| is)\s+(?:\w+\s+)?answer)\b/i.test(input)) {
-    return { text: "I’ll help you work it out, one step at a time. I won’t give away the answer. " + q.hints[Math.min(hints, attempted ? 2 : 0)], kind: "guardrail" };
+  if (/\b(ignore|override|system prompt|pretend|just.*answer|give.*answer|tell.*answer|solve.*for me|what(?:’s|'s|s| is)\s+(?:\w+\s+)?answer|answers?\s+(?:please|pls|plz)|(?:please|pls|plz)\s+(?:the\s+)?answer)\b/i.test(input)) {
+    return { text: "I’ll help you work it out, one step at a time. I won’t give away the answer. What have you tried so far? Share your thinking, try an answer, or ask for a hint.", kind: "guardrail" };
   }
   if (questionSolved(workspace, session, q.id)) {
     return { text: `You checked that answer successfully. ${q.explanation} Can you explain the idea in your own words? When you’re ready, continue to the next question.`, kind: "explain" };
@@ -84,8 +86,11 @@ function replyFor(workspace: Workspace, session: CoachSession, input: string): {
   if (/\b(why|how|mean|fraction|numerator|denominator|equivalent|multiply|divide|place|angle|unit|same|half|quarter|group|tens|hundreds|thousands|meter|centimeter|degree)\b/i.test(input)) {
     return { text: concepts[q.topic] + " Now connect that idea to our question: " + q.hints[0], kind: "explain" };
   }
-  if (/\b(hi|hello|hey|thanks|thank you|frustrat\w*|hard|can.?t|bad at|hate math)\b/i.test(input)) {
+  if (/\b(frustrat\w*|hard|can.?t|bad at|hate math)\b/i.test(input)) {
     return { text: "I’m here with you. You don’t have to be fast, and a mistake gives us something to work with. " + q.hints[0] + " Want to try that first step?", kind: "explain" };
+  }
+  if (/\b(hi|hello|hey|thanks|thank you)\b/i.test(input)) {
+    return { text: "Hi! I’m here with you. Take your time. Share a first idea when you’re ready, or ask me for a hint.", kind: "encouragement" };
   }
   return { text: "I can help with this math question, but I don’t want to guess what you mean. Tell me which part is confusing, type a number to check, or choose a hint. Your teacher can see our conversation and help with other questions.", kind: "guardrail" };
 }

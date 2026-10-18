@@ -6,6 +6,13 @@ import { topics } from "./curriculum";
 
 const at = "2026-10-17T19:00:00Z";
 describe("evidence-based lesson summaries", () => {
+  it("does not describe greetings as mathematical support", () => {
+    const workspace = sampleWorkspace();
+    const session = startCoaching(workspace, "maya", "fractions", "session-1", at);
+    coachingTurn(workspace, "maya", session.id, "hello-1", "hi", at);
+    coachingTurn(workspace, "maya", session.id, "answer-1", "2", at);
+    expect(summarizeLesson(workspace, session)).toMatchObject({ independent: 1, nudges: 0, explanations: 0, redirects: 0 });
+  });
   it("does not invent progress before an answer is checked", () => {
     const workspace = sampleWorkspace();
     const session = startCoaching(workspace, "maya", "fractions", "session-1", at);

@@ -43,6 +43,20 @@ Person C. The user explicitly requested restoring student coaching, connecting g
 
 ## Integration notes and limits
 
+### PR #15 review fixes (2026-10-17)
+
+- Safety matching now covers the reported “I want to die” and “nobody likes me and I want to disappear” inputs, additional first-person distress/abuse phrases, and curly apostrophes. It runs before academic intent. Ordinary math language and frustration have negative regression cases. This remains a limited deterministic safeguard, not a comprehensive safety classifier.
+- The existing teacher concern banner is now explicitly labeled **Safety concern**, placed before the greeting on every teacher section, and opens the flagged lesson directly on its conversation tab. Exact flagged student messages are repeated at the top of the review so long transcripts cannot bury them. Existing role-scoped transcript access is unchanged.
+- The child is told the concern is saved in Rova and the teacher may not see it right away; they are directed to a trusted adult now. No email, text, emergency response, acknowledgment, or resolution workflow is claimed. Opening a review does not remove the flag.
+- Greetings use an encouragement-only response without math hints. Generic and answer-request redirects do not count as mathematical help and no longer include a hidden hint; actual hints, retries, and explanations still count. Historical saved attempts are not rewritten.
+- Answer requests now include missing-apostrophe “whats the answer” and “answer pls/plz.” Math grading and completion still use code only.
+
+### Pitch follow-up — proposed, not implemented
+
+The review correctly identifies a gap between the original venture story and the current D-009 app. This patch does not reverse the accepted grade-4 product decision or pretend lesson completion verifies a lasting fix. The next coordinated increment should connect one visible loop: ratio struggle → prerequisite fractions refresher → teacher shared-gap alert → Spanish family activity → delayed checked re-assessment. Any seeded trigger, time jump, or delivery must be labeled Simulated. Person B must agree the event/state adapter before new screens depend on it; reuse the existing tested rules instead of maintaining a second alert engine.
+
+Before a public presentation, the team must also choose deployment-compatible storage, add a safe rehearsal reset, reconcile child accounts/privacy claims, and align the venture script with capabilities actually on screen. A hosted model or principal report is separate scope. Funding amounts, traction, interview findings, and accuracy results require human evidence; do not fabricate them.
+
 ### Modal review and messaging layout follow-up
 
 - Teacher lesson rows now show a compact **Review lesson** action. It opens a native modal with separate **Lesson summary** and **Conversation** tabs; full summaries and chat histories no longer expand inside the classroom list. Reviews opened from an individual learner dialog also get their own modal. Dialog headings use unique IDs for nested accessibility.

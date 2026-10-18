@@ -3,7 +3,7 @@ import { topics, type Role, type TopicId } from "./curriculum";
 export interface Profile { id: string; name: string; role: Role; email?: string; school: string; goal: number; avatar: string; sample?: boolean; familyCode?: string }
 export interface Learner { id: string; name: string; scores: Partial<Record<TopicId, number>>; avatar: string }
 export interface Attempt { id: string; studentId: string; questionId: string; topic: TopicId; correct: boolean; hints: number; at: string; sessionId?: string; planId?: string }
-export interface CoachMessage { id: string; role: "student" | "coach"; text: string; questionId: string; at: string; kind?: "hint" | "correct" | "retry" | "guardrail" | "safety" | "explain"; source?: string }
+export interface CoachMessage { id: string; role: "student" | "coach"; text: string; questionId: string; at: string; kind?: "hint" | "correct" | "retry" | "guardrail" | "safety" | "explain" | "encouragement"; source?: string }
 export interface CoachSession { id: string; studentId: string; topic: TopicId; planId?: string; questionIndex: number; messages: CoachMessage[]; startedAt: string; completedAt?: string }
 export interface Plan { id: string; topic: TopicId; studentIds: string[]; at: string; completed?: boolean }
 export interface Note { id: string; studentId: string; text: string; author: string; at: string }

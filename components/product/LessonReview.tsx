@@ -6,13 +6,14 @@ import type { CoachSession, Workspace } from "@/lib/product/model";
 import { Avatar, Modal } from "./Shared";
 import { Icon } from "./Brand";
 
-export function LessonReview({ session, workspace, onClose }: { session: CoachSession; workspace: Workspace; onClose: () => void }) {
-  const [tab, setTab] = useState<"summary" | "conversation">("summary");
+export function LessonReview({ session, workspace, onClose, initialTab = "summary" }: { session: CoachSession; workspace: Workspace; onClose: () => void; initialTab?: "summary" | "conversation" }) {
+  const [tab, setTab] = useState<"summary" | "conversation">(initialTab);
   const id = useId();
   const learner = workspace.students.find(s => s.id === session.studentId);
   const topic = topics.find(t => t.id === session.topic)!;
   const summary = summarizeLesson(workspace, session);
   return <Modal title={`${learner?.name ?? "Student"} · Lesson review`} onClose={onClose} wide className="lesson-review-dialog">
+    {summary.safety && <section className="safety-review" aria-label="Flagged safety messages"><h2>Safety concern · Review first</h2><p>Check in personally and follow your school’s safeguarding process. No external notification was sent.</p>{session.messages.flatMap((message, index) => message.kind === "safety" && session.messages[index - 1]?.role === "student" ? [<blockquote key={message.id}><strong>{learner?.name ?? "Student"}</strong><p>{session.messages[index - 1].text}</p><time dateTime={message.at}>{new Date(message.at).toLocaleString("en-US")}</time></blockquote>] : [])}</section>}
     <div className="review-student-bar"><Avatar name={learner?.name ?? "Student"} color={learner?.avatar}/><div><strong>{topic.name} refresher</strong><span>{session.completedAt ? "Completed" : "In progress"} · {summary.solved}/{summary.total} questions understood</span></div><span className="summary-disclosure">Scripted AI summary preview</span></div>
     <div className="review-tabs" role="tablist" aria-label="Lesson review sections">{(["summary", "conversation"] as const).map(value => <button key={value} id={`${id}-${value}-tab`} role="tab" aria-selected={tab === value} aria-controls={`${id}-${value}`} onClick={() => setTab(value)}>{value === "summary" ? "Lesson summary" : `Conversation (${session.messages.length})`}</button>)}</div>
     <section className="review-panel" role="tabpanel" id={`${id}-${tab}`} aria-labelledby={`${id}-${tab}-tab`} tabIndex={0}>

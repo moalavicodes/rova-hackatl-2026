@@ -7,6 +7,7 @@ import { ActivityChart, Avatar, Empty, Modal, type Mutate } from "./Shared";
 import { ClassroomLearningChart, ConversationEvidence, LessonMonitor } from "./LearningEvidence";
 import { PrioritySupport } from "./PrioritySupport";
 import { supportTopics } from "@/lib/product/insights";
+import { SafetyConcerns } from "./SafetyConcerns";
 
 export function TeacherDashboard({ profile, workspace, section, mutate }: { profile: Profile; workspace: Workspace; section: string; mutate: Mutate }) {
   const [search, setSearch] = useState("");
@@ -24,7 +25,6 @@ export function TeacherDashboard({ profile, workspace, section, mutate }: { prof
   const visible = workspace.students.filter(s => s.name.toLowerCase().includes(search.toLowerCase()) && (filter === "all" || topicStats.find(t => t.id === filter)!.struggling.some(x => x.id === s.id))).sort((a, b) => Number(supportTopics(b, workspace).length === topics.length) - Number(supportTopics(a, workspace).length === topics.length) || a.name.localeCompare(b.name));
   const focus = topicStats.find(t => t.id === group);
   const sessions = workspace.sessions ?? [];
-  const safetySessions = sessions.filter(s => s.messages.some(m => m.kind === "safety"));
   function openGroup(topic: TopicId) { setGroup(topic); setMembers(topicStats.find(t => t.id === topic)!.struggling.map(s => s.id)); }
   async function createPlan() {
     if (!focus || busy || !members.length) return;
@@ -34,10 +34,10 @@ export function TeacherDashboard({ profile, workspace, section, mutate }: { prof
     setBusy(false);
   }
   return <>
+    <SafetyConcerns workspace={workspace}/>
     <div className="page-heading"><div><span className="eyebrow">Your classroom, a little clearer</span><h1>Good to see you, {profile.name.split(" ")[0]}.</h1><p>See the next step, the support, and the progress behind every learner.</p></div><div className="class-select"><Icon name="people" size={18}/><div><strong>{workspace.name}</strong><span>Grade 4 · {workspace.students.length} learners</span></div></div></div>
     {feedback && <div className="inline-success" role="status"><Icon name="check" size={18}/>{feedback}<button onClick={() => setFeedback("")} aria-label="Dismiss confirmation"><Icon name="close" size={16}/></button></div>}
     {(section === "overview" || section === "classroom") && <PrioritySupport workspace={workspace} onSelect={setSelected}/>}
-    {safetySessions.length > 0 && <section className="safety-review" role="status"><strong>Conversations need your attention</strong><p>A learner shared a concern. Open their learning story to review the flagged conversation.</p>{[...new Set(safetySessions.map(s => s.studentId))].map(id => { const student = workspace.students.find(s => s.id === id); return student && <button className="btn btn-outline" key={id} onClick={() => setSelected(student)}>Review {student.name}’s conversation</button>; })}</section>}
     {section === "overview" && <>
       <div className="teacher-stats"><div><span>Class understanding</span><strong>{average(topicStats.map(t => t.score)) ?? "—"}<small>%</small></strong><p>Practice signal across six foundations</p></div><div><span>Ready for support</span><strong>{needsSupport.length}<small> learners</small></strong><p>At least one topic to revisit</p></div><div><span>Lessons in motion</span><strong>{workspace.plans.filter(p => !p.completed).length}<small> groups</small></strong><p>Assigned to learners’ dashboards</p></div><div><span>Coached lessons completed</span><strong>{sessions.filter(s => s.completedAt).length}</strong><p>Three questions checked in each lesson</p></div></div>
       <div className="teacher-insight-grid"><section className="priority-panel"><div className="priority-label"><Icon name="leaf" size={18}/><span>A place to make a difference</span></div><h2>A fresh way into<br/><em>{biggest.name.toLowerCase()}.</em></h2><p>{biggest.struggling.length} learners could benefit from a focused refresher. Share a lesson, then follow their conversations and checked progress.</p><div className="avatar-stack">{biggest.struggling.slice(0, 5).map(s => <Avatar key={s.id} name={s.name} color={s.avatar} small/>)}{biggest.struggling.length > 5 && <span>+{biggest.struggling.length - 5}</span>}</div><button className="btn btn-dark" onClick={() => openGroup(biggest.id)}>Build a small-group lesson<Icon name="arrow" size={17}/></button></section>

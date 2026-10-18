@@ -16,6 +16,7 @@ AI made answers instant, not learning. Rova helps a 4th grader think through mat
 - **Progress report:** a teacher `#report` page for principals and MTSS meetings, with counts from code-checked evidence, support tiers, and an intervention log (print and CSV).
 - **Parent:** child progress, teacher notes, at-home activities that advance after completion, and completed activity history. Parent accounts do not receive coaching transcripts.
 - **No AI model is called (D-004).** The coach and summary are visibly labeled scripted previews. Answers are checked by code (`lib/math/checkAnswer.ts`).
+- **Sample pictures:** the three sample accounts (Maya, Ms. Rivera, Alex) show illustrated pictures from `public/avatars/` (drawn for this project, not real people); other accounts show initials on their chosen color.
 - **Simulated:** the 18-student sample class and starting scores, including James Walker's across-topic support needs, and Maya's seeded last seven days of practice. Names are fictional. The classroom outcomes graph excludes seeded attempts.
 - **Navigation:** role-specific URL fragments preserve the selected section through refresh and browser history.
 

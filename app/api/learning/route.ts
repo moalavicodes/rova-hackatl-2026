@@ -53,7 +53,7 @@ export async function POST(request: Request) {
       } else if (body.action === "note" && account.role === "teacher") {
         const text = String(body.text ?? "").trim().slice(0, 1000);
         if (!text || !db.workspace.students.some((s) => s.id === body.studentId)) return Response.json({ error: "Choose a student and write a message." }, { status: 400 });
-        db.workspace.notes.push({ id: randomUUID(), studentId: body.studentId, text, author: account.name, at: now });
+        db.workspace.notes.push({ id: randomUUID(), studentId: body.studentId, text, author: account.name, authorId: account.id, at: now });
       } else if (body.action === "check" && account.role === "parent") {
         const key = `${account.id}:${String(body.key).slice(0, 80)}`;
         db.workspace.checks = db.workspace.checks.includes(key) ? db.workspace.checks.filter((k) => k !== key) : [...db.workspace.checks, key];

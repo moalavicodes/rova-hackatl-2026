@@ -8,7 +8,9 @@ export interface CoachMessage { id: string; role: "student" | "coach"; text: str
 export interface RootCauseTrace { prerequisite: TopicId; standard: string; questionId: string; wrongAnswers: string[]; at: string; refresherSessionId?: string; refresherCompletedAt?: string; fixedAt?: string; acknowledgedAt?: string }
 export interface CoachSession { id: string; studentId: string; topic: TopicId; planId?: string; refresherFor?: string; questionIndex: number; messages: CoachMessage[]; startedAt: string; completedAt?: string; trace?: RootCauseTrace }
 export interface Plan { id: string; topic: TopicId; studentIds: string[]; at: string; completed?: boolean }
-export interface Note { id: string; studentId: string; text: string; author: string; at: string; automatic?: boolean }
+export interface Note { id: string; studentId: string; text: string; author: string; authorId?: string; at: string; automatic?: boolean }
+// Illustrated pictures for the sample accounts (no real people). Other accounts show initials.
+export const samplePhotos: Record<string, string> = { maya: "/avatars/maya.svg", rivera: "/avatars/rivera.svg", alex: "/avatars/alex.svg" };
 export interface Workspace { name: string; code: string; students: Learner[]; attempts: Attempt[]; plans: Plan[]; notes: Note[]; checks: string[]; sessions?: CoachSession[] }
 export const emptyWorkspace: Workspace = { name: "My classroom", code: "", students: [], attempts: [], plans: [], notes: [], checks: [] };
 export const sampleProfiles: Record<Role, Profile> = {
@@ -27,7 +29,7 @@ export function sampleWorkspace(): Workspace {
       attempts.push({ id: `sample-${day}-${n}`, studentId: "maya", questionId: `sample-${topic}`, topic, correct: n !== 1 && !(day > 3 && n === 2), hints: n === 1 ? 2 : 0, at: new Date(now - day * 86400000 - n * 120000).toISOString() });
     }
   }
-  return { name: "Room 4 · Math explorers", code: "MAPLE4", students, attempts, plans: [], checks: [], notes: [{ id: "welcome", studentId: "maya", text: "Maya is making thoughtful connections in multiplication. This week, we’re working on seeing why different fractions can represent the same amount. Try folding a piece of paper together at home.", author: "Ms. Rivera", at: new Date(now - 86400000).toISOString() }] };
+  return { name: "Room 4 · Math explorers", code: "MAPLE4", students, attempts, plans: [], checks: [], notes: [{ id: "welcome", studentId: "maya", text: "Maya is making thoughtful connections in multiplication. This week, we’re working on seeing why different fractions can represent the same amount. Try folding a piece of paper together at home.", author: "Ms. Rivera", authorId: "rivera", at: new Date(now - 86400000).toISOString() }] };
 }
 export function scoreFor(student: Learner, topic: TopicId, attempts: Attempt[]): number | null {
   const recent = attempts.filter((a) => a.studentId === student.id && a.topic === topic && !a.id.startsWith("sample-")).slice(-10);

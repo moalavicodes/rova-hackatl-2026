@@ -23,7 +23,7 @@ export function RootCauseAlerts({ workspace, mutate, onGroup }: { workspace: Wor
       const others = classmatesWithGap(workspace, session.studentId, trace.prerequisite);
       const status = traceStatus(trace);
       return <article className="root-cause-card" key={session.id}>
-        <header><Avatar name={learner?.name ?? "Learner"} color={learner?.avatar}/><div><strong>{learner?.name ?? "Learner"}</strong><span>Stuck on {topic.name.toLowerCase()} ({topic.standard}) · {new Date(trace.at).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}</span></div><span className={`status-pill ${trace.fixedAt ? "strong" : "growing"}`}>{status}</span></header>
+        <header><Avatar name={learner?.name ?? "Learner"} id={learner?.id} color={learner?.avatar}/><div><strong>{learner?.name ?? "Learner"}</strong><span>Stuck on {topic.name.toLowerCase()} ({topic.standard}) · {new Date(trace.at).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}</span></div><span className={`status-pill ${trace.fixedAt ? "strong" : "growing"}`}>{status}</span></header>
         <dl>
           <div><dt>Root cause</dt><dd><strong>{skillName(trace.prerequisite)} · {earlier.standard}</strong></dd></div>
           <div><dt>Evidence</dt><dd>“{question?.prompt}” Answered {trace.wrongAnswers.map(a => `“${a}”`).join(" then ")}; both checked incorrect by code.</dd></div>
@@ -32,7 +32,7 @@ export function RootCauseAlerts({ workspace, mutate, onGroup }: { workspace: Wor
           <div><dt>Re-check</dt><dd>{trace.fixedAt ? "Solved the original question today. A follow-up check after 7 days is planned, not built." : "Waiting for the learner to return to the original question."}</dd></div>
         </dl>
         <footer>
-          {others.length > 0 && <span className="avatar-stack" title={others.map(s => s.name).join(", ")}>{others.slice(0, 5).map(s => <Avatar key={s.id} name={s.name} color={s.avatar} small/>)}<small>{others.length} classmates share a low {earlier.name.toLowerCase()} signal</small></span>}
+          {others.length > 0 && <span className="avatar-stack" title={others.map(s => s.name).join(", ")}>{others.slice(0, 5).map(s => <Avatar key={s.id} name={s.name} id={s.id} color={s.avatar} small/>)}<small>{others.length} classmates share a low {earlier.name.toLowerCase()} signal</small></span>}
           {others.length > 0 && <button className="btn btn-dark" onClick={() => onGroup(trace.prerequisite, [session.studentId, ...others.map(s => s.id)])}>Share a {earlier.name.toLowerCase()} refresher with this group<Icon name="arrow" size={16}/></button>}
           <button className="btn btn-outline" onClick={() => setReviewId(session.id)}>Review conversation</button>
           {trace.acknowledgedAt ? <span className="quiet"><Icon name="check" size={15}/> Reteach planned</span> : <button className="btn btn-outline" disabled={busy} onClick={async () => { setBusy(true); await mutate({ action: "trace-ack", sessionId: session.id }); setBusy(false); }}>Mark reteach planned</button>}

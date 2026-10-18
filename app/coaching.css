@@ -12,9 +12,9 @@
 .workspace-topbar > span { flex: 1; }
 .workspace-layout .workspace-sidebar nav button { font-size: 14px; min-height: 48px; }
 .workspace-layout .sidebar-school strong { font-size: 12px; }
-.workspace-layout .sidebar-school div > span, .workspace-layout .sidebar-profile small { font-size: 11px; }
+.workspace-layout .sidebar-school div > span, .workspace-layout .sidebar-profile small { font-size: 12px; }
 .workspace-layout .sidebar-profile strong, .workspace-layout .sidebar-bottom button { font-size: 13px; }
-.workspace-layout .sidebar-label { font-size: 11px; }
+.workspace-layout .sidebar-label { font-size: 12px; }
 .workspace-layout .teacher-stats > div > span { font-size: 13px; }
 .workspace-layout .teacher-stats p, .workspace-layout .teacher-stats strong small { font-size: 12px; }
 .workspace-layout .student-banner p, .workspace-layout .priority-panel > p, .workspace-layout .family-banner p { font-size: 15px; }
@@ -23,7 +23,7 @@
 .workspace-layout .topic-card h3 { font-size: 18px; }
 .workspace-layout .topic-card > p { font-size: 14px; color: #526052; min-height: 45px; }
 .workspace-layout .topic-progress-label, .workspace-layout .topic-progress-label strong { font-size: 12px; }
-.workspace-layout .recommend-tag { font-size: 10px; }
+.workspace-layout .recommend-tag { font-size: 12px; }
 .workspace-layout .section-heading > .quiet, .workspace-layout .grade-tag { font-size: 12px; }
 .workspace-layout .family-message p, .workspace-layout .family-summary p, .workspace-layout .activity-checklist > label { font-size: 15px; color: #405440; }
 .workspace-layout .family-summary h3 { font-size: 17px; }
@@ -59,7 +59,7 @@
 .learner-topic-dots { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px 5px; }
 .learner-topic-dots > span { display: flex; align-items: center; gap: 5px; }
 .learner-topic-dots i { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
-.learner-topic-dots small { font-size: 10px; color: #455543; }
+.learner-topic-dots small { font-size: 12px; color: #455543; }
 .learner-card footer { font-size: 12px; border-top: 1px solid #d7dfd1; padding-top: 14px; margin-top: 16px; color: #526052; }
 .class-pulse-row { display: grid; grid-template-columns: 36px minmax(100px, 1fr) minmax(65px, 110px) 16px; gap: 12px; align-items: center; width: 100%; text-align: left; padding-block: 15px; border-bottom: 1px solid #e0e6d9; color: #203e30; }
 .class-pulse-row > span:nth-child(2) { font-size: 14px; font-weight: 600; }
@@ -139,7 +139,7 @@
 .coach-message.student { background: #244c3b; color: #fffefa; margin-left: auto; }
 .coach-message > span { display: block; font-size: 12px; font-weight: 650; margin-bottom: 8px; }
 .coach-message p { font-size: 16px; line-height: 1.75; white-space: pre-wrap; }
-.coach-message > small { display: block; font-size: 11px; margin-top: 10px; color: #526052; }
+.coach-message > small { display: block; font-size: 12px; margin-top: 10px; color: #526052; }
 .coach-message.safety { background: #fff0e5; border: 1px solid #b67b59; }
 .coach-message.correct { background: #e1efdd; border: 1px solid #8ba17c; }
 .coach-composer { border-top: 1px solid #d7dfd1; padding: 16px 20px; background: #fffefa; }
@@ -147,7 +147,7 @@
 .coach-suggestions button { font-size: 12px; border: 1px solid #aebfa5; padding: 8px 10px; border-radius: 18px; background: #f5f7ef; color: #244c3b; min-height: 36px; }
 .coach-composer form { display: flex; align-items: flex-end; gap: 10px; }
 .coach-composer textarea { flex: 1; min-width: 0; border: 1px solid #93a48c; border-radius: 8px; padding: 12px; resize: vertical; line-height: 1.5; max-height: 150px; }
-.coach-composer > small { display: block; margin-top: 9px; font-size: 11px; color: #526052; }
+.coach-composer > small { display: block; margin-top: 9px; font-size: 12px; color: #526052; }
 @media (max-width: 1150px) {
   .learner-card-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .teacher-insight-grid { grid-template-columns: 1fr; }
@@ -166,16 +166,16 @@
   .workspace-layout .topic-card > p { min-height: 0; }
   .workspace-layout .topic-progress-label { font-size: 13px; }
   .workspace-layout .recommend-tag { position: static; }
-  .workspace-layout .mini-stat div > span { font-size: 11px; }
-  .workspace-layout .mini-stat strong small { font-size: 10px; }
+  .workspace-layout .mini-stat div > span { font-size: 12px; }
+  .workspace-layout .mini-stat strong small { font-size: 12px; }
   .workspace-layout .student-banner p { font-size: 14px; }
   .learner-card-grid { grid-template-columns: 1fr; }
   .outcome-row { grid-template-columns: 90px minmax(80px, 1fr); gap: 10px; font-size: 12px; }
   .outcome-row > span { display: none; }
-  .outcome-track > small { font-size: 10px; }
+  .outcome-track > small { font-size: 12px; }
   .class-pulse-row { grid-template-columns: 28px 1fr 60px 12px; gap: 8px; }
   .class-pulse-row .topic-symbol { width: 28px; height: 28px; }
-  .class-pulse-row small { font-size: 11px; }
+  .class-pulse-row small { font-size: 12px; }
   .classroom-learning .section-heading, .lesson-monitor > .section-heading { flex-wrap: wrap; gap: 20px; }
   .assigned-lessons { padding: 18px; }
   .assigned-lessons .assignment-row { padding: 15px; }
@@ -229,23 +229,23 @@
 .priority-support-icon { color: #92492c; }
 .priority-support .eyebrow { color: #92492c; }
 .priority-support-actions { margin-left: auto; flex-shrink: 0; }
-.priority-support-actions .avatar { width: 25px; height: 25px; font-size: 9px; }
+.priority-support-actions .avatar { width: 25px; height: 25px; font-size: 11px; }
 .learner-priority { border: 2px solid #a55b3b; background: #fff7ef; }
 .priority-pill { background: #f4d7c2; color: #71391f; font-weight: 650; }
 .lesson-summary { border: 1px solid #becdb2; border-radius: 10px; padding: 20px; background: #f3f7eb; margin-top: 18px; }
 .lesson-summary > header { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
 .lesson-summary h4 { font-size: 18px; margin: 4px 0 0; }
-.summary-disclosure { background: #e0e8d5; color: #3f5837; border-radius: 5px; padding: 5px 8px; font-size: 11px; }
+.summary-disclosure { background: #e0e8d5; color: #3f5837; border-radius: 5px; padding: 5px 8px; font-size: 12px; }
 .workspace-layout .lesson-summary > p, .product-dialog .lesson-summary > p { color: #263f2d; font-size: 15px; line-height: 1.7; margin-top: 15px; }
 .summary-metrics { display: flex; flex-wrap: wrap; gap: 10px 24px; border-block: 1px solid #d0dcc5; margin-block: 18px; padding-block: 14px; font-size: 13px; }
 .summary-metrics strong { font-size: 20px; margin-right: 5px; }
 .lesson-summary dl { display: grid; gap: 14px; }
 .lesson-summary dt { font-size: 13px; font-weight: 700; color: #244c3b; }
 .lesson-summary dd { margin: 5px 0 0; font-size: 14px; color: #3e533d; line-height: 1.65; }
-.lesson-summary > small { display: block; font-size: 11px; color: #526052; margin-top: 16px; }
+.lesson-summary > small { display: block; font-size: 12px; color: #526052; margin-top: 16px; }
 .summary-quotes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 16px; }
 .summary-quotes blockquote { background: #fffefa; border-left: 3px solid #749463; padding: 12px; margin: 0; min-width: 0; }
-.summary-quotes span { font-size: 11px; color: #526052; }
+.summary-quotes span { font-size: 12px; color: #526052; }
 .workspace-layout .summary-quotes p, .product-dialog .summary-quotes p { color: #203e30; font-size: 14px; margin-top: 5px; overflow-wrap: anywhere; }
 .workspace-layout .coach-message.student p, .product-dialog .coach-message.student p, .workspace-layout .coach-message.student > span, .product-dialog .coach-message.student > span { color: #fffefa; }
 .workspace-layout .coach-message.student > small, .product-dialog .coach-message.student > small { color: #e5eede; }
@@ -266,18 +266,18 @@
 .coach-chat > header { padding: 12px 18px; gap: 10px; }
 .coach-chat > header .stat-icon { height: 32px; width: 32px; }
 .coach-chat > header strong { font-size: 15px; }
-.coach-chat > header small { font-size: 11px; margin-top: 3px; }
+.coach-chat > header small { font-size: 12px; margin-top: 3px; }
 .chat-focus-toggle { margin-left: auto; flex-shrink: 0; font-size: 12px; min-height: 36px; }
 .coach-messages { padding: 14px 18px; scroll-padding-block: 12px; }
 .coach-messages .coach-message { margin-bottom: 10px; padding: 10px 13px; max-width: 95%; }
-.coach-messages .coach-message > span { margin-bottom: 4px; font-size: 11px; }
+.coach-messages .coach-message > span { margin-bottom: 4px; font-size: 12px; }
 .coach-messages .coach-message p { font-size: 15px; line-height: 1.5; }
-.coach-messages .coach-message > small { font-size: 10px; margin-top: 4px; }
+.coach-messages .coach-message > small { font-size: 12px; margin-top: 4px; }
 .coach-composer { padding: 10px 16px; }
 .coach-composer textarea { padding: 10px; min-height: 44px; max-height: 100px; }
-.coach-composer > small { margin-top: 5px; font-size: 10px; }
+.coach-composer > small { margin-top: 5px; font-size: 12px; }
 .coach-suggestions { margin-bottom: 8px; }
-.coach-suggestions button { min-height: 30px; font-size: 11px; padding: 6px 9px; }
+.coach-suggestions button { min-height: 30px; font-size: 12px; padding: 6px 9px; }
 .chat-history-toggle { display: block; color: #244c3b; border: 1px solid #b5c4aa; padding: 8px 12px; margin: 0 auto 14px; border-radius: 18px; font-size: 12px; background: #fffefa; }
 .coaching-layout.chat-expanded { grid-template-columns: 1fr; }
 .chat-expanded .coaching-question { display: none; }
@@ -303,7 +303,7 @@
 .practice-dialog .coach-welcome { margin: auto; overflow: auto; }
 .practice-messenger { flex: 1; min-height: 0; display: flex; flex-direction: column; background: #fcfdf8; }
 .messenger-problem { padding: 12px 20px 10px; flex-shrink: 0; border-bottom: 1px solid #d7dfd1; background: #eff4e6; }
-.messenger-problem-meta { display: flex; justify-content: space-between; gap: 12px; font-size: 11px; color: #52634d; }
+.messenger-problem-meta { display: flex; justify-content: space-between; gap: 12px; font-size: 12px; color: #52634d; }
 .messenger-problem h3 { font-size: 16px; line-height: 1.45; font-weight: 600; margin: 5px 0 6px; }
 /* The question's picture stays with the question; stacked layouts cap its height so the chat keeps room. */
 .messenger-problem { max-height: 40%; overflow-y: auto; }
@@ -311,28 +311,28 @@
 .messenger-problem .lesson-visual svg { max-height: 100px; }
 .messenger-problem .lesson-visual > p { font-size: 12px; }
 .messenger-thread { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 12px 22px; scroll-padding-block: 12px; }
-.messenger-start { display: flex; align-items: center; justify-content: center; gap: 7px; font-size: 11px; color: #526052; margin: 0 0 16px; }
+.messenger-start { display: flex; align-items: center; justify-content: center; gap: 7px; font-size: 12px; color: #526052; margin: 0 0 16px; }
 .messenger-turn { display: flex; flex-direction: column; align-items: flex-start; margin-bottom: 9px; }
 .messenger-turn.student { align-items: flex-end; }
 .messenger-thread .coach-message { width: fit-content; max-width: 88%; margin: 0; padding: 8px 12px; border-radius: 13px 13px 13px 3px; }
 .messenger-thread .coach-message.student { border-radius: 13px 13px 3px 13px; margin: 0; background: #244c3b; }
-.messenger-thread .coach-message > span { font-size: 10px; margin-bottom: 3px; }
+.messenger-thread .coach-message > span { font-size: 12px; margin-bottom: 3px; }
 .messenger-thread .coach-message p { font-size: 14px; line-height: 1.45; margin: 0; }
-.messenger-thread .coach-message footer { display: flex; align-items: center; justify-content: flex-end; gap: 12px; margin-top: 4px; font-size: 9px; line-height: 1.3; color: #526052; }
+.messenger-thread .coach-message footer { display: flex; align-items: center; justify-content: flex-end; gap: 12px; margin-top: 4px; font-size: 11px; line-height: 1.3; color: #526052; }
 .messenger-thread .coach-message footer > span { margin-right: auto; }
 .messenger-thread .coach-message.student footer { color: #e0ead8; }
 .messenger-thread .lesson-visual { width: min(100%, 280px); margin: 8px 0 2px; padding: 10px; }
 .messenger-thread .lesson-visual svg { max-height: 90px; }
-.messenger-thread .lesson-visual p { font-size: 11px; margin-top: 6px; color: #405440; }
-.messenger-thread .lesson-visual figcaption { font-size: 11px; margin-bottom: 5px; }
-.messenger-divider { align-self: stretch; text-align: center; font-size: 11px; color: #526052; margin: 12px 0 16px; }
+.messenger-thread .lesson-visual p { font-size: 12px; margin-top: 6px; color: #405440; }
+.messenger-thread .lesson-visual figcaption { font-size: 12px; margin-bottom: 5px; }
+.messenger-divider { align-self: stretch; text-align: center; font-size: 12px; color: #526052; margin: 12px 0 16px; }
 .messenger-compose { flex-shrink: 0; border-top: 1px solid #d7dfd1; padding: 9px 16px 8px; background: #fffefa; }
 .messenger-compose form { display: flex; align-items: flex-end; gap: 9px; }
 .messenger-compose textarea { flex: 1; min-width: 0; resize: none; border: 1px solid #afc1a2; background: #fafcf4; padding: 11px 14px; border-radius: 22px; height: 44px; min-height: 44px; max-height: 100px; font-size: 15px; line-height: 1.4; }
 .messenger-send { width: 44px; height: 44px; border-radius: 50%; background: #244c3b; color: #fffefa; display: grid; place-items: center; flex-shrink: 0; }
-.messenger-compose > small { display: block; text-align: center; margin-top: 5px; color: #526052; font-size: 10px; }
+.messenger-compose > small { display: block; text-align: center; margin-top: 5px; color: #526052; font-size: 12px; }
 .messenger-suggestions { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
-.messenger-suggestions button { font-size: 11px; color: #315330; border: 1px solid #b8c8ac; padding: 6px 10px; border-radius: 16px; background: #f1f6e9; min-height: 30px; }
+.messenger-suggestions button { font-size: 12px; color: #315330; border: 1px solid #b8c8ac; padding: 6px 10px; border-radius: 16px; background: #f1f6e9; min-height: 30px; }
 .messenger-solved { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
 .messenger-solved > span { display: flex; gap: 6px; align-items: center; font-size: 12px; }
 .messenger-solved .btn { font-size: 12px; min-height: 34px; padding: 7px 12px; }
@@ -355,18 +355,18 @@
 .review-conversation { max-width: 780px; margin-inline: auto; }
 .review-conversation .coach-message { margin-bottom: 14px; padding: 12px 15px; }
 .review-conversation .coach-message p { font-size: 15px; line-height: 1.6; }
-.review-conversation .coach-message > span { display: flex; justify-content: space-between; gap: 12px; font-size: 11px; }
+.review-conversation .coach-message > span { display: flex; justify-content: space-between; gap: 12px; font-size: 12px; }
 .review-conversation time { font-weight: 400; }
 .messenger-thread .coach-message { position: relative; padding: 7px 11px; }
 .messenger-thread .coach-message > span { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .messenger-thread .coach-message p { display: inline; }
-.messenger-thread .coach-message footer { display: inline-flex; vertical-align: baseline; margin: 0 0 0 10px; gap: 6px; font-size: 9px; }
+.messenger-thread .coach-message footer { display: inline-flex; vertical-align: baseline; margin: 0 0 0 10px; gap: 6px; font-size: 11px; }
 .messenger-thread .coach-message footer > span { margin: 0; }
 .messenger-turn { margin-bottom: 7px; }
 .practice-dialog .dialog-head { min-height: 44px; padding-block: 7px; }
 .messenger-problem { padding-block: 8px; }
 .messenger-problem h3 { font-size: 15px; line-height: 1.35; margin-block: 4px; }
-.messenger-problem-meta { font-size: 10px; }
+.messenger-problem-meta { font-size: 12px; }
 .messenger-compose .messenger-solved .btn { min-height: 30px; padding-block: 5px; }
 @media (max-width: 680px) {
   .product-dialog.practice-dialog { width: calc(100% - 8px); height: 98dvh; max-height: 98dvh; border-radius: 12px; }
@@ -379,7 +379,7 @@
   .messenger-compose { padding: 8px 10px; }
   .messenger-compose textarea { font-size: 16px; }
   .messenger-solved { flex-wrap: wrap; }
-  .messenger-start { font-size: 10px; }
+  .messenger-start { font-size: 12px; }
   .review-student-bar { padding: 12px 16px; flex-wrap: wrap; }
   .review-student-bar .summary-disclosure { display: none; }
   .review-tabs { padding-inline: 16px; gap: 16px; }
@@ -396,7 +396,7 @@
 .place-model, .unit-model { display: flex; gap: 4px; }
 .place-model > span, .unit-model > span { display: grid; place-items: center; flex: 1; min-width: 0; padding: 10px 2px; background: #edf2e4; border: 1px solid #ccd8bf; }
 .place-model strong { font-size: 23px; }
-.place-model small { font-size: 9px; text-align: center; line-height: 1.5; }
+.place-model small { font-size: 11px; text-align: center; line-height: 1.5; }
 .place-model .place-focus { border-color: #a67632; background: #f4e7cc; }
 .unit-model > span { font-size: 19px; padding: 15px 0; }
 .unit-model small { font-size: 12px; }
@@ -451,7 +451,7 @@
 .root-cause-card footer { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
 .root-cause-card footer .avatar-stack { display: flex; align-items: center; gap: 4px; margin-right: auto; }
 .root-cause-card footer .avatar-stack small { margin-left: 8px; color: var(--muted); }
-.auto-tag { font-size: 11px; color: var(--muted); border: 1px solid var(--line); border-radius: 99px; padding: 2px 8px; margin-left: 8px; }
+.auto-tag { font-size: 12px; color: var(--muted); border: 1px solid var(--line); border-radius: 99px; padding: 2px 8px; margin-left: 8px; }
 
 /* Principal / MTSS progress report */
 .progress-report .report-actions { display: flex; gap: 10px; flex-wrap: wrap; }
@@ -496,3 +496,7 @@
 .ratio-model { border-collapse: collapse; margin: 8px 0; font-size: 14px; }
 .ratio-model th, .ratio-model td { border: 1px solid #b8c8ac; padding: 6px 12px; text-align: center; }
 .ratio-model th { text-align: left; font-weight: 600; background: #f1f6e9; }
+
+/* Sample account pictures: the chosen color shows as a ring around the picture. */
+.avatar.avatar-photo { padding: 2px; overflow: hidden; }
+.avatar.avatar-photo img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block; }

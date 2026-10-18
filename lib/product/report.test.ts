@@ -21,7 +21,7 @@ describe("principal and MTSS progress report", () => {
     expect(report.metrics).toMatchObject({ coachedLessons: 2, refreshers: 1, rootCausesFound: 1, automaticFamilyUpdates: 1, stillPracticing: 1 });
     expect(report.rows).toHaveLength(1);
     expect(report.rows[0]).toMatchObject({ learner: "Maya Chen", date: "2026-10-18" });
-    expect(report.rows[0].focus).toContain("root cause Equivalent fractions (4.NF.A.1)");
+    expect(report.rows[0].focus).toBe("Ratios → root cause Equivalent fractions");
     expect(report.rows[0].tried).toContain("fractions refresher");
     expect(report.sharedGaps[0].classmates).toBeGreaterThan(0);
   });

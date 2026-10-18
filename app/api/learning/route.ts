@@ -1,6 +1,8 @@
 import { randomUUID } from "node:crypto";
 import { currentAccount, database, sameOrigin, visibleWorkspace } from "@/lib/product/server";
-import { gradeAnswer, questions, topics } from "@/lib/product/curriculum";
+import { allTopics, gradeAnswer, questions, topics } from "@/lib/product/curriculum";
+import { advanceCoaching, coachingTurn, lessonProgress, startCoaching } from "@/lib/product/coaching";
+import type { CoachSession } from "@/lib/product/model";
 
 export const runtime = "nodejs";
 export async function POST(request: Request) {
@@ -12,7 +14,22 @@ export async function POST(request: Request) {
       if (!account) return Response.json({ error: "Please sign in." }, { status: 401 });
       const now = new Date().toISOString();
       let correct: boolean | undefined;
-      if (body.action === "attempt" && account.role === "student") {
+      let session: CoachSession | undefined;
+      if (["coach-start", "coach-turn", "coach-next"].includes(body.action) && account.role === "student") {
+        try {
+          if (body.action === "coach-start") {
+            const topic = allTopics.find(t => t.id === body.topic);
+            if (!topic || (body.planId !== undefined && typeof body.planId !== "string") || (body.refresherFor !== undefined && typeof body.refresherFor !== "string")) return Response.json({ error: "Choose a valid lesson." }, { status: 400 });
+            session = startCoaching(db.workspace, account.id, topic.id, randomUUID(), now, body.planId, body.refresherFor);
+          } else if (body.action === "coach-turn") {
+            if (typeof body.text !== "string" || typeof body.id !== "string" || !/^[a-zA-Z0-9-]{8,100}$/.test(body.id)) return Response.json({ error: "Write a valid message." }, { status: 400 });
+            session = coachingTurn(db.workspace, account.id, String(body.sessionId), body.id, body.text, now);
+          } else session = advanceCoaching(db.workspace, account.id, String(body.sessionId), now);
+          for (const plan of db.workspace.plans) {
+            plan.completed = plan.studentIds.every(id => lessonProgress(db.workspace, plan, id).status === "Completed");
+          }
+        } catch (error) { return Response.json({ error: error instanceof Error ? error.message : "Please try again." }, { status: 400 }); }
+      } else if (body.action === "attempt" && account.role === "student") {
         const question = questions.find((q) => q.id === body.questionId);
         if (!question || typeof body.answer !== "string" || body.answer.length > 100) return Response.json({ error: "Choose a valid practice question." }, { status: 400 });
         const id = String(body.id ?? "");
@@ -26,16 +43,22 @@ export async function POST(request: Request) {
         if (!topic || !studentIds.length) return Response.json({ error: "Select a topic and at least one student." }, { status: 400 });
         if (!db.workspace.plans.some((p) => p.topic === topic.id && !p.completed && p.studentIds.length === studentIds.length && p.studentIds.every((id) => studentIds.includes(id)))) db.workspace.plans.push({ id: randomUUID(), topic: topic.id, studentIds, at: now });
       } else if (body.action === "complete-plan" && account.role === "teacher") {
-        const plan = db.workspace.plans.find((p) => p.id === body.id); if (plan) plan.completed = true;
+        const plan = db.workspace.plans.find((p) => p.id === body.id);
+        if (!plan || !plan.studentIds.every(id => lessonProgress(db.workspace, plan, id).status === "Completed")) return Response.json({ error: "Completion is recorded when each learner solves the assigned lesson." }, { status: 400 });
+        plan.completed = true;
+      } else if (body.action === "trace-ack" && account.role === "teacher") {
+        const traced = db.workspace.sessions?.find(s => s.id === body.sessionId && s.trace);
+        if (!traced?.trace) return Response.json({ error: "Choose a learning alert." }, { status: 400 });
+        traced.trace.acknowledgedAt ??= now;
       } else if (body.action === "note" && account.role === "teacher") {
         const text = String(body.text ?? "").trim().slice(0, 1000);
         if (!text || !db.workspace.students.some((s) => s.id === body.studentId)) return Response.json({ error: "Choose a student and write a message." }, { status: 400 });
-        db.workspace.notes.push({ id: randomUUID(), studentId: body.studentId, text, author: account.name, at: now });
+        db.workspace.notes.push({ id: randomUUID(), studentId: body.studentId, text, author: account.name, authorId: account.id, at: now });
       } else if (body.action === "check" && account.role === "parent") {
         const key = `${account.id}:${String(body.key).slice(0, 80)}`;
         db.workspace.checks = db.workspace.checks.includes(key) ? db.workspace.checks.filter((k) => k !== key) : [...db.workspace.checks, key];
       } else return Response.json({ error: "This action isn’t available for your account." }, { status: 403 });
-      return Response.json({ workspace: visibleWorkspace(db.workspace, account), correct });
+      return Response.json({ workspace: visibleWorkspace(db.workspace, account), correct, session });
     });
   } catch { return Response.json({ error: "Your update couldn’t be saved. Please try again." }, { status: 500 }); }
 }

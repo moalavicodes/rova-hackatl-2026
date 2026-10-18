@@ -3,7 +3,7 @@ import { readFile, writeFile, mkdir, rename } from "node:fs/promises";
 import path from "node:path";
 import { cookies } from "next/headers";
 import accounts from "./mock-accounts.json";
-import { sampleWorkspace, type Profile, type Workspace } from "./model";
+import { sampleWorkspace, upgradeSampleWorkspace, type Profile, type Workspace } from "./model";
 import type { Role } from "./curriculum";
 
 // Deliberately JSON-backed for the requested presentation. No real student data.
@@ -20,7 +20,7 @@ export function verifyPassword(password: string, account: Pick<Account, "salt" |
   return expected.length === actual.length && timingSafeEqual(expected, actual);
 }
 async function readDatabase(): Promise<Database> {
-  try { return JSON.parse(await readFile(filename, "utf8")); }
+  try { const db: Database = JSON.parse(await readFile(filename, "utf8")); db.workspace = upgradeSampleWorkspace(db.workspace); return db; }
   catch (error) {
     if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
     return { accounts: accounts.map((a) => { const salt = randomBytes(16).toString("hex"); return { id: a.id, email: a.email, name: a.name, role: a.role as Role, school: a.school, goal: a.goal, avatar: a.avatar, salt, hash: hashPassword(a.password, salt), linkedStudentId: a.role === "parent" ? "maya" : undefined }; }), workspace: sampleWorkspace(), secret: randomBytes(32).toString("hex") };
@@ -45,7 +45,7 @@ export function publicProfile(account: Account): Profile {
 export function visibleWorkspace(workspace: Workspace, account: Account): Workspace {
   if (account.role === "teacher") return workspace;
   const studentId = account.role === "parent" ? account.linkedStudentId : account.id;
-  return { ...workspace, code: "", students: workspace.students.filter((s) => s.id === studentId), attempts: workspace.attempts.filter((a) => a.studentId === studentId), plans: workspace.plans.filter((p) => p.studentIds.includes(studentId ?? "")).map((p) => ({ ...p, studentIds: [studentId!] })), notes: workspace.notes.filter((n) => n.studentId === studentId), checks: workspace.checks.filter((c) => c.startsWith(`${account.id}:`)) };
+  return { ...workspace, code: "", sessions: account.role === "student" ? (workspace.sessions ?? []).filter(s => s.studentId === studentId) : [], students: workspace.students.filter((s) => s.id === studentId), attempts: workspace.attempts.filter((a) => a.studentId === studentId), plans: workspace.plans.filter((p) => p.studentIds.includes(studentId ?? "")).map((p) => ({ ...p, studentIds: [studentId!] })), notes: workspace.notes.filter((n) => n.studentId === studentId), checks: workspace.checks.filter((c) => c.startsWith(`${account.id}:`)) };
 }
 function signature(value: string, secret: string) { return createHmac("sha256", secret).update(value).digest("hex"); }
 export async function setSession(id: string, secret: string) {

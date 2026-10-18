@@ -1,22 +1,79 @@
 "use client";
-import { useState } from "react";
-import { questions, topics, type TopicId } from "@/lib/product/curriculum";
+import { useEffect, useRef, useState } from "react";
+import { hasChatPicture, questions, topicById, type TopicId } from "@/lib/product/curriculum";
+import type { CoachSession } from "@/lib/product/model";
 import { Icon } from "./Brand";
 import { Modal, type Mutate } from "./Shared";
+import { LessonVisual } from "./LessonVisual";
 
-export function Practice({ topicId, mutate, onClose }: { topicId: TopicId; mutate: Mutate; onClose: () => void }) {
-  const topic=topics.find(t=>t.id===topicId)!;const set=questions.filter(q=>q.topic===topicId);
-  const [index,setIndex]=useState(0);const [answer,setAnswer]=useState("");const [hints,setHints]=useState(0);
-  const [result,setResult]=useState<"right"|"retry"|null>(null);const [busy,setBusy]=useState(false);const [correct,setCorrect]=useState(0);const [tries,setTries]=useState(0);
-  const [finished,setFinished]=useState(false);const q=set[index];
-  async function check(e: React.FormEvent) { e.preventDefault();if(busy||result==="right")return;setBusy(true);const response=await mutate({action:"attempt",id:crypto.randomUUID(),questionId:q.id,answer,hints});if(response){setResult(response.correct?"right":"retry");if(response.correct&&tries===0)setCorrect(c=>c+1);setTries(t=>t+1);}setBusy(false); }
-  function next(){if(index===set.length-1){setFinished(true);return;}setIndex(i=>i+1);setAnswer("");setHints(0);setResult(null);setTries(0);}
-  return <Modal title={finished?"A little further than before.":topic.name} onClose={onClose} wide>{finished?<div className="practice-finish"><span className="finish-emblem"><Icon name="leaf" size={48}/></span><span className="eyebrow">Practice complete</span><h3>You showed up.<br/>Your understanding grew.</h3><p>You worked through {set.length} questions, with {correct} correct on your first try. Every attempt helps your teacher see your next step.</p><button onClick={onClose} className="btn btn-dark">Back to my journey <Icon name="arrow" size={18}/></button></div>:<div className="practice-body"><div className="practice-meta"><span>Question {index+1} of {set.length}</span><span>{topic.standard} · Grade 4</span></div><div className="session-progress">{set.map((item,i)=><span key={item.id} className={i<=index?"filled":""}/>)}</div><h3>{q.prompt}</h3>
-    {q.visual==="fraction"&&<div className="fraction-model"><div><span className="garden-bed halves"><i/><i/></span><span>1 out of 2 equal parts</span></div><span className="model-equals">=</span><div><span className="garden-bed fourths"><i/><i/><i/><i/></span><span>? out of 4 equal parts</span></div></div>}
-    {q.visual==="groups"&&<div className="groups-model" aria-label="Six equal rows of seedlings">{Array.from({length:6},(_,i)=><div key={i}>{Array.from({length:14},(_,j)=><i key={j}/>)}</div>)}</div>}
-    {q.visual==="angle"&&<svg className="angle-model" viewBox="0 0 200 120" role="img" aria-label="A right angle"><path d="M60 15v80h110M60 75h20v20" fill="none" stroke="currentColor" strokeWidth="3"/><text x="93" y="65" fill="currentColor" fontSize="25">?</text></svg>}
-    <form onSubmit={check}><label htmlFor="practice-answer">Your answer</label><div className="answer-row"><input id="practice-answer" autoFocus inputMode="decimal" value={answer} onChange={e=>{setAnswer(e.target.value);if(result==="retry")setResult(null);}} placeholder="Type a number…" required maxLength={100} disabled={result==="right"||busy}/><button className="btn btn-dark" disabled={busy||result==="right"||!answer.trim()}>{busy?"Checking…":"Check answer"}<Icon name="arrow" size={16}/></button></div></form>
-    <div aria-live="polite">{result==="retry"&&<div className="answer-feedback retry"><strong>Not quite yet. You’re still learning.</strong><p>Take another look, or open a hint to try a different approach.</p></div>}{result==="right"&&<div className="answer-feedback right"><strong><Icon name="check" size={18}/> You’ve got it.</strong><p>{q.explanation}</p><button className="text-link" onClick={next}>{index===set.length-1?"Finish practice":"Next question"}<Icon name="arrow" size={17}/></button></div>}</div>
-    {result!=="right"&&<div className="hint-section">{hints>0&&<div className="hint-copy"><span className="eyebrow">A nudge in the right direction</span><p>{q.hints[hints-1]}</p></div>}<button className="text-link" onClick={()=>setHints(h=>Math.min(3,h+1))} disabled={hints>=3}><Icon name="sun" size={18}/>{hints===0?"I could use a hint":hints<3?"Another small hint":"All hints are open"}</button><span>{hints} / 3 hints</span></div>}
-  </div>}</Modal>;
+export function Practice({ topicId, planId, refresherFor, sessions = [], mutate, onClose }: { topicId: TopicId; planId?: string; refresherFor?: string; sessions?: CoachSession[]; mutate: Mutate; onClose: () => void }) {
+  const topic = topicById(topicId);
+  const set = questions.filter(q => q.topic === topicId);
+  const [session, setSession] = useState<CoachSession | null>(() => [...sessions].reverse().find(s => s.topic === topicId && s.planId === planId && s.refresherFor === refresherFor && (!s.completedAt || planId || refresherFor)) ?? null);
+  const [text, setText] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const thread = useRef<HTMLDivElement>(null);
+  const composer = useRef<HTMLTextAreaElement>(null);
+  const followLatest = useRef(true);
+  const pending = useRef<{ text: string; id: string } | null>(null);
+  const locked = useRef(false);
+  const q = set[session?.questionIndex ?? 0];
+  const solved = session?.messages.some(m => m.questionId === q.id && m.kind === "correct") ?? false;
+  useEffect(() => {
+    if (followLatest.current && thread.current) thread.current.scrollTop = thread.current.scrollHeight;
+  }, [session?.messages.length]);
+
+  async function start() {
+    if (locked.current) return;
+    locked.current = true; setBusy(true); setError("");
+    const response = await mutate({ action: "coach-start", topic: topicId, planId, refresherFor });
+    if (response?.session) setSession(response.session);
+    else setError("Your coach couldn’t open. Please try again.");
+    locked.current = false; setBusy(false);
+  }
+  async function send(value: string) {
+    if (!session || !value.trim() || locked.current) return;
+    locked.current = true; setBusy(true); setError(""); followLatest.current = true;
+    if (pending.current?.text !== value) pending.current = { text: value, id: crypto.randomUUID() };
+    const response = await mutate({ action: "coach-turn", sessionId: session.id, text: value, id: pending.current.id });
+    if (response?.session) { setSession(response.session); setText(""); pending.current = null; }
+    else setError("Your message wasn’t confirmed. Try sending it again.");
+    locked.current = false; setBusy(false); composer.current?.focus({ preventScroll: true });
+  }
+  async function next() {
+    if (!session || locked.current) return;
+    locked.current = true; setBusy(true); setError(""); followLatest.current = true;
+    const response = await mutate({ action: "coach-next", sessionId: session.id });
+    if (response?.session) setSession(response.session);
+    else setError("We couldn’t open the next question. Please try again.");
+    locked.current = false; setBusy(false);
+  }
+
+  return <Modal title={`${topic.name} · Chat with Rova`} onClose={onClose} wide className="practice-dialog">
+    {!session ? <div className="coach-welcome"><span className="topic-symbol sage"><Icon name="leaf" size={30}/></span><span className="eyebrow">A coach who helps you think</span><h3>Let’s talk it through.</h3><p>Share a guess, ask a question, or tell Rova where you’re stuck. Your conversation stays here, so you can always look back.</p><button className="btn btn-dark" onClick={start} disabled={busy}>{busy ? "Opening…" : "Start our conversation"}<Icon name="arrow"/></button><small className="coach-disclosure">Scripted coach · AI model planned</small>{error && <p role="alert">{error}</p>}</div>
+    : <div className="practice-messenger">
+      <div className="messenger-problem"><div className="messenger-problem-meta"><span>{planId ? "Assigned lesson" : "Practice"} · Question {session.questionIndex + 1} of {set.length}</span><span>{topic.standard}</span></div><h3>{q.prompt}</h3><LessonVisual key={q.id} question={q}/></div>
+      <div className="messenger-thread" ref={thread} role="log" aria-label="Conversation with Rova" aria-live="polite" aria-relevant="additions" onScroll={e => { const el = e.currentTarget; followLatest.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80; }}>
+        <div className="messenger-start"><Icon name="leaf" size={15}/>Rova is here to help you think · Scripted coach</div>
+        {session.messages.map((message, index) => {
+          const previous = session.messages[index - 1];
+          const visual = message.kind === "hint" && previous && /picture|visual|show/i.test(previous.text) ? questions.find(item => item.id === message.questionId && hasChatPicture(item)) : null;
+          const nextMessage = session.messages[index + 1];
+          const newQuestion = message.role === "coach" && previous && previous.questionId !== message.questionId;
+          return <div key={message.id} className={`messenger-turn ${message.role}`}>
+            {newQuestion && <div className="messenger-divider">Question {set.findIndex(item => item.id === message.questionId) + 1}</div>}
+            <article className={`coach-message ${message.role} ${message.kind ?? ""}`}><span>{message.role === "coach" ? "Rova" : "You"}</span><p>{message.text}</p>{visual && <details className="chat-visual-attachment" open={!nextMessage}><summary>Visual model</summary><LessonVisual question={visual} compact/></details>}<footer>{message.source && <span>{message.source}</span>}<time dateTime={message.at}>{new Date(message.at).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}</time></footer></article>
+          </div>;
+        })}
+      </div>
+      <div className="messenger-compose">
+        {solved ? <div className="messenger-solved" role="status"><span><Icon name="check" size={17}/>{session.completedAt ? "Lesson complete · Shared with your teacher" : "Answer checked. Nice thinking!"}</span><button className="btn btn-dark" disabled={busy} onClick={session.completedAt ? onClose : next}>{session.completedAt ? "Finish lesson" : "Next question"}<Icon name="arrow" size={16}/></button></div>
+        : <div className="messenger-suggestions">{["I’m stuck", "Show me a picture", "Why does this work?"].map(value => <button key={value} disabled={busy} onClick={() => send(value)}>{value}</button>)}</div>}
+        {error && <p className="form-error" role="alert">{error}</p>}
+        <form onSubmit={e => { e.preventDefault(); void send(text); }}><label className="sr-only" htmlFor="rova-message">Message Rova or try an answer</label><textarea ref={composer} id="rova-message" value={text} onChange={e => setText(e.target.value)} onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); void send(text); } }} placeholder="Message Rova or try an answer…" maxLength={600} rows={1} readOnly={busy}/><button className="messenger-send" disabled={busy || !text.trim()} aria-label={busy ? "Sending message" : "Send message"}><Icon name="arrow" size={21}/></button></form>
+        <small>Your teacher can see this conversation · AI model planned</small>
+      </div>
+    </div>}
+  </Modal>;
 }

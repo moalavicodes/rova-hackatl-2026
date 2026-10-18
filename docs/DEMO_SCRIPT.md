@@ -21,12 +21,12 @@ Open `http://localhost:3000/login`. Sign out between roles when using one browse
 
 Log in as the teacher.
 
-Say: “Four numbers, each answering a question a teacher asks every morning.”
+Say: “Four numbers a teacher wants every morning: who needs me, and how the class is moving.”
 
-- Point to the top row: **Need you today** (James and others, each with a reason), **Class momentum** (8 on track · 5 behind · 5 stagnant against a 70% target by the unit’s end), **Reteach next: Fractions**, and **Is it working?**
+- Point to the top row: **Need you today** (James and others, each with a reason), then **On track**, **Behind schedule**, and **Stagnant**, each against a 70% target by the unit’s end. Each status tile opens the progress report filtered to those learners.
 - Click **James** in *Need you today*: his panel says *stagnant in fractions, at 32%, no change over two weeks*, links it to multiplication (skill map), and gives one next step. Hollow chart points are simulated history. Close it.
-- Click **5 stagnant**: the progress report opens filtered to those learners.
-- Return to **Overview**, then choose **Build a small group** under *Reteach next*. Learners behind or stagnant in fractions are preselected; keep Maya in the group and share it.
+- Click the **Stagnant** tile: the progress report opens filtered to those learners. The intervention log at the bottom keeps its own filters.
+- Return to **Overview**. In the **learning alert** (after the student run) choose **Share a fractions refresher with this group**, or open James’s panel and choose **Assign a fractions lesson**. Keep Maya in the group and share it.
 
 Say: “The lesson lands on each selected student’s dashboard. Completion is tracked individually; assigning the lesson does not mark anyone as done.”
 
@@ -70,8 +70,8 @@ Sign out and log in as the teacher.
 - On **Overview**, the **learning alert** for Maya shows the evidence (her answers 7 and 8), the root cause (equivalent fractions, 4.NF.A.1), a 5-minute reteach, the family update, and “Solved after refresher”. Click **Mark reteach planned**, then **Share a fractions refresher with this group**: the classmates with the same low signal are preselected (their signal includes simulated profiles). Say the 7-day re-check is planned, not built.
 - Select **Progress report**: tiles count lessons, code-checked questions, root causes found, teacher actions, and family updates. Show **Export intervention log (CSV)** and **Print report**. Say: “This is the paperwork MTSS already requires, produced as a by-product.”
 - Select **Learning insights**. On a fresh run using the script above, the fractions graph shows **one independent success, two successes after support/retry, and one corrected question**. Seeded starting history is excluded.
-- Select **Learning plans**. Maya is completed (3/3), while classmates who have not started remain not started.
-- Click **Review lesson** beside Maya. A dedicated modal opens above the classroom.
+- Select **My classroom** and open **Maya**. Her panel shows the group lesson with her completion and a **Review lesson** button; classmates who have not started remain not started.
+- Click **Review lesson**. A dedicated modal opens above the classroom.
 - Read the **Lesson summary** tab: the learning challenge, how Rova responded, learner quotes, and a suggested teacher next step are all shown.
 - Switch to the **Conversation** tab to show the actual exchange. Student messages have white text on dark green and use the student’s name. Close the modal to return to the same classroom position.
 

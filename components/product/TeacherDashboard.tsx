@@ -6,15 +6,14 @@ import {
   classStatuses,
   countByStatus,
   momentumHistory,
-  planImpact,
   statusLabel,
   topicStatusCounts,
   type Status,
 } from "@/lib/product/progress";
-import { needYouToday, strengthLine, topReteach, whyLine } from "@/lib/product/why";
+import { needYouToday, strengthLine, whyLine } from "@/lib/product/why";
 import { Icon } from "./Brand";
-import { MomentumChart, Sparkline, StatusBadge, StatusBar, StatusLegend } from "./charts";
-import { ClassroomLearningChart, LessonMonitor } from "./LearningEvidence";
+import { MomentumChart, Sparkline, StatusBadge, StatusBar, StatusIcon, StatusLegend } from "./charts";
+import { ClassroomLearningChart } from "./LearningEvidence";
 import { ProgressReport, type ReportFilters } from "./ProgressReport";
 import { RootCauseAlerts } from "./RootCauseAlerts";
 import { SafetyConcerns } from "./SafetyConcerns";
@@ -23,6 +22,14 @@ import { StudentInsight } from "./StudentInsight";
 
 const goTo = (section: string) => {
   window.location.hash = section;
+};
+
+// What each status means, in the words shown on the overview tiles.
+const statusMeaning: Record<Status, string> = {
+  on_track: "At 70%, or on pace to get there by the unit’s end",
+  behind: "Improving, but too slowly to reach 70% in time",
+  stagnant: "Little or no change over the last two weeks",
+  no_data: "Too few checked answers to judge",
 };
 
 export function TeacherDashboard({
@@ -51,10 +58,6 @@ export function TeacherDashboard({
   const history = useMemo(() => momentumHistory(workspace), [workspace]);
   const byTopic = useMemo(() => topicStatusCounts(workspace), [workspace]);
   const today = needYouToday(workspace, statuses);
-  const reteach = topReteach(workspace, statuses);
-  const impacts = workspace.plans.map((p) => planImpact(workspace, p));
-  const tried = impacts.filter((i) => i.verdict !== "No practice yet");
-  const improved = tried.filter((i) => i.verdict === "Improved").length;
 
   function openGroup(topic: TopicId, preset?: string[]) {
     setGroup(topic);
@@ -139,56 +142,17 @@ export function TeacherDashboard({
                 </button>
               )}
             </article>
-
-            <article className="kpi">
-              <h2>Class momentum</h2>
-              <p className="kpi-split">
-                {(["on_track", "behind", "stagnant"] as Status[]).map((s) => (
-                  <button key={s} onClick={() => openReport({ status: s })}>
-                    <strong>{counts[s]}</strong> {statusLabel[s].toLowerCase()}
-                  </button>
-                ))}
-              </p>
-              <StatusBar counts={counts} label="Learners by status today" onSelect={(s) => openReport({ status: s })} />
-              <small className="kpi-note">Target 70% by the unit’s end</small>
-            </article>
-
-            <article className="kpi">
-              <h2>Reteach next</h2>
-              {reteach ? (
-                <>
-                  <strong className="kpi-topic">{reteach.topic.name}</strong>
-                  <p>
-                    {reteach.students.length} learners behind or stagnant
-                    {!reteach.reason.endsWith("behind or stagnant") && <small>{reteach.reason}</small>}
-                  </p>
-                  <button className="btn btn-dark btn-small" onClick={() => openGroup(reteach.topic.id)}>
-                    Build a small group
-                    <Icon name="arrow" size={15} />
-                  </button>
-                </>
-              ) : (
-                <p>Every topic is on track.</p>
-              )}
-            </article>
-
-            <article className="kpi">
-              <h2>Is it working?</h2>
-              {tried.length ? (
-                <>
-                  <strong className="kpi-value">
-                    {improved}
-                    <small> of {tried.length}</small>
-                  </strong>
-                  <p>group lessons improved confidence</p>
-                </>
-              ) : (
-                <p>{workspace.plans.length ? "Waiting for learners to practice" : "No group lessons yet"}<small>Share a small-group lesson; this shows whether the group’s confidence rose afterwards.</small></p>
-              )}
-              <button className="text-link" onClick={() => goTo("plans")}>
-                See lessons
+            {(["on_track", "behind", "stagnant"] as Status[]).map((s) => (
+              <button key={s} type="button" className={`kpi kpi-status kpi-${s}`} onClick={() => openReport({ status: s })} aria-label={`${counts[s]} ${statusLabel[s].toLowerCase()}: open in the progress report`}>
+                <span className="kpi-title">
+                  <StatusIcon status={s} />
+                  {statusLabel[s]}
+                </span>
+                <strong className="kpi-value">{counts[s]}</strong>
+                <p>{statusMeaning[s]}</p>
+                <small className="kpi-note">Target 70% by the unit’s end</small>
               </button>
-            </article>
+            ))}
           </section>
 
           <RootCauseAlerts workspace={workspace} mutate={mutate} onGroup={openGroup} />
@@ -295,35 +259,6 @@ export function TeacherDashboard({
             <MomentumChart history={history} onSelect={(s) => openReport({ status: s })} />
           </section>
           <ClassroomLearningChart workspace={workspace} />
-        </>
-      )}
-
-      {section === "plans" && (
-        <>
-          <RootCauseAlerts workspace={workspace} mutate={mutate} onGroup={openGroup} />
-          {impacts.length > 0 && (
-            <section className="surface">
-              <div className="section-heading">
-                <div>
-                  <h2>Is it working?</h2>
-                  <p>Confidence before each group lesson versus now, for learners who practiced since.</p>
-                </div>
-              </div>
-              <ul className="impact-list">
-                {impacts.map((i) => (
-                  <li key={i.plan.id}>
-                    <strong>{topicById(i.plan.topic).name}</strong>
-                    <span>{i.members.length} learners · {new Date(i.plan.at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>
-                    <span>
-                      {i.practiced ? `${i.improved} of ${i.practiced} who practiced rose 5+ points` : "Nobody has practiced yet"}
-                    </span>
-                    <span className={`impact-verdict verdict-${i.verdict.replace(/ /g, "-").toLowerCase()}`}>{i.verdict}</span>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          )}
-          <LessonMonitor workspace={workspace} onCreate={() => openGroup(reteach?.topic.id ?? "fractions")} />
         </>
       )}
 

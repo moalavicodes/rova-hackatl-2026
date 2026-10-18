@@ -114,15 +114,18 @@ export function ParentDashboard({
 
       <div className="parent-columns">
         <section className="surface">
-          <h3>Why</h3>
+          <h3>What we noticed</h3>
+          <p className="parent-subtle">In plain words, from {name}’s checked practice.</p>
           {why.length ? (
-            why.map((line) => <p key={line}>{line}</p>)
+            <ul className="parent-why">
+              {why.map((line) => <li key={line}>{line}</li>)}
+            </ul>
           ) : (
             <p>Nothing needs extra attention right now. {name} is at, or on pace for, the class goal in every topic practiced so far.</p>
           )}
           {(plans.length > 0 || traces.length > 0) && (
             <>
-              <h4>What school is doing</h4>
+              <h4>What school is doing about it</h4>
               <ul className="parent-actions">
                 {plans.map((p) => (
                   <li key={p.id}>

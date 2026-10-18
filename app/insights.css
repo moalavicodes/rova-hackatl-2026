@@ -1,25 +1,29 @@
 /* Teacher insights, progress report, parent view, and charts.
-   Status colors were checked with the dataviz palette validator on #fffdf7 (all pass; amber is
-   below 3:1 contrast, so every status also has an icon and a text label). */
+   Status fills are pastels from the app's palette; text and icons on them use the darker ink
+   tones below, so counts stay readable, and every status also has an icon and a text label. */
 :root {
   --ink: #203e30;
   --ink-soft: #4f5a52;
   --rule: #d7dfd1;
   --paper: #fffefa;
-  --status-on_track: #1f8a53;
-  --status-behind: #c8901a;
-  --status-stagnant: #b8432f;
-  --status-no_data: #a39e94;
+  --status-on_track: #cfe0c3;
+  --status-behind: #f1e2b3;
+  --status-stagnant: #f1cdc1;
+  --status-no_data: #e4e6df;
+  --status-on_track-ink: #2f6b4f;
+  --status-behind-ink: #8d6514;
+  --status-stagnant-ink: #a4432f;
+  --status-no_data-ink: #6f766f;
 }
 
 /* Status icon + badge */
 .status-icon { flex: none; }
 .status-icon circle { fill: currentColor; }
 .status-icon g { fill: none; stroke: #fff; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-.status-icon.status-on_track { color: var(--status-on_track); }
-.status-icon.status-behind { color: var(--status-behind); }
-.status-icon.status-stagnant { color: var(--status-stagnant); }
-.status-icon.status-no_data { color: var(--status-no_data); }
+.status-icon.status-on_track { color: var(--status-on_track-ink); }
+.status-icon.status-behind { color: var(--status-behind-ink); }
+.status-icon.status-stagnant { color: var(--status-stagnant-ink); }
+.status-icon.status-no_data { color: var(--status-no_data-ink); }
 .status-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: var(--ink); white-space: nowrap; }
 .status-legend { display: flex; flex-wrap: wrap; gap: 14px; list-style: none; margin: 0; padding: 0; font-size: 13px; color: var(--ink-soft); }
 .status-legend li { display: inline-flex; align-items: center; gap: 6px; }
@@ -27,16 +31,16 @@
 /* Stacked status bar: 2px surface gap, rounded data ends */
 .status-bar-wrap { position: relative; flex: 1; min-width: 0; }
 .status-bar { display: flex; gap: 2px; height: 22px; width: 100%; }
-.status-segment { position: relative; display: flex; align-items: center; justify-content: center; min-width: 6px; border: 0; padding: 0; color: #fff; font: 600 12px/1 var(--font-public-sans), sans-serif; cursor: default; }
+.status-segment { position: relative; display: flex; align-items: center; justify-content: center; min-width: 6px; border: 0; padding: 0; color: var(--ink); font: 600 12px/1 var(--font-public-sans), sans-serif; cursor: default; }
 button.status-segment { cursor: pointer; }
 .status-segment:first-child { border-radius: 4px 0 0 4px; }
 .status-segment:last-child { border-radius: 0 4px 4px 0; }
 .status-segment:only-child { border-radius: 4px; }
 .status-segment.status-on_track { background: var(--status-on_track); }
-.status-segment.status-behind { background: var(--status-behind); color: #2b1d00; }
+.status-segment.status-behind { background: var(--status-behind); }
 .status-segment.status-stagnant { background: var(--status-stagnant); }
-.status-segment.status-no_data { background: var(--status-no_data); color: #1f1f1f; }
-.status-segment:hover, .status-segment:focus-visible { filter: brightness(1.08); outline: 2px solid var(--ink); outline-offset: 1px; z-index: 1; }
+.status-segment.status-no_data { background: var(--status-no_data); }
+.status-segment:hover, .status-segment:focus-visible { filter: brightness(0.94); outline: 2px solid var(--ink); outline-offset: 1px; z-index: 1; }
 .status-segment.is-active { outline: 2px solid var(--ink); outline-offset: 1px; z-index: 1; }
 
 /* Shared tooltip */
@@ -114,8 +118,8 @@ button.status-segment { cursor: pointer; }
 .learner-card-trend { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 14px; color: var(--ink); margin-bottom: 8px; }
 .learner-card-trend span { display: flex; gap: 6px; align-items: baseline; }
 .learner-card > p { margin: 0; font-size: 14px; color: var(--ink-soft); }
-.learner-card.status-card-stagnant { border-left: 4px solid var(--status-stagnant); }
-.learner-card.status-card-behind { border-left: 4px solid var(--status-behind); }
+.learner-card.status-card-stagnant { border-left: 4px solid var(--status-stagnant-ink); }
+.learner-card.status-card-behind { border-left: 4px solid var(--status-behind-ink); }
 
 /* Student insight dialog */
 .insight { display: grid; gap: 22px; }
@@ -129,7 +133,7 @@ button.status-segment { cursor: pointer; }
 .fact { border: 1px solid var(--rule); border-radius: 10px; padding: 12px 14px; background: var(--paper); }
 .fact strong { display: block; color: var(--ink); font-size: 15px; }
 .fact p { margin: 4px 0 8px; font-size: 14px; color: var(--ink); }
-.fact-safety { border-color: var(--status-stagnant); }
+.fact-safety { border-color: var(--status-stagnant-ink); }
 .evidence-tag { display: inline-block; font-size: 12px; color: var(--ink-soft); border: 1px solid var(--rule); border-radius: 999px; padding: 2px 8px; }
 .evidence-tag.evidence-live { color: #1f5a3c; border-color: #b9d3c1; }
 .next-step { margin-top: 12px; padding: 12px 14px; border-radius: 10px; background: #eef3e8; }
@@ -143,15 +147,15 @@ button.status-segment { cursor: pointer; }
 .answer-chip { display: flex; gap: 8px; align-items: flex-start; border: 1px solid var(--rule); border-radius: 10px; padding: 8px 10px; background: var(--paper); font-size: 13px; color: var(--ink); max-width: 220px; }
 .answer-chip > span:first-child { font-weight: 700; }
 .answer-chip small { display: block; color: var(--ink-soft); }
-.answer-first-try > span:first-child { color: var(--status-on_track); }
+.answer-first-try > span:first-child { color: var(--status-on_track-ink); }
 .answer-helped > span:first-child { color: #3e6b52; }
-.answer-miss > span:first-child { color: var(--status-stagnant); }
+.answer-miss > span:first-child { color: var(--status-stagnant-ink); }
 .intervention-list, .impact-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
 .intervention-list li, .impact-list li { display: grid; grid-template-columns: minmax(0, 1.3fr) 110px minmax(0, 1.4fr) auto; gap: 12px; align-items: center; padding: 10px 12px; border: 1px solid var(--rule); border-radius: 10px; font-size: 14px; color: var(--ink); background: var(--paper); }
 .intervention-list li { grid-template-columns: minmax(0, 1.3fr) 110px minmax(0, 1.4fr); }
 .impact-verdict { font-weight: 700; font-size: 13px; }
-.verdict-improved { color: var(--status-on_track); }
-.verdict-not-yet { color: var(--status-stagnant); }
+.verdict-improved { color: var(--status-on_track-ink); }
+.verdict-not-yet { color: var(--status-stagnant-ink); }
 .verdict-no-practice-yet { color: var(--ink-soft); }
 .family-note-form { display: grid; gap: 8px; }
 .family-note-form label { font-weight: 600; color: var(--ink); }
@@ -179,8 +183,8 @@ button.status-segment { cursor: pointer; }
 .row-link:hover { text-decoration-color: var(--ink); }
 .why-cell { font-size: 13px; color: var(--ink); max-width: 260px; }
 .outcome { display: inline-block; font-weight: 700; font-size: 12px; margin-bottom: 2px; }
-.outcome-solved, .outcome-improved { color: var(--status-on_track); }
-.outcome-needs-follow-up, .outcome-not-yet { color: var(--status-stagnant); }
+.outcome-solved, .outcome-improved { color: var(--status-on_track-ink); }
+.outcome-needs-follow-up, .outcome-not-yet { color: var(--status-stagnant-ink); }
 .outcome-in-progress, .outcome-no-practice-yet { color: var(--ink-soft); }
 .report-table td small { display: block; font-size: 12px; color: var(--ink-soft); }
 .pager { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 10px; margin-top: 12px; font-size: 13px; color: var(--ink-soft); }
@@ -282,3 +286,17 @@ button.status-segment { cursor: pointer; }
 .log-filters select, .log-filters .search-field { width: 100%; min-width: 0; max-width: none; margin: 0; }
 @media (max-width: 1100px) { .log-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 680px) { .log-filters { grid-template-columns: 1fr; } }
+
+/* Overview status tiles: one per status, a pastel top edge, the whole tile opens the report. */
+.kpi-status { text-align: left; cursor: pointer; font: inherit; color: var(--ink); border-top: 4px solid var(--rule); }
+.kpi-on_track { border-top-color: var(--status-on_track); }
+.kpi-behind { border-top-color: var(--status-behind); }
+.kpi-stagnant { border-top-color: var(--status-stagnant); }
+.kpi-status:hover, .kpi-status:focus-visible { background: #fbfcf7; border-color: #bdcbb4; }
+.kpi-status:hover { border-top-color: inherit; }
+.kpi-title { display: inline-flex; align-items: center; gap: 8px; font: 600 14px/1.3 var(--font-public-sans), sans-serif; color: var(--ink-soft); }
+.kpi-status .kpi-note { margin-top: auto; }
+/* Parent: what we noticed */
+.parent-subtle { font-size: 13px; color: var(--ink-soft); margin: -4px 0 10px; }
+.parent-why { margin: 0; padding-left: 18px; color: var(--ink); line-height: 1.55; }
+.parent-why li + li { margin-top: 6px; }

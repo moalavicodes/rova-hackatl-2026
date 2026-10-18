@@ -102,7 +102,7 @@ export function StudentInsight({
 
         <div className="insight-grid">
           <section aria-labelledby="insight-why">
-            <h4 id="insight-why">Why</h4>
+            <h4 id="insight-why">What’s behind it</h4>
             {facts.length ? (
               <ul className="fact-list">
                 {facts.map((f, i) => (

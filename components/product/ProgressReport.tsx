@@ -73,12 +73,10 @@ export function ProgressReport({
   const counts = countByStatus(statuses.filter(matches));
   const filtered = filters.status !== "all" || filters.topic !== "all";
 
+  // The log has its own filters below; the status and topic filters above shape only the
+  // learner table and charts, so an alert link never empties the log.
   const since = range === "unit" ? unit.start.toISOString().slice(0, 10) : undefined;
-  const logRows = filterLog(report.rows, {
-    ...log,
-    since,
-    studentIds: filtered ? shown.map((s) => s.student.id) : undefined,
-  });
+  const logRows = filterLog(report.rows, { ...log, since });
   const pageView = paginate(logRows, page);
   const impacts = workspace.plans.map((p) => planImpact(workspace, p));
   const setLogFilter = (change: Partial<typeof log>) => {
@@ -234,7 +232,7 @@ export function ProgressReport({
                   <th scope="col">Status</th>
                   <th scope="col">{filters.topic === "all" ? "Focus topic" : topicById(filters.topic).name}</th>
                   <th scope="col">Trend</th>
-                  <th scope="col">Why</th>
+                  <th scope="col">What’s behind it</th>
                 </tr>
               </thead>
               <tbody>
@@ -295,7 +293,7 @@ export function ProgressReport({
         <div className="section-heading">
           <div>
             <h3>Intervention log</h3>
-            <p>Every coached lesson, refresher, and group lesson, newest first.</p>
+            <p>Every coached lesson, refresher, and group lesson, newest first. Filter it with the controls below.</p>
           </div>
         </div>
         <div className="log-filters" role="group" aria-label="Filter the intervention log">

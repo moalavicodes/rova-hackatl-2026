@@ -43,6 +43,10 @@ export const questions: PracticeQuestion[] = [
   { id: "ra3", topic: "ratios", prompt: "Fill in the missing number: 4 : 6 = 10 : ?", answer: "15", hints: ["Simplify 4 : 6 first. Both numbers share a factor of 2.", "4 : 6 is the same as 2 : 3.", "2 became 10 by multiplying by 5. Multiply 3 by 5."], explanation: "4:6, 2:3, and 10:15 are equivalent ratios, just like equivalent fractions.", guide: "Use a ratio table: 4 to 6. Find what 4 was multiplied by to make 10, then do the same to 6." },
 ];
 
+// Every question shows its picture with the question. Only fractions has a second picture
+// (the bar already split into smaller pieces), so only it adds a picture to the chat.
+export function hasChatPicture(question: PracticeQuestion): boolean { return question.topic === "fractions"; }
+
 export function gradeAnswer(questionId: string, answer: string): boolean {
   const q = questions.find((item) => item.id === questionId);
   if (!q || answer.length > 100 || !/^[\d\s.,/+-]+$/.test(answer.trim())) return false;

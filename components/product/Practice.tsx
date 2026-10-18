@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { questions, topicById, type TopicId } from "@/lib/product/curriculum";
+import { hasChatPicture, questions, topicById, type TopicId } from "@/lib/product/curriculum";
 import type { CoachSession } from "@/lib/product/model";
 import { Icon } from "./Brand";
 import { Modal, type Mutate } from "./Shared";
@@ -53,12 +53,12 @@ export function Practice({ topicId, planId, refresherFor, sessions = [], mutate,
   return <Modal title={`${topic.name} · Chat with Rova`} onClose={onClose} wide className="practice-dialog">
     {!session ? <div className="coach-welcome"><span className="topic-symbol sage"><Icon name="leaf" size={30}/></span><span className="eyebrow">A coach who helps you think</span><h3>Let’s talk it through.</h3><p>Share a guess, ask a question, or tell Rova where you’re stuck. Your conversation stays here, so you can always look back.</p><button className="btn btn-dark" onClick={start} disabled={busy}>{busy ? "Opening…" : "Start our conversation"}<Icon name="arrow"/></button><small className="coach-disclosure">Scripted coach · AI model planned</small>{error && <p role="alert">{error}</p>}</div>
     : <div className="practice-messenger">
-      <div className="messenger-problem"><div className="messenger-problem-meta"><span>{planId ? "Assigned lesson" : "Practice"} · Question {session.questionIndex + 1} of {set.length}</span><span>{topic.standard}</span></div><h3>{q.prompt}</h3></div>
+      <div className="messenger-problem"><div className="messenger-problem-meta"><span>{planId ? "Assigned lesson" : "Practice"} · Question {session.questionIndex + 1} of {set.length}</span><span>{topic.standard}</span></div><h3>{q.prompt}</h3><LessonVisual key={q.id} question={q}/></div>
       <div className="messenger-thread" ref={thread} role="log" aria-label="Conversation with Rova" aria-live="polite" aria-relevant="additions" onScroll={e => { const el = e.currentTarget; followLatest.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80; }}>
         <div className="messenger-start"><Icon name="leaf" size={15}/>Rova is here to help you think · Scripted coach</div>
         {session.messages.map((message, index) => {
           const previous = session.messages[index - 1];
-          const visual = message.kind === "hint" && previous && /picture|visual|show/i.test(previous.text) ? questions.find(item => item.id === message.questionId) : null;
+          const visual = message.kind === "hint" && previous && /picture|visual|show/i.test(previous.text) ? questions.find(item => item.id === message.questionId && hasChatPicture(item)) : null;
           const nextMessage = session.messages[index + 1];
           const newQuestion = message.role === "coach" && previous && previous.questionId !== message.questionId;
           return <div key={message.id} className={`messenger-turn ${message.role}`}>

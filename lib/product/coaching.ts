@@ -1,4 +1,4 @@
-import { gradeAnswer, questions, topicById, type PracticeQuestion, type TopicId } from "./curriculum";
+import { gradeAnswer, hasChatPicture, questions, topicById, type PracticeQuestion, type TopicId } from "./curriculum";
 import type { CoachMessage, CoachSession, Plan, Workspace } from "./model";
 import { hasSafetyConcern } from "./safety";
 import { detectRootCause, skillPhrase } from "./rootCause";
@@ -81,7 +81,9 @@ function replyFor(workspace: Workspace, session: CoachSession, input: string): {
   if (/\b(hint|help|stuck|idk|don.?t (?:know|understand)|show|picture|nudge)\b/i.test(input)) {
     // A worked step only unlocks after an actual attempt, never by repeatedly asking.
     const level = Math.min(hints, attempted ? 2 : 1);
-    return { text: (hints >= 2 && !attempted ? "Let’s try a first guess before another worked step. " : "Let’s make it smaller. ") + q.hints[level] + " What would you try?", kind: "hint" };
+    const lead = hints >= 2 && !attempted ? "Let’s try a first guess before another worked step. "
+      : /\b(show|picture)\b/i.test(input) ? (hasChatPicture(q) ? "Here’s the same amount in smaller pieces. " : "Look at the picture with the question. ") : "Let’s make it smaller. ";
+    return { text: lead + q.hints[level] + " What would you try?", kind: "hint" };
   }
   if (q.topic === "fractions" && /\b(add|added|plus)\b/i.test(input)) {
     return { text: "Let’s test that idea with the picture. Adding the same number on top and bottom can change the shaded amount. Instead, split every original piece equally: what operation changes both counts by the same factor?", kind: "explain" };

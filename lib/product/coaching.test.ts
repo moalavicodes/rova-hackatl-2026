@@ -5,6 +5,15 @@ import { sampleWorkspace } from "./model";
 
 const at = "2026-10-17T17:00:00.000Z";
 describe("conversational coaching and lesson evidence", () => {
+  it("points to the question's picture unless the chat has a different one", () => {
+    const workspace = sampleWorkspace();
+    const ratios = startCoaching(workspace, "maya", "ratios", "ratios-1", at);
+    coachingTurn(workspace, "maya", ratios.id, "picture-1", "Show me a picture", at);
+    expect(ratios.messages.at(-1)?.text).toMatch(/^Look at the picture with the question\./);
+    const fractions = startCoaching(workspace, "maya", "fractions", "fractions-1", at);
+    coachingTurn(workspace, "maya", fractions.id, "picture-1", "Show me a picture", at);
+    expect(fractions.messages.at(-1)?.text).toMatch(/^Here’s the same amount in smaller pieces\./);
+  });
   it("opens each question with its lesson tip, which never states the answer", () => {
     for (const q of questions) {
       expect(opening(q)).toContain(q.guide);

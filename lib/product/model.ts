@@ -6,8 +6,14 @@ export interface Attempt { id: string; studentId: string; questionId: string; to
 export interface CoachMessage { id: string; role: "student" | "coach"; text: string; questionId: string; at: string; kind?: "hint" | "correct" | "retry" | "guardrail" | "safety" | "explain" | "encouragement" | "trace"; source?: string }
 // Set by code (lib/product/rootCause.ts) when repeated checked misses point to an earlier skill.
 export interface RootCauseTrace { prerequisite: TopicId; standard: string; questionId: string; wrongAnswers: string[]; at: string; refresherSessionId?: string; refresherCompletedAt?: string; fixedAt?: string; acknowledgedAt?: string }
-export interface CoachSession { id: string; studentId: string; topic: TopicId; planId?: string; refresherFor?: string; questionIndex: number; messages: CoachMessage[]; startedAt: string; completedAt?: string; trace?: RootCauseTrace }
-export interface Plan { id: string; topic: TopicId; studentIds: string[]; at: string; completed?: boolean }
+export interface CoachSession { id: string; studentId: string; topic: TopicId; planId?: string; refresherFor?: string; questionIds?: string[]; questionIndex: number; messages: CoachMessage[]; startedAt: string; completedAt?: string; trace?: RootCauseTrace }
+export interface Plan { id: string; topic: TopicId; studentIds: string[]; at: string; completed?: boolean; questionIds?: string[] }
+// Course handbooks, course books, and curriculum materials a teacher adds; bank questions reference them.
+// An uploaded PDF or document is kept on disk under the data directory; only its details are saved here.
+export interface MaterialFile { name: string; type: string; size: number; ext: string }
+export interface Material { id: string; title: string; kind: "handbook" | "textbook" | "curriculum" | "other"; topics: TopicId[]; notes: string; at: string; file?: MaterialFile }
+// A question a teacher wrote or accepted from a suggestion. Shaped like a built-in question so the coach treats it the same.
+export interface BankQuestion { id: string; topic: TopicId; prompt: string; answer: string; hints: string[]; explanation: string; guide: string; simple: string; source?: string; origin: "teacher" | "suggested"; at: string }
 export interface Note { id: string; studentId: string; text: string; author: string; authorId?: string; at: string; automatic?: boolean }
 // Illustrated pictures for the sample accounts (no real people). Other accounts show initials.
 export const samplePhotos: Record<string, string> = {
@@ -17,7 +23,7 @@ export const samplePhotos: Record<string, string> = {
   // The simulated classmates, drawn by scripts/gen-avatars.mjs.
   ...Object.fromEntries(Array.from({ length: 17 }, (_, i) => [`learner-${i + 1}`, `/avatars/learner-${i + 1}.svg`])),
 };
-export interface Workspace { name: string; code: string; students: Learner[]; attempts: Attempt[]; plans: Plan[]; notes: Note[]; checks: string[]; sessions?: CoachSession[] }
+export interface Workspace { name: string; code: string; students: Learner[]; attempts: Attempt[]; plans: Plan[]; notes: Note[]; checks: string[]; sessions?: CoachSession[]; materials?: Material[]; questions?: BankQuestion[] }
 export const emptyWorkspace: Workspace = { name: "My classroom", code: "", students: [], attempts: [], plans: [], notes: [], checks: [] };
 export const sampleProfiles: Record<Role, Profile> = {
   student: { id: "maya", name: "Maya Chen", role: "student", school: "Maplewood Elementary", goal: 10, avatar: "sage", sample: true },

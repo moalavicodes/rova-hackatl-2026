@@ -24,18 +24,18 @@ function FractionPies({ numerator, denominator, target }: { numerator: number; d
     <figure className="concept-visual">
       <figcaption>Pie model: same whole, different-size slices. Tap slices on the right pie to shade them.</figcaption>
       <div className="pie-pair">
-        <svg viewBox="0 0 120 120" role="img" aria-label={`A circle cut into ${denominator} equal slices with ${numerator} shaded`}>
+        <svg viewBox="0 0 120 142" role="img" aria-label={`A circle cut into ${denominator} equal slices with ${numerator} shaded`}>
           {Array.from({ length: denominator }, (_, i) => (
             <path key={i} d={slicePath(60, 60, 54, i, denominator)} fill={i < numerator ? GREEN : LIGHT} stroke={INK} strokeWidth="1.5" />
           ))}
-          <text x="60" y="118" textAnchor="middle" className="pie-label">
+          <text x="60" y="134" textAnchor="middle" className="pie-label">
             {numerator}/{denominator}
           </text>
         </svg>
         <span className="model-equals" aria-hidden="true">
           =
         </span>
-        <svg viewBox="0 0 120 120" role="group" aria-label={`A circle cut into ${target} equal slices. ${shaded.length} shaded.`}>
+        <svg viewBox="0 0 120 142" role="group" aria-label={`A circle cut into ${target} equal slices. ${shaded.length} shaded.`}>
           {Array.from({ length: target }, (_, i) => (
             <path
               key={i}
@@ -57,7 +57,7 @@ function FractionPies({ numerator, denominator, target }: { numerator: number; d
               }}
             />
           ))}
-          <text x="60" y="118" textAnchor="middle" className="pie-label">
+          <text x="60" y="134" textAnchor="middle" className="pie-label">
             ?/{target}
           </text>
         </svg>
@@ -101,18 +101,44 @@ function DoubleNumberLine({ labels, known, steps }: { labels: [string, string]; 
   );
 }
 
-// Equal rows of squares, split into a tens part and a ones part.
+// Equal rows of squares, split into a tens part and a ones part. Tap squares to count them.
 function AreaGrid({ rows, tens, ones }: { rows: number; tens: number; ones: number }) {
   const cols = tens + ones;
   const size = Math.min(16, 300 / cols);
+  const [counted, setCounted] = useState<string[]>([]);
+  const toggle = (key: string) => setCounted((c) => (c.includes(key) ? c.filter((k) => k !== key) : [...c, key]));
   return (
     <figure className="concept-visual">
-      <figcaption>Area model: {rows} rows. Count each colored part separately, then add.</figcaption>
-      <svg viewBox={`0 0 ${cols * size + 20} ${rows * size + 30}`} role="img" aria-label={`A grid of ${rows} rows split into a part ${tens} wide and a part ${ones} wide`}>
+      <figcaption>Area model: {rows} rows. Tap squares to count a part, then add the parts.</figcaption>
+      <svg viewBox={`0 0 ${cols * size + 20} ${rows * size + 30}`} role="group" aria-label={`A grid of ${rows} rows split into a part ${tens} wide and a part ${ones} wide. ${counted.length} squares counted.`}>
         {Array.from({ length: rows }, (_, r) =>
-          Array.from({ length: cols }, (_, c) => (
-            <rect key={`${r}-${c}`} x={c * size + (c >= tens ? 6 : 0)} y={r * size} width={size - 2} height={size - 2} rx="2" fill={c < tens ? GREEN : "#d4a23c"} />
-          )),
+          Array.from({ length: cols }, (_, c) => {
+            const key = `${r}-${c}`;
+            return (
+              <rect
+                key={key}
+                x={c * size + (c >= tens ? 6 : 0)}
+                y={r * size}
+                width={size - 2}
+                height={size - 2}
+                rx="2"
+                fill={c < tens ? GREEN : "#d4a23c"}
+                opacity={counted.includes(key) ? 1 : 0.45}
+                className="grid-cell"
+                role="button"
+                tabIndex={0}
+                aria-pressed={counted.includes(key)}
+                aria-label={`Row ${r + 1}, square ${c + 1}`}
+                onClick={() => toggle(key)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    toggle(key);
+                  }
+                }}
+              />
+            );
+          }),
         )}
         <text x={(tens * size) / 2} y={rows * size + 20} textAnchor="middle" className="grid-label">
           {rows} × {tens}
@@ -121,6 +147,7 @@ function AreaGrid({ rows, tens, ones }: { rows: number; tens: number; ones: numb
           {rows} × {ones}
         </text>
       </svg>
+      <p aria-live="polite">{counted.length ? `You counted ${counted.length} squares.` : "Tap a row to count it. One full row is one group."}</p>
     </figure>
   );
 }
@@ -212,25 +239,43 @@ function JumpLine({ jumps, size, unit }: { jumps: number; size: number; unit: st
   );
 }
 
-// Turn a ray with the slider to feel how big an angle is; the readout is the learner's own turn.
-function AngleExplorer() {
-  const [deg, setDeg] = useState(45);
+// Turn a ray with the slider to feel how big an angle is. With a known part, the learner's turn is
+// the second part of a bigger angle, so they can feel how the two parts fill it.
+function turnName(deg: number) {
+  if (deg === 0) return "No turn yet";
+  if (deg < 90) return "Acute: smaller than a square corner";
+  if (deg === 90) return "A square corner: a quarter-turn";
+  if (deg < 180) return "Obtuse: bigger than a square corner";
+  return "A straight line: a half-turn";
+}
+function AngleExplorer({ whole, known = 0 }: { whole: number; known?: number }) {
+  const [deg, setDeg] = useState(known ? 20 : 45);
   const r = 90;
-  const rad = (deg * Math.PI) / 180;
-  const [ex, ey] = [110 + r * Math.cos(rad), 110 - r * Math.sin(rad)];
+  const ray = (angle: number, len: number) => [110 + len * Math.cos((angle * Math.PI) / 180), 110 - len * Math.sin((angle * Math.PI) / 180)] as const;
+  const [kx, ky] = ray(known, r);
+  const [ex, ey] = ray(known + deg, r);
+  const arc = (from: number, to: number, rad: number) => {
+    const [ax, ay] = ray(from, rad);
+    const [bx, by] = ray(to, rad);
+    return `M${ax.toFixed(1)} ${ay.toFixed(1)}A${rad} ${rad} 0 ${to - from > 180 ? 1 : 0} 0 ${bx.toFixed(1)} ${by.toFixed(1)}`;
+  };
+  const total = known + deg;
   return (
     <figure className="concept-visual">
-      <figcaption>Turn the ray. A quarter-turn makes a square corner; a half-turn makes a straight line.</figcaption>
-      <svg viewBox="0 0 230 125" role="img" aria-label={`An angle of ${deg} degrees`}>
-        <path d={`M150 110A40 40 0 0 0 ${110 + 40 * Math.cos(rad)} ${110 - 40 * Math.sin(rad)}`} fill="none" stroke={GREEN} strokeWidth="3" />
+      <figcaption>{known ? `The first part is ${known}°. Turn the second ray until the two parts fill the whole ${whole}° angle.` : "Turn the ray. A quarter-turn makes a square corner; a half-turn makes a straight line."}</figcaption>
+      <svg viewBox="0 0 230 125" role="img" aria-label={known ? `A ${known} degree part plus a ${deg} degree part, ${total} degrees so far` : `An angle of ${deg} degrees`}>
+        {known > 0 && <path d={arc(0, known, 40)} fill="none" stroke="#d4a23c" strokeWidth="3" />}
+        {deg > 0 && <path d={arc(known, known + deg, known ? 52 : 40)} fill="none" stroke={GREEN} strokeWidth="3" />}
         <line x1="110" y1="110" x2="210" y2="110" stroke={INK} strokeWidth="3" strokeLinecap="round" />
+        {known > 0 && <line x1="110" y1="110" x2={kx} y2={ky} stroke="#b07a1b" strokeWidth="3" strokeLinecap="round" />}
         <line x1="110" y1="110" x2={ex} y2={ey} stroke={INK} strokeWidth="3" strokeLinecap="round" />
         <circle cx="110" cy="110" r="4" fill={INK} />
       </svg>
       <label className="angle-slider">
-        <span>Turn: {deg}°</span>
-        <input type="range" min="0" max="180" step="5" value={deg} onChange={(e) => setDeg(Number(e.target.value))} />
+        <span>{known ? `${known}° + ${deg}° = ${total}° of ${whole}°` : `Turn: ${deg}° · ${turnName(deg)}`}</span>
+        <input type="range" min="0" max={whole - known} step="5" value={deg} onChange={(e) => setDeg(Number(e.target.value))} />
       </label>
+      {known > 0 && <p aria-live="polite">{total === whole ? "The two parts fill the whole angle now." : total < whole ? `Keep turning: ${whole - total}° of the whole is still open.` : ""}</p>}
     </figure>
   );
 }
@@ -259,7 +304,7 @@ export function ConceptExplorer({ question: q }: { question: PracticeQuestion })
     case "measurement":
       return q.id === "me1" ? <JumpLine jumps={3} size={100} unit="cm" /> : q.id === "me2" ? <JumpLine jumps={2} size={1000} unit="g" /> : <JumpLine jumps={3} size={60} unit="min" />;
     case "geometry":
-      return <AngleExplorer />;
+      return q.id === "ge2" ? <AngleExplorer whole={180} known={60} /> : q.id === "ge3" ? <AngleExplorer whole={90} known={35} /> : <AngleExplorer whole={180} />;
     default:
       return null;
   }

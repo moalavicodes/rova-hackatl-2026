@@ -63,11 +63,46 @@ Say: “When a student is stuck, the problem often started in an earlier grade. 
 | Close the chat; on the dashboard card choose **Start refresher → Start our conversation**, then `2`, **Next question**, `4`, **Next question**, `9`, **Finish lesson** | A three-question fractions refresher; each answer is checked by code. |
 | On the dashboard card choose **Back to ratios**, then type `9 cups` | The original ratio question is solved after the refresher. |
 
+## 2c. Shapes & angles: a conversation to show the coach at its best
+
+Log in as the student, open **Shapes & angles** from the topic grid, and choose **Start our conversation**. The picture beside each question is interactive: a ray the student turns with a slider, and for the second and third questions the known part is already drawn so the two parts visibly fill the whole angle.
+
+Say: “Rova explains in a child’s words, draws the idea, and still never hands over the answer.”
+
+Type the student lines exactly; the coach replies are what the app says today.
+
+| Who | Says |
+| --- | --- |
+| Rova | Let’s work through this shapes & angles question together. A square corner is a quarter-turn. Four equal square corners fit into a full turn of 360°. Share a first idea, try an answer, or ask for a picture. |
+| **Student** | What even is an angle? |
+| Rova | An angle is a turn, like a door swinging open. The corner of a page is a quarter of a full spin, and a full spin is 360°. A square corner is a quarter of a full spin. |
+| **Student** | Show me a picture |
+| Rova | Here’s the picture again. A full spin is 360°. Four square corners fill it. What would you try? |
+| **Student** | 45 |
+| Rova | Picture the corner of a page. That is one right angle. Divide 360 by 4. Try again when you’re ready. |
+| **Student** | 90 |
+| Rova | Yes — your answer checks out. Every right angle measures 90 degrees. What did you do differently, or what helped it click? |
+| Rova | Let’s work through this shapes & angles question together. The parts add up to the whole angle. A straight angle is 180°, so subtract the known part from the whole. Share a first idea, try an answer, or ask for a picture. |
+| **Student** | Is it 60? |
+| Rova | That doesn’t match yet. Let’s look at one step together. A straight line is a half-turn: 180°. Try again when you’re ready. |
+| **Student** | I'm stuck |
+| Rova | Let’s make it smaller. The slice and the rest must add up to 180. What would you try? |
+| **Student** | 120 |
+| Rova | Yes — your answer checks out. Adjacent angles on a straight line sum to 180 degrees. What did you do differently, or what helped it click? |
+| Rova | Let’s work through this shapes & angles question together. The parts add up to the whole angle. A square corner is 90°, so subtract the known part from the whole. Share a first idea, try an answer, or ask for a picture. |
+| **Student** | How do I do this one? |
+| Rova | The door opens inside a square corner, 90°. Opening 35° uses part of it. What is left of the 90° is the missing part. The open part and the rest add up to the whole square corner. |
+| **Student** | 55 |
+| Rova | Yes — your answer checks out. You can add and subtract angle measures just like lengths. What did you do differently, or what helped it click? |
+
+Point out: the explanation is three short sentences with a picture; a wrong guess gets one specific nudge, not a lecture; and every checked answer is graded by code.
+
 ## 3. A teacher sees what happened, quickly
 
 Sign out and log in as the teacher.
 
 - On **Overview**, the **learning alert** for Maya shows the evidence (her answers 7 and 8), the root cause (equivalent fractions, 4.NF.A.1), a 5-minute reteach, the family update, and “Solved after refresher”. Click **Mark reteach planned**, then **Share a fractions refresher with this group**: the classmates with the same low signal are preselected (their signal includes simulated profiles). Say the 7-day re-check is planned, not built.
+- Select **Question bank**: add a course handbook under Course materials (attach the PDF if you have one), then under Fractions accept a suggested question (it now reads “Written from” that handbook) or write one. Open any learner card → **Assign a fractions lesson**: the dialog lists the exact questions the lesson will send, with a count (default 3), Shuffle, or **Choose myself**. Say: “Teachers stay in charge of what gets asked; Rova only checks the answers.”
 - Select **Progress report**: tiles count lessons, code-checked questions, root causes found, teacher actions, and family updates. Show **Export intervention log (CSV)** and **Print report**. Say: “This is the paperwork MTSS already requires, produced as a by-product.”
 - Select **Learning insights**. On a fresh run using the script above, the fractions graph shows **one independent success, two successes after support/retry, and one corrected question**. Seeded starting history is excluded.
 - Select **My classroom** and open **Maya**. Her panel shows the group lesson with her completion and a **Review lesson** button; classmates who have not started remain not started.

@@ -1,28 +1,27 @@
-import { gradeAnswer, hasChatPicture, questions, topicById, type PracticeQuestion, type TopicId } from "./curriculum";
+import { hasChatPicture, topicById, type PracticeQuestion, type TopicId } from "./curriculum";
+import { bankFor, builtInFor, gradeQuestion, questionById } from "./bank";
 import type { CoachMessage, CoachSession, Plan, Workspace } from "./model";
 import { hasSafetyConcern } from "./safety";
 import { detectRootCause, skillPhrase } from "./rootCause";
 import { classifyMistake } from "./mistakes";
 
-// Deterministic coaching adapter. A future model may write replies; this code still grades
-// answers, owns hint progression, and decides lesson completion.
-const concepts: Record<TopicId, string> = {
-  "place-value": "A digit gets its value from its place. Moving one place left makes that value ten times as large. Which place are we looking at?",
-  multiplication: "Think of equal groups. We can split a big group into tens and ones, work on each part, then put them back together. What could you split first?",
-  division: "Division means making equal groups. Share a friendly chunk first, then share what remains. How could multiplication help you check?",
-  fractions: "The whole stays the same size. When we cut each piece into smaller equal pieces, we have more pieces, but the same amount. The top counts pieces; the bottom tells how many make a whole.",
-  measurement: "Start with how many smaller units fit in one larger unit. Then count that many for each larger unit. Which conversion fact do we need?",
-  geometry: "Picture the whole angle first. A square corner is a quarter-turn; a straight line is a half-turn. If an angle is split, its parts still add up to that whole.",
-  ratios: "A ratio compares two amounts. To keep the same ratio, multiply both parts by the same number, just like equivalent fractions. Adding the same amount to both changes the ratio.",
-};
+// Deterministic coaching adapter. Code grades answers, owns hint progression, and decides lesson completion.
 // The answer a learner gets by adding the change instead of multiplying (a common ratio misconception).
 const additiveAnswers: Record<string, string> = { ra1: "7", ra2: "8", ra3: "12" };
 
 export function opening(question: PracticeQuestion): string {
   return `Let’s work through this ${topicById(question.topic).name.toLowerCase()} question together. ${question.guide} Share a first idea, try an answer, or ask for a picture.`;
 }
-export function currentQuestion(session: CoachSession) {
-  return questions.filter(q => q.topic === session.topic)[session.questionIndex];
+// The questions a session walks through: the lesson's chosen set, or the built-in set for free practice.
+export function sessionQuestions(workspace: Workspace, session: CoachSession): PracticeQuestion[] {
+  const chosen = (session.questionIds ?? []).map(id => questionById(workspace, id)).filter((q): q is PracticeQuestion => !!q);
+  return chosen.length ? chosen : builtInFor(session.topic);
+}
+export function planQuestionIds(plan: Plan): string[] {
+  return plan.questionIds?.length ? plan.questionIds : builtInFor(plan.topic).map(q => q.id);
+}
+export function currentQuestion(workspace: Workspace, session: CoachSession) {
+  return sessionQuestions(workspace, session)[session.questionIndex];
 }
 export function questionSolved(workspace: Workspace, session: CoachSession, questionId: string) {
   return workspace.attempts.some(a => a.sessionId === session.id && a.questionId === questionId && a.correct);
@@ -30,8 +29,9 @@ export function questionSolved(workspace: Workspace, session: CoachSession, ques
 export function lessonProgress(workspace: Workspace, plan: Plan, studentId: string) {
   const sessions = (workspace.sessions ?? []).filter(s => s.planId === plan.id && s.studentId === studentId);
   const attempts = workspace.attempts.filter(a => a.planId === plan.id && a.studentId === studentId);
-  const solved = new Set(attempts.filter(a => a.correct).map(a => a.questionId)).size;
-  const total = questions.filter(q => q.topic === plan.topic).length;
+  const ids = planQuestionIds(plan);
+  const solved = new Set(attempts.filter(a => a.correct && ids.includes(a.questionId)).map(a => a.questionId)).size;
+  const total = ids.length;
   return { sessions, attempts, solved, total, status: solved === total ? "Completed" : sessions.length ? "In progress" : "Not started" };
 }
 export function topicOutcomes(workspace: Workspace, topic: TopicId) {
@@ -52,7 +52,7 @@ export function topicOutcomes(workspace: Workspace, topic: TopicId) {
 }
 
 function replyFor(workspace: Workspace, session: CoachSession, input: string): { text: string; kind: CoachMessage["kind"]; hints?: number; correct?: boolean } {
-  const q = currentQuestion(session);
+  const q = currentQuestion(workspace, session);
   const turns = session.messages.filter(m => m.questionId === q.id);
   // Only mathematical help affects independence, not greetings or redirects.
   const hints = Math.min(3, turns.filter(m => m.role === "coach" && m.kind && ["hint", "retry", "explain", "trace"].includes(m.kind)).length);
@@ -71,7 +71,7 @@ function replyFor(workspace: Workspace, session: CoachSession, input: string): {
   const units = q.id === "fr1" ? "fourths?" : q.topic === "geometry" ? "degrees?|°" : q.id === "me1" ? "centimeters?|cm" : q.id === "me2" ? "grams?|g" : q.id === "me3" ? "minutes?|min" : q.topic === "multiplication" || q.topic === "division" ? "seedlings?|books?|stickers?|seeds?" : q.id === "ra1" ? "cups?" : q.id === "ra2" ? "miles?" : "";
   const numeric = normalized.match(new RegExp(`^(?:(?:i think|my answer is|it is|it’s|it's|is it|maybe)\\s+)?([-+]?\\d[\\d,.\\s]*(?:/\\s*\\d+)?)(?:\\s*(?:${units || "(?!)"}))?[?.!]?$`, "i"))?.[1];
   if (numeric) {
-    const correct = gradeAnswer(q.id, numeric);
+    const correct = gradeQuestion(q, numeric);
     if (correct) return { text: `Yes — your answer checks out. ${q.explanation} What did you do differently, or what helped it click?`, kind: "correct", correct, hints };
     const specific = q.topic === "fractions" && /^(?:1|3)$/.test(numeric.trim()) && q.id === "fr1"
       ? "You may be counting the original pieces instead of the smaller pieces. Keep the shaded area the same. "
@@ -84,7 +84,7 @@ function replyFor(workspace: Workspace, session: CoachSession, input: string): {
     // A worked step only unlocks after an actual attempt, never by repeatedly asking.
     const level = Math.min(hints, attempted ? 2 : 1);
     const lead = hints >= 2 && !attempted ? "Let’s try a first guess before another worked step. "
-      : /\b(show|picture)\b/i.test(input) ? (hasChatPicture(q) ? "Here’s the same amount in smaller pieces. " : "Look at the picture with the question. ") : "Let’s make it smaller. ";
+      : /\b(show|picture)\b/i.test(input) ? (q.topic === "fractions" ? "Here’s the same amount in smaller pieces. " : hasChatPicture(q) ? "Here’s the picture again. " : "Look at the picture with the question. ") : "Let’s make it smaller. ";
     return { text: lead + q.hints[level] + " What would you try?", kind: "hint" };
   }
   if (q.topic === "fractions" && /\b(add|added|plus)\b/i.test(input)) {
@@ -94,7 +94,8 @@ function replyFor(workspace: Workspace, session: CoachSession, input: string): {
     return { text: "That’s a useful idea to investigate: change the pieces, while keeping the whole and the shaded amount the same. " + (q.id === "fr1" ? "Imagine a line through the middle of each half. Which new pieces belong to the planted half?" : "Compare the old and new denominators. Use the same scale factor for the numerator. What would you try on top?"), kind: "explain" };
   }
   if (/\b(why|how|mean|fraction|numerator|denominator|equivalent|multiply|divide|place|angle|unit|same|half|quarter|group|tens|hundreds|thousands|meter|centimeter|degree)\b/i.test(input)) {
-    return { text: concepts[q.topic] + " Now connect that idea to our question: " + q.hints[0], kind: "explain" };
+    // Plain words first, then the first nudge; the chat shows the picture beside it where there is one.
+    return { text: (q.simple ? q.simple + " " : "") + q.hints[0], kind: "explain" };
   }
   if (/\b(frustrat\w*|hard|can.?t|bad at|hate math)\b/i.test(input)) {
     return { text: "I’m here with you. You don’t have to be fast, and a mistake gives us something to work with. " + q.hints[0] + " Want to try that first step?", kind: "explain" };
@@ -106,17 +107,19 @@ function replyFor(workspace: Workspace, session: CoachSession, input: string): {
 }
 
 export function startCoaching(workspace: Workspace, studentId: string, topic: TopicId, id: string, at: string, planId?: string, refresherFor?: string): CoachSession {
-  if (!questions.some(q => q.topic === topic)) throw new Error("Choose a math topic.");
-  if (planId && !workspace.plans.some(p => p.id === planId && p.topic === topic && p.studentIds.includes(studentId))) throw new Error("That lesson isn’t assigned to you.");
+  if (!bankFor(workspace, topic).length) throw new Error("Choose a math topic.");
+  const plan = planId ? workspace.plans.find(p => p.id === planId && p.topic === topic && p.studentIds.includes(studentId)) : undefined;
+  if (planId && !plan) throw new Error("That lesson isn’t assigned to you.");
   workspace.sessions ??= [];
   // A refresher belongs to the session whose root-cause trace suggested it.
   const traced = refresherFor ? workspace.sessions.find(s => s.id === refresherFor && s.studentId === studentId && s.trace?.prerequisite === topic) : undefined;
   if (refresherFor && (!traced || planId)) throw new Error("That refresher isn’t available.");
   const previous = [...workspace.sessions].reverse().find(s => s.studentId === studentId && s.topic === topic && s.planId === planId && s.refresherFor === refresherFor && !s.completedAt);
   if (previous) return previous;
-  const q = questions.find(q => q.topic === topic)!;
+  const questionIds = plan ? planQuestionIds(plan).filter(id => questionById(workspace, id)) : builtInFor(topic).map(q => q.id);
+  const q = questionById(workspace, questionIds[0]) ?? builtInFor(topic)[0];
   const welcome = traced ? `Quick refresher on ${topicById(topic).name.toLowerCase()}: three short questions, then we’ll go back to your ${topicById(traced.topic).name.toLowerCase()} question. ${opening(q)}` : opening(q);
-  const session: CoachSession = { id, studentId, topic, planId, refresherFor, questionIndex: 0, startedAt: at, messages: [{ id: `${id}-welcome`, role: "coach", text: welcome, questionId: q.id, at, source: topicById(topic).standard }] };
+  const session: CoachSession = { id, studentId, topic, planId, refresherFor, questionIds, questionIndex: 0, startedAt: at, messages: [{ id: `${id}-welcome`, role: "coach", text: welcome, questionId: q.id, at, source: topicById(topic).standard }] };
   if (traced?.trace && !traced.trace.refresherSessionId) traced.trace.refresherSessionId = id;
   workspace.sessions.push(session);
   return session;
@@ -127,7 +130,7 @@ export function coachingTurn(workspace: Workspace, studentId: string, sessionId:
   if (session.messages.some(m => m.id === id)) return session;
   if (!input.trim() || input.length > 600) throw new Error("Write a message of up to 600 characters.");
   if (session.messages.length >= 300) throw new Error("This conversation is full. Ask your teacher to help you continue.");
-  const q = currentQuestion(session);
+  const q = currentQuestion(workspace, session);
   const reply = replyFor(workspace, session, input.trim());
   session.messages.push({ id, role: "student", text: input.trim(), questionId: q.id, at });
   const source = topicById(session.topic).standard;
@@ -145,7 +148,7 @@ export function coachingTurn(workspace: Workspace, studentId: string, sessionId:
     session.trace.fixedAt = at;
     familyUpdate(workspace, studentId, `${id}-family`, at, `went back and solved the ${topicById(session.topic).name.toLowerCase()} question that was tricky earlier${session.trace.refresherCompletedAt ? `, after a ${topicById(session.trace.prerequisite).name.toLowerCase()} refresher` : ""}. Ask them to show you how they did it.`);
   }
-  const set = questions.filter(q => q.topic === session.topic);
+  const set = sessionQuestions(workspace, session);
   if (!session.completedAt && set.every(q => questionSolved(workspace, session, q.id))) {
     session.completedAt = at;
     const traced = session.refresherFor ? workspace.sessions?.find(s => s.id === session.refresherFor) : undefined;
@@ -161,9 +164,9 @@ function familyUpdate(workspace: Workspace, studentId: string, id: string, at: s
 export function advanceCoaching(workspace: Workspace, studentId: string, sessionId: string, at: string): CoachSession {
   const session = workspace.sessions?.find(s => s.id === sessionId && s.studentId === studentId);
   if (!session) throw new Error("Open a practice lesson first.");
-  const q = currentQuestion(session);
+  const q = currentQuestion(workspace, session);
   if (!questionSolved(workspace, session, q.id)) throw new Error("Try this question before moving on. Your coach can help.");
-  const next = questions.filter(q => q.topic === session.topic)[session.questionIndex + 1];
+  const next = sessionQuestions(workspace, session)[session.questionIndex + 1];
   if (next) {
     session.questionIndex++;
     session.messages.push({ id: `${session.id}-${next.id}`, role: "coach", text: opening(next), questionId: next.id, at, source: topicById(session.topic).standard });

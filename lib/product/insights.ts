@@ -1,4 +1,5 @@
-import { questions, topicById, topics } from "./curriculum";
+import { topicById, topics } from "./curriculum";
+import { sessionQuestions } from "./coaching";
 import { skillPhrase } from "./rootCause";
 import { scoreFor, type CoachSession, type Learner, type Workspace } from "./model";
 
@@ -18,7 +19,7 @@ export function familyActivities(workspace: Workspace, parentId: string, child: 
 // derived from the saved session; never invent understanding or a causal outcome.
 export function summarizeLesson(workspace: Workspace, session: CoachSession) {
   const attempts = workspace.attempts.filter(a => a.sessionId === session.id);
-  const set = questions.filter(q => q.topic === session.topic);
+  const set = sessionQuestions(workspace, session);
   const solved = set.filter(q => attempts.some(a => a.questionId === q.id && a.correct));
   const corrected = set.filter(q => {
     const turns = attempts.filter(a => a.questionId === q.id);

@@ -7,6 +7,7 @@ import { familyLabel, familyWhy, practiceDays } from "@/lib/product/why";
 import { ConfidenceChart, StatusBadge } from "./charts";
 import { FamilyActivities } from "./FamilyActivities";
 import { Avatar, Empty, type Mutate } from "./Shared";
+import { Icon } from "./Brand";
 
 // Plain words for a refresher's progress, for families.
 const refresherWords: Record<TraceStatus, string> = {
@@ -114,8 +115,7 @@ export function ParentDashboard({
 
       <div className="parent-columns">
         <section className="surface">
-          <h3>What we noticed</h3>
-          <p className="parent-subtle">In plain words, from {name}’s checked practice.</p>
+          <h3 className="with-ai-mark"><span className="ai-mark" title="Written by Rova from checked practice"><Icon name="sparkle" size={18}/></span>What we noticed</h3>
           {why.length ? (
             <ul className="parent-why">
               {why.map((line) => <li key={line}>{line}</li>)}

@@ -500,3 +500,11 @@
 /* Sample account pictures: the chosen color shows as a ring around the picture. */
 .avatar.avatar-photo { padding: 2px; overflow: hidden; }
 .avatar.avatar-photo img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block; }
+
+.outcome-track > span { min-width: 26px; flex-shrink: 0; }
+
+/* Top bar: the breadcrumb plus subject (and, for teachers, class) pickers. */
+.topbar-context { display: inline-flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.context-pickers { display: inline-flex; gap: 8px; }
+.context-pickers select { height: 32px; min-height: 32px; border: 1px solid #d7dfd1; border-radius: 7px; background: #fffefa; padding: 0 8px; font-size: 13px; font-weight: 500; color: #244c3b; }
+@media (max-width: 680px) { .context-pickers { display: none; } }

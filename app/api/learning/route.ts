@@ -1,8 +1,13 @@
 import { randomUUID } from "node:crypto";
-import { currentAccount, database, sameOrigin, visibleWorkspace } from "@/lib/product/server";
-import { allTopics, gradeAnswer, questions, topics } from "@/lib/product/curriculum";
+import { rm } from "node:fs/promises";
+import path from "node:path";
+import { currentAccount, database, materialsDirectory, sameOrigin, visibleWorkspace } from "@/lib/product/server";
+import { allTopics, topics, type TopicId } from "@/lib/product/curriculum";
 import { advanceCoaching, coachingTurn, lessonProgress, startCoaching } from "@/lib/product/coaching";
+import { DEFAULT_LESSON_QUESTIONS, MAX_LESSON_QUESTIONS, bankFor, gradeQuestion, inBankOrder, isBuiltIn, pickQuestionIds, questionById, validateDraft, validateMaterial } from "@/lib/product/bank";
 import type { CoachSession } from "@/lib/product/model";
+
+const clean = (value: unknown, max: number) => String(value ?? "").trim().slice(0, max);
 
 export const runtime = "nodejs";
 export async function POST(request: Request) {
@@ -30,18 +35,53 @@ export async function POST(request: Request) {
           }
         } catch (error) { return Response.json({ error: error instanceof Error ? error.message : "Please try again." }, { status: 400 }); }
       } else if (body.action === "attempt" && account.role === "student") {
-        const question = questions.find((q) => q.id === body.questionId);
+        const question = questionById(db.workspace, String(body.questionId));
         if (!question || typeof body.answer !== "string" || body.answer.length > 100) return Response.json({ error: "Choose a valid practice question." }, { status: 400 });
         const id = String(body.id ?? "");
         if (!/^[a-zA-Z0-9-]{8,100}$/.test(id)) return Response.json({ error: "Invalid attempt." }, { status: 400 });
         const previous = db.workspace.attempts.find((a) => a.id === id && a.studentId === account.id);
-        correct = previous?.correct ?? gradeAnswer(question.id, body.answer);
+        correct = previous?.correct ?? gradeQuestion(question, body.answer);
         if (!previous) db.workspace.attempts.push({ id, studentId: account.id, questionId: question.id, topic: question.topic, correct, hints: Math.max(0, Math.min(3, Number(body.hints) || 0)), at: now });
       } else if (body.action === "plan" && account.role === "teacher") {
         const topic = topics.find((t) => t.id === body.topic);
         const studentIds = db.workspace.students.filter((s) => Array.isArray(body.studentIds) && body.studentIds.includes(s.id)).map((s) => s.id);
         if (!topic || !studentIds.length) return Response.json({ error: "Select a topic and at least one student." }, { status: 400 });
-        if (!db.workspace.plans.some((p) => p.topic === topic.id && !p.completed && p.studentIds.length === studentIds.length && p.studentIds.every((id) => studentIds.includes(id)))) db.workspace.plans.push({ id: randomUUID(), topic: topic.id, studentIds, at: now });
+        // The teacher's chosen questions, or a random set from the topic's bank (default 3).
+        const bank = bankFor(db.workspace, topic.id).map((q) => q.id);
+        let questionIds: string[];
+        if (Array.isArray(body.questionIds)) {
+          questionIds = [...new Set<string>(body.questionIds.map(String))].filter((id) => bank.includes(id));
+          if (!questionIds.length || questionIds.length !== body.questionIds.length || questionIds.length > MAX_LESSON_QUESTIONS) return Response.json({ error: `Choose 1 to ${MAX_LESSON_QUESTIONS} questions from this topic's bank.` }, { status: 400 });
+          questionIds = inBankOrder(db.workspace, topic.id, questionIds);
+        } else questionIds = pickQuestionIds(db.workspace, topic.id, Number(body.count) || DEFAULT_LESSON_QUESTIONS);
+        if (!db.workspace.plans.some((p) => p.topic === topic.id && !p.completed && p.studentIds.length === studentIds.length && p.studentIds.every((id) => studentIds.includes(id)))) db.workspace.plans.push({ id: randomUUID(), topic: topic.id, studentIds, at: now, questionIds });
+      } else if (body.action === "question-add" && account.role === "teacher") {
+        const topic = allTopics.find((t) => t.id === body.topic);
+        const hints = Array.isArray(body.hints) ? body.hints.map((h: unknown) => clean(h, 200)).filter(Boolean) : [];
+        const draft = { topic: topic?.id as TopicId, prompt: clean(body.prompt, 300), answer: clean(body.answer, 20), hints, explanation: clean(body.explanation, 300), guide: clean(body.guide, 300), simple: clean(body.simple, 300) };
+        const problem = topic ? validateDraft(draft) : "Choose a math topic.";
+        if (problem) return Response.json({ error: problem }, { status: 400 });
+        const source = typeof body.source === "string" && db.workspace.materials?.some((m) => m.id === body.source) ? body.source : undefined;
+        if (bankFor(db.workspace, draft.topic).some((q) => q.prompt === draft.prompt)) return Response.json({ error: "That question is already in the bank." }, { status: 400 });
+        if ((db.workspace.questions?.length ?? 0) >= 200) return Response.json({ error: "The bank is full. Remove a question first." }, { status: 400 });
+        (db.workspace.questions ??= []).push({ id: randomUUID(), ...draft, explanation: draft.explanation || "You kept the whole the same and reasoned one step at a time.", guide: draft.guide || draft.hints[0], simple: draft.simple, source, origin: body.origin === "suggested" ? "suggested" : "teacher", at: now });
+      } else if (body.action === "question-remove" && account.role === "teacher") {
+        const id = String(body.id ?? "");
+        if (isBuiltIn(id) || !db.workspace.questions?.some((q) => q.id === id)) return Response.json({ error: "Choose a question you added." }, { status: 400 });
+        if (db.workspace.plans.some((p) => p.questionIds?.includes(id)) || db.workspace.sessions?.some((s) => s.questionIds?.includes(id))) return Response.json({ error: "That question is part of a shared lesson, so it stays in the bank." }, { status: 400 });
+        db.workspace.questions = db.workspace.questions.filter((q) => q.id !== id);
+      } else if (body.action === "material-add" && account.role === "teacher") {
+        const material = validateMaterial(body);
+        if ("error" in material) return Response.json({ error: material.error }, { status: 400 });
+        if ((db.workspace.materials?.length ?? 0) >= 50) return Response.json({ error: "Remove a material before adding another." }, { status: 400 });
+        (db.workspace.materials ??= []).push({ id: randomUUID(), ...material, at: now });
+      } else if (body.action === "material-remove" && account.role === "teacher") {
+        const id = String(body.id ?? "");
+        const material = db.workspace.materials?.find((m) => m.id === id);
+        if (!material) return Response.json({ error: "Choose a material." }, { status: 400 });
+        if (material.file) await rm(path.join(materialsDirectory, `${material.id}.${material.file.ext}`), { force: true });
+        db.workspace.materials = db.workspace.materials!.filter((m) => m.id !== id);
+        for (const q of db.workspace.questions ?? []) if (q.source === id) q.source = undefined;
       } else if (body.action === "complete-plan" && account.role === "teacher") {
         const plan = db.workspace.plans.find((p) => p.id === body.id);
         if (!plan || !plan.studentIds.every(id => lessonProgress(db.workspace, plan, id).status === "Completed")) return Response.json({ error: "Completion is recorded when each learner solves the assigned lesson." }, { status: 400 });

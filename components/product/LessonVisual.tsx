@@ -1,11 +1,14 @@
 "use client";
 import { useState } from "react";
 import type { PracticeQuestion } from "@/lib/product/curriculum";
+import { isBuiltIn } from "@/lib/product/bank";
 import { ConceptExplorer } from "./ConceptVisuals";
 
 /** Code-drawn models: tied to the actual question, with no generated math text. */
 // The question's picture plus, outside the chat, a hands-on model for the topic.
 export function LessonVisual({ question, compact = false }: { question: PracticeQuestion; compact?: boolean }) {
+  // Pictures are drawn for the built-in questions; a teacher-added question has none yet.
+  if (!isBuiltIn(question.id)) return null;
   return compact ? <BaseVisual question={question} compact /> : <><BaseVisual question={question} /><ConceptExplorer question={question} /></>;
 }
 function BaseVisual({ question, compact = false }: { question: PracticeQuestion; compact?: boolean }) {

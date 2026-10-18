@@ -3,7 +3,7 @@
 // icon and a label (never color alone); every mark has a hover and keyboard tooltip, and each chart
 // has a text equivalent.
 import { useId, useState } from "react";
-import { statusLabel, statusOrder, TARGET, type Point, type Status } from "@/lib/product/progress";
+import { statusLabel, TARGET, type Point, type Status } from "@/lib/product/progress";
 
 export function StatusIcon({ status, size = 14 }: { status: Status; size?: number }) {
   const shapes: Record<Status, React.ReactNode> = {
@@ -82,7 +82,6 @@ export function StatusBar({
   active?: Status | null;
 }) {
   const tip = useTip();
-  const total = statusOrder.reduce((n, s) => n + counts[s], 0) || 1;
   const order: Status[] = ["on_track", "behind", "stagnant", "no_data"];
   return (
     <div className="status-bar-wrap" data-tip-host>
@@ -105,7 +104,7 @@ export function StatusBar({
               onFocus: tip.show(content),
               onBlur: tip.hide,
             };
-            const inner = counts[s] / total >= 0.12 ? <span>{counts[s]}</span> : null;
+            const inner = <span>{counts[s]}</span>;
             return onSelect ? (
               <button key={s} type="button" {...props} aria-label={`${label}: ${text}`} aria-pressed={active === s} onClick={() => onSelect(s)}>
                 {inner}
@@ -199,7 +198,7 @@ export function ConfidenceChart({
   const content = (p: Point) => (
     <>
       <strong>{p.score}%</strong> {short(new Date(p.at))}
-      <small>{p.simulated ? "Simulated history" : "From live practice"}</small>
+      <small>{p.simulated ? "Starting profile" : "From live practice"}</small>
     </>
   );
   return (
@@ -270,7 +269,7 @@ export function ConfidenceChart({
         </text>
       </svg>
       <ChartTip tip={tip.tip} />
-      {points.some((p) => p.simulated) && <figcaption>Hollow points are simulated history; the filled point is today.</figcaption>}
+      {points.some((p) => p.simulated) && <figcaption>Hollow points are the starting profile; the filled point is today.</figcaption>}
     </figure>
   );
 }

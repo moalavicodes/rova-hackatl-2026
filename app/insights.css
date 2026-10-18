@@ -111,7 +111,7 @@ button.status-segment { cursor: pointer; }
 .chip-filter { display: flex; flex-wrap: wrap; gap: 6px; }
 .chip-filter button { border: 1px solid var(--rule); background: var(--paper); color: var(--ink); border-radius: 999px; padding: 7px 12px; font-size: 13px; font-weight: 600; }
 /* Selected chips match the sidebar’s selected item: light green with dark text. */
-.chip-filter button[aria-pressed="true"] { background: #e8eedc; border-color: #bdcbb4; color: #244c3b; }
+.chip-filter button[aria-pressed="true"], .chip-filter button[aria-selected="true"] { background: #e8eedc; border-color: #bdcbb4; color: #244c3b; }
 .chip-filter button:hover { border-color: #bdcbb4; }
 .learner-card header .status-badge { margin-left: auto; }
 .learner-card header strong { min-width: 0; overflow-wrap: anywhere; }
@@ -303,3 +303,79 @@ button.status-segment { cursor: pointer; }
 .parent-why li + li { margin-top: 6px; }
 .impact-table th[scope="row"] { font-weight: 600; font-size: 14px; color: var(--ink); }
 .report-head > div > p + p { margin-top: 2px; }
+
+/* Every bar segment shows its number, so small segments keep a minimum width. */
+.status-segment { min-width: 24px; }
+.status-segment > span { font-size: 12px; }
+
+/* Parent lists sit flush with their headings. */
+.parent-wins, .parent-why, .parent-actions { padding-left: 0; list-style: none; }
+.parent-wins li, .parent-why li, .parent-actions li { display: flex; gap: 8px; align-items: flex-start; }
+.parent-wins li::before { content: "✓"; color: var(--status-on_track-ink); font-weight: 700; flex: none; }
+.parent-why li::before, .parent-actions li::before { content: "•"; color: var(--ink-soft); flex: none; }
+.with-ai-mark { display: flex; align-items: center; gap: 8px; }
+.ai-mark { display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: #e9e5f0; color: #5b4b84; }
+.learner-card-change { font-size: 12px; color: var(--ink-soft); white-space: nowrap; }
+.activity-takeaway { margin: 12px 0 6px; padding: 10px 12px; border-radius: 8px; background: #fffefa; border: 1px solid var(--rule); color: var(--ink); line-height: 1.5; }
+.activity-takeaway strong { color: var(--ink-soft); font-weight: 600; margin-right: 4px; }
+
+/* Visual models: no browser focus box on tap; a thicker stroke marks keyboard focus. */
+.concept-visual [role="button"]:focus { outline: none; }
+.concept-visual [role="button"]:focus-visible { outline: none; stroke: #203e30; stroke-width: 3; }
+.pie-pair svg { width: 132px; height: 156px; }
+.grid-cell { cursor: pointer; }
+.grid-cell:hover { opacity: 0.8; }
+
+/* Question bank (teacher) */
+.question-bank { display: grid; gap: 20px; }
+.question-bank .section-heading p { max-width: 62ch; }
+.material-list { list-style: none; padding: 0; margin: 0 0 18px; display: grid; gap: 10px; }
+.material-list li { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: start; padding: 12px 14px; border: 1px solid var(--rule); border-radius: 10px; background: #fbfbf6; }
+.material-list li > svg { margin-top: 2px; color: #35523c; }
+.material-list strong { display: block; font-size: 15px; }
+.material-list small { display: block; color: #405440; font-size: 13px; margin-top: 2px; line-height: 1.45; }
+.material-form, .question-form { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 18px; align-items: start; }
+.material-form label, .question-form label { display: grid; gap: 6px; font-size: 14px; font-weight: 600; color: #203e30; }
+.material-form .wide, .question-form .wide, .material-form fieldset, .material-form button, .question-form button { grid-column: 1 / -1; }
+.material-form input, .material-form select, .material-form textarea, .question-form input, .question-form select, .question-form textarea { font: inherit; font-weight: 400; padding: 10px 12px; border: 1px solid #aab99e; border-radius: 8px; background: #fff; width: 100%; }
+.material-form fieldset { border: 0; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 8px 16px; }
+.material-form legend { font-size: 14px; font-weight: 600; color: #203e30; margin-bottom: 8px; }
+.material-form .check { display: flex; align-items: center; gap: 8px; font-weight: 500; min-height: 36px; cursor: pointer; }
+.material-form .check input { width: 18px; height: 18px; accent-color: #244c3b; }
+.material-form button, .question-form button { justify-self: start; }
+.bank-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; counter-reset: bank; }
+.bank-list > li { counter-increment: bank; display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: start; padding: 14px 16px 14px 44px; border: 1px solid var(--rule); border-radius: 10px; background: #fbfbf6; position: relative; }
+.bank-list > li::before { content: counter(bank); position: absolute; left: 14px; top: 14px; width: 22px; height: 22px; border-radius: 50%; background: #e8eedc; color: #244c3b; font-size: 12px; font-weight: 700; display: grid; place-items: center; }
+.bank-list.suggestions > li { background: #fffdf4; border-color: #e7dfb6; }
+.bank-prompt { margin: 0 0 4px; font-size: 15px; line-height: 1.45; color: var(--ink); }
+.bank-list small { display: block; color: #405440; font-size: 13px; }
+.bank-list details { margin-top: 8px; font-size: 13px; color: #405440; }
+.bank-list summary { cursor: pointer; font-weight: 600; color: #244c3b; }
+.bank-list details ol { margin: 6px 0 0; padding-left: 18px; display: grid; gap: 4px; }
+.bank-list .btn-small { min-height: 36px; padding: 6px 12px; font-size: 13px; }
+/* Lesson question picker (group dialog) */
+.lesson-questions { margin: 18px 0 6px; }
+.lesson-questions h4 { margin: 0 0 8px; }
+.lesson-question-mode { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px; font-size: 14px; margin-bottom: 10px; }
+.lesson-question-mode label { display: flex; align-items: center; gap: 6px; cursor: pointer; min-height: 36px; }
+.lesson-question-mode input[type="radio"] { width: 16px; height: 16px; accent-color: #244c3b; }
+.lesson-question-mode .lesson-count input { width: 64px; padding: 6px 8px; border: 1px solid #aab99e; border-radius: 6px; font: inherit; }
+.product-dialog .lesson-question-mode .text-link { min-height: 36px; }
+.lesson-question-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; max-height: 220px; overflow: auto; counter-reset: lesson; }
+.lesson-question-list li { counter-increment: lesson; display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: baseline; padding: 8px 12px 8px 34px; border: 1px solid var(--rule); border-radius: 8px; background: #fbfbf6; font-size: 14px; position: relative; }
+.lesson-question-list li::before { content: counter(lesson); position: absolute; left: 10px; top: 8px; width: 18px; height: 18px; border-radius: 50%; background: #e8eedc; color: #244c3b; font-size: 11px; font-weight: 700; display: grid; place-items: center; }
+.lesson-question-list.choose li { padding-left: 12px; grid-template-columns: 1fr; }
+.lesson-question-list.choose li::before { content: none; }
+.lesson-question-list.choose label { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: baseline; cursor: pointer; }
+.lesson-question-list.choose input { width: 16px; height: 16px; accent-color: #244c3b; align-self: center; }
+.product-dialog .lesson-question-list small { color: #607d59; font-size: 12px; white-space: nowrap; }
+@media (max-width: 680px) {
+  .material-form, .question-form { grid-template-columns: 1fr; }
+  .material-list li, .bank-list > li { grid-template-columns: 1fr; }
+  .bank-list .btn-small, .material-list .text-link { justify-self: start; }
+}
+.material-file { display: inline-flex; align-items: center; gap: 6px; margin-top: 6px; font-size: 13px; font-weight: 600; color: #244c3b; text-decoration: none; }
+.material-file:hover { text-decoration: underline; }
+.material-file svg { transform: rotate(-45deg); }
+.material-form .file-field input[type="file"] { padding: 8px; background: #fbfbf6; }
+.material-form .file-field input[type="file"]::file-selector-button { font: inherit; font-size: 13px; font-weight: 600; color: #244c3b; background: #e8eedc; border: 1px solid #bdcbb4; border-radius: 6px; padding: 6px 12px; margin-right: 12px; cursor: pointer; }

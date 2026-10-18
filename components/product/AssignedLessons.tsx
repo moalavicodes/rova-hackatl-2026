@@ -15,5 +15,5 @@ export function AssignedLessons({ workspace, studentId, mutate }: { workspace: W
     const topic = topics.find(t => t.id === plan.topic)!;
     const progress = lessonProgress(workspace, plan, studentId);
     return <article className="assignment-row" key={plan.id}><span className={`topic-symbol ${topic.color}`}>{topic.symbol}</span><div><strong>{topic.name} · {topic.activity}</strong><p>{progress.status} · {progress.solved} of {progress.total} questions understood</p><div className="progress-track"><i style={{ width: `${progress.solved / progress.total * 100}%` }}/></div></div><button className="btn btn-dark" onClick={() => setSelected(plan)}>{progress.status === "Completed" ? "Review conversation" : progress.status === "In progress" ? "Continue lesson" : "Start my lesson"}<Icon name="arrow" size={17}/></button></article>;
-  })}{selected && <Practice key={selected.id} topicId={selected.topic} planId={selected.id} sessions={workspace.sessions} mutate={mutate} onClose={() => setSelected(null)}/>}</section>;
+  })}{selected && <Practice key={selected.id} workspace={workspace} topicId={selected.topic} planId={selected.id} sessions={workspace.sessions} mutate={mutate} onClose={() => setSelected(null)}/>}</section>;
 }

@@ -19,7 +19,7 @@ export function FamilyActivities({ child, profile, workspace, mutate }: { child:
       const key = `${next.id}-${i}`;
       const done = workspace.checks.includes(`${profile.id}:${key}`);
       return <label key={key} className={done ? "checked" : ""}><input type="checkbox" checked={done} disabled={busy} onChange={() => toggle(key)}/><span className="check-number">{done ? <Icon name="check" size={16}/> : i + 1}</span><span>{step}</span></label>;
-    })}<p><Icon name="leaf" size={16}/> Ask “How did you figure that out?” and let them lead.</p></div></section>}
-    {completed.length > 0 && <details className="completed-activities"><summary>Activities you’ve completed · {completed.length}</summary>{completed.map(topic => <article key={topic.id}><strong><Icon name="check" size={17}/>{topic.activity}</strong><ul>{topic.steps.map(step => <li key={step}>{step}</li>)}</ul><button className="text-link" disabled={busy} onClick={() => toggle(`${topic.id}-${topic.steps.length - 1}`)}>Revisit this activity</button></article>)}</details>}
+    })}<p className="activity-takeaway"><strong>What to notice:</strong> {next.takeaway}</p><p><Icon name="leaf" size={16}/> Ask “How did you figure that out?” and let them lead.</p></div></section>}
+    {completed.length > 0 && <details className="completed-activities"><summary>Activities you’ve completed · {completed.length}</summary>{completed.map(topic => <article key={topic.id}><strong><Icon name="check" size={17}/>{topic.activity}</strong><ul>{topic.steps.map(step => <li key={step}>{step}</li>)}</ul><p className="activity-takeaway"><strong>What to notice:</strong> {topic.takeaway}</p><button className="text-link" disabled={busy} onClick={() => toggle(`${topic.id}-${topic.steps.length - 1}`)}>Revisit this activity</button></article>)}</details>}
   </section>;
 }

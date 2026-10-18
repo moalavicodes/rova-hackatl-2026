@@ -1,9 +1,14 @@
 "use client";
 import { useState } from "react";
 import type { PracticeQuestion } from "@/lib/product/curriculum";
+import { ConceptExplorer } from "./ConceptVisuals";
 
 /** Code-drawn models: tied to the actual question, with no generated math text. */
+// The question's picture plus, outside the chat, a hands-on model for the topic.
 export function LessonVisual({ question, compact = false }: { question: PracticeQuestion; compact?: boolean }) {
+  return compact ? <BaseVisual question={question} compact /> : <><BaseVisual question={question} /><ConceptExplorer question={question} /></>;
+}
+function BaseVisual({ question, compact = false }: { question: PracticeQuestion; compact?: boolean }) {
   const [explore, setExplore] = useState(false);
   const q = question;
   if (q.topic === "fractions") {
@@ -36,7 +41,7 @@ export function LessonVisual({ question, compact = false }: { question: Practice
   if (q.topic === "place-value") {
     const digits = q.id === "pv1" ? "34582" : q.id === "pv2" ? "6325" : "42736";
     const places = ["ones", "tens", "hundreds", "thousands", "ten thousands"];
-    return <figure className="lesson-visual"><figcaption>{q.id === "pv3" ? "The neighbor helps you round." : "Each place is ten times the place to its right."}</figcaption><div className="place-model">{digits.split("").map((digit, i) => <span key={i} className={digits.length - 1 - i === (q.id === "pv3" ? 2 : 3) ? "place-focus" : ""}><strong>{digit}</strong><small>{places[digits.length - 1 - i]}</small></span>)}</div><p>{q.id === "pv3" ? "The highlighted hundreds digit tells you whether to keep the thousand or move up." : "Read the place label before deciding a digit’s value."}</p></figure>;
+    return <figure className="lesson-visual"><figcaption>{q.id === "pv3" ? "The neighbor helps you round." : "Each place is ten times the place to its right."}</figcaption><div className="place-model">{digits.split("").map((digit, i) => <span key={i} className={digits.length - 1 - i === (q.id === "pv3" ? 2 : 3) ? "place-focus" : ""}><strong>{q.id === "pv2" ? "?" : digit}</strong><small>{places[digits.length - 1 - i]}</small></span>)}</div><p>{q.id === "pv3" ? "The highlighted hundreds digit tells you whether to keep the thousand or move up." : "Read the place label before deciding a digit’s value."}</p></figure>;
   }
   if (q.topic === "measurement") {
     const [count, amount, unit] = q.id === "me1" ? [3, 100, "cm"] : q.id === "me2" ? [2, 1000, "g"] : [3, 60, "min"];

@@ -10,7 +10,13 @@ export interface CoachSession { id: string; studentId: string; topic: TopicId; p
 export interface Plan { id: string; topic: TopicId; studentIds: string[]; at: string; completed?: boolean }
 export interface Note { id: string; studentId: string; text: string; author: string; authorId?: string; at: string; automatic?: boolean }
 // Illustrated pictures for the sample accounts (no real people). Other accounts show initials.
-export const samplePhotos: Record<string, string> = { maya: "/avatars/maya.svg", rivera: "/avatars/rivera.svg", alex: "/avatars/alex.svg" };
+export const samplePhotos: Record<string, string> = {
+  maya: "/avatars/maya.svg",
+  rivera: "/avatars/rivera.svg",
+  alex: "/avatars/alex.svg",
+  // The simulated classmates, drawn by scripts/gen-avatars.mjs.
+  ...Object.fromEntries(Array.from({ length: 17 }, (_, i) => [`learner-${i + 1}`, `/avatars/learner-${i + 1}.svg`])),
+};
 export interface Workspace { name: string; code: string; students: Learner[]; attempts: Attempt[]; plans: Plan[]; notes: Note[]; checks: string[]; sessions?: CoachSession[] }
 export const emptyWorkspace: Workspace = { name: "My classroom", code: "", students: [], attempts: [], plans: [], notes: [], checks: [] };
 export const sampleProfiles: Record<Role, Profile> = {

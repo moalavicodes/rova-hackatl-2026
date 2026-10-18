@@ -15,7 +15,8 @@ describe("teacher safety visibility", () => {
     const html = renderToStaticMarkup(React.createElement(TeacherDashboard, { workspace, profile: sampleProfiles.teacher, section, mutate: async () => null }));
     expect(html).toContain('role="alert"');
     expect(html).toContain("Review safety concern · Maya Chen");
-    expect(html.indexOf("Safety concern")).toBeLessThan(html.indexOf("Good to see you"));
+    // The safety alert is the first thing on every teacher page, before any section content.
+    expect(html.slice(0, html.indexOf('role="alert"'))).not.toMatch(/<h[1-3]/);
     expect(html).toContain("No email, text, or emergency notification is sent");
   });
   it("shows the exact flagged learner message before the transcript", () => {

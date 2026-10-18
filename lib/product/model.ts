@@ -35,7 +35,7 @@ export function sampleWorkspace(): Workspace {
       attempts.push({ id: `sample-${day}-${n}`, studentId: "maya", questionId: `sample-${topic}`, topic, correct: n !== 1 && !(day > 3 && n === 2), hints: n === 1 ? 2 : 0, at: new Date(now - day * 86400000 - n * 120000).toISOString() });
     }
   }
-  return { name: "Math explorers", code: "MAPLE4", students, attempts, plans: [], checks: [], notes: [{ id: "welcome", studentId: "maya", text: "Maya is making thoughtful connections in multiplication. This week, we’re working on seeing why different fractions can represent the same amount. Try folding a piece of paper together at home.", author: "Ms. Rivera", authorId: "rivera", at: new Date(now - 86400000).toISOString() }] };
+  return { name: "Math explorers", code: "MAPLE4", students, attempts, plans: [], checks: [], notes: [{ id: "welcome", studentId: "maya", text: "Maya is making thoughtful connections in multiplication. This week, we’re working on seeing why different fractions can represent the same amount. Try folding a piece of paper together at home.", author: "Elena Rivera", authorId: "rivera", at: new Date(now - 86400000).toISOString() }] };
 }
 export function scoreFor(student: Learner, topic: TopicId, attempts: Attempt[]): number | null {
   const recent = attempts.filter((a) => a.studentId === student.id && a.topic === topic && !a.id.startsWith("sample-")).slice(-10);
@@ -48,6 +48,8 @@ export function scoreFor(student: Learner, topic: TopicId, attempts: Attempt[]):
 // overwrite a renamed profile, edited scores, or a learner's live practice.
 export function upgradeSampleWorkspace(workspace: Workspace): Workspace {
   if (workspace.name === "Room 4 · Math explorers") workspace.name = "Math explorers";
+  // The seeded welcome note predates teacher pictures; make it match notes the teacher sends.
+  for (const note of workspace.notes) if (note.id === "welcome" && note.author === "Ms. Rivera") { note.author = "Elena Rivera"; note.authorId = "rivera"; }
   const student = workspace.students.find(s => s.id === "learner-17" && s.name === "James Walker");
   if (student && topics.every((t, j) => student.scores[t.id] === 58 + ((17 * 17 + j * 11) % 40)) && !workspace.attempts.some(a => a.studentId === student.id && !a.id.startsWith("sample-"))) {
     topics.forEach((t, j) => { student.scores[t.id] = [38, 46, 41, 32, 48, 44][j]; });

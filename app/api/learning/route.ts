@@ -1,14 +1,16 @@
 import { randomUUID } from "node:crypto";
 import { currentAccount, database, sameOrigin, visibleWorkspace } from "@/lib/product/server";
-import { gradeAnswer, questions, topics } from "@/lib/product/curriculum";
+import { allTopics, gradeAnswer, questions, topics } from "@/lib/product/curriculum";
 import { advanceCoaching, coachingTurn, lessonProgress, startCoaching } from "@/lib/product/coaching";
-import type { CoachSession } from "@/lib/product/model";
+import type { CoachSession, Workspace } from "@/lib/product/model";
+import { aiSummaryAvailable, writeAiSummary } from "@/lib/product/aiSummary";
 
 export const runtime = "nodejs";
 export async function POST(request: Request) {
   if (!sameOrigin(request)) return Response.json({ error: "Invalid request origin." }, { status: 403 });
   try {
     const body = await request.json();
+    if (body.action === "ai-summary") return await aiSummary(String(body.sessionId));
     return await database(async (db) => {
       const account = await currentAccount(db);
       if (!account) return Response.json({ error: "Please sign in." }, { status: 401 });
@@ -18,9 +20,9 @@ export async function POST(request: Request) {
       if (["coach-start", "coach-turn", "coach-next"].includes(body.action) && account.role === "student") {
         try {
           if (body.action === "coach-start") {
-            const topic = topics.find(t => t.id === body.topic);
-            if (!topic || (body.planId !== undefined && typeof body.planId !== "string")) return Response.json({ error: "Choose a valid lesson." }, { status: 400 });
-            session = startCoaching(db.workspace, account.id, topic.id, randomUUID(), now, body.planId);
+            const topic = allTopics.find(t => t.id === body.topic);
+            if (!topic || (body.planId !== undefined && typeof body.planId !== "string") || (body.refresherFor !== undefined && typeof body.refresherFor !== "string")) return Response.json({ error: "Choose a valid lesson." }, { status: 400 });
+            session = startCoaching(db.workspace, account.id, topic.id, randomUUID(), now, body.planId, body.refresherFor);
           } else if (body.action === "coach-turn") {
             if (typeof body.text !== "string" || typeof body.id !== "string" || !/^[a-zA-Z0-9-]{8,100}$/.test(body.id)) return Response.json({ error: "Write a valid message." }, { status: 400 });
             session = coachingTurn(db.workspace, account.id, String(body.sessionId), body.id, body.text, now);
@@ -46,6 +48,10 @@ export async function POST(request: Request) {
         const plan = db.workspace.plans.find((p) => p.id === body.id);
         if (!plan || !plan.studentIds.every(id => lessonProgress(db.workspace, plan, id).status === "Completed")) return Response.json({ error: "Completion is recorded when each learner solves the assigned lesson." }, { status: 400 });
         plan.completed = true;
+      } else if (body.action === "trace-ack" && account.role === "teacher") {
+        const traced = db.workspace.sessions?.find(s => s.id === body.sessionId && s.trace);
+        if (!traced?.trace) return Response.json({ error: "Choose a learning alert." }, { status: 400 });
+        traced.trace.acknowledgedAt ??= now;
       } else if (body.action === "note" && account.role === "teacher") {
         const text = String(body.text ?? "").trim().slice(0, 1000);
         if (!text || !db.workspace.students.some((s) => s.id === body.studentId)) return Response.json({ error: "Choose a student and write a message." }, { status: 400 });
@@ -57,4 +63,27 @@ export async function POST(request: Request) {
       return Response.json({ workspace: visibleWorkspace(db.workspace, account), correct, session });
     });
   } catch { return Response.json({ error: "Your update couldn’t be saved. Please try again." }, { status: 500 }); }
+}
+
+// The model call runs outside the write queue so a slow reply never blocks other saves.
+async function aiSummary(sessionId: string) {
+  const prepared = await database<{ error: Response } | { workspace: Workspace; session: CoachSession }>(async (db) => {
+    const account = await currentAccount(db);
+    if (account?.role !== "teacher") return { error: Response.json({ error: "This action isn’t available for your account." }, { status: 403 }) };
+    const session = db.workspace.sessions?.find(s => s.id === sessionId);
+    if (!session) return { error: Response.json({ error: "Choose a lesson to summarize." }, { status: 400 }) };
+    if (session.aiSummary?.messageCount === session.messages.length) return { error: Response.json({ workspace: db.workspace, aiSummary: session.aiSummary }) };
+    return { workspace: structuredClone(db.workspace) as Workspace, session: structuredClone(session) as CoachSession };
+  });
+  if ("error" in prepared) return prepared.error;
+  if (!aiSummaryAvailable()) return Response.json({ workspace: prepared.workspace, aiSummary: null, notice: "No AI key is configured on this server, so the scripted summary is shown." });
+  let summary;
+  try { summary = await writeAiSummary(prepared.workspace, prepared.session, new Date().toISOString()); }
+  catch { return Response.json({ workspace: prepared.workspace, aiSummary: null, notice: "The AI summary couldn’t be written right now. The scripted summary is shown." }); }
+  if (!summary) return Response.json({ workspace: prepared.workspace, aiSummary: null, notice: "The model declined to summarize this lesson. The scripted summary is shown." });
+  return await database((db) => {
+    const session = db.workspace.sessions?.find(s => s.id === sessionId);
+    if (session) session.aiSummary = summary;
+    return Response.json({ workspace: db.workspace, aiSummary: summary });
+  });
 }

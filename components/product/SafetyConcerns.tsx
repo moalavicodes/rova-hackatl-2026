@@ -1,9 +1,10 @@
 "use client";
 import { useState } from "react";
 import type { Workspace } from "@/lib/product/model";
+import type { Mutate } from "./Shared";
 import { LessonReview } from "./LessonReview";
 
-export function SafetyConcerns({ workspace }: { workspace: Workspace }) {
+export function SafetyConcerns({ workspace, mutate }: { workspace: Workspace; mutate?: Mutate }) {
   const [reviewId, setReviewId] = useState<string | null>(null);
   const flagged = (workspace.sessions ?? []).filter(s => s.messages.some(m => m.kind === "safety"));
   const review = flagged.find(s => s.id === reviewId);
@@ -15,6 +16,6 @@ export function SafetyConcerns({ workspace }: { workspace: Workspace }) {
       <p className="safety-disclosure">Saved in Rova only. No email, text, or emergency notification is sent. Concerns remain visible; opening a review does not resolve them.</p>
       {[...flagged].reverse().map(session => <button className="btn btn-outline" key={session.id} onClick={() => setReviewId(session.id)}>Review safety concern · {workspace.students.find(s => s.id === session.studentId)?.name ?? "Student"}</button>)}
     </section>
-    {review && <LessonReview key={review.id} session={review} workspace={workspace} onClose={() => setReviewId(null)} initialTab="conversation"/>}
+    {review && <LessonReview key={review.id} session={review} workspace={workspace} mutate={mutate} onClose={() => setReviewId(null)} initialTab="conversation"/>}
   </>;
 }

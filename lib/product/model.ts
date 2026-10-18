@@ -3,10 +3,13 @@ import { topics, type Role, type TopicId } from "./curriculum";
 export interface Profile { id: string; name: string; role: Role; email?: string; school: string; goal: number; avatar: string; sample?: boolean; familyCode?: string }
 export interface Learner { id: string; name: string; scores: Partial<Record<TopicId, number>>; avatar: string }
 export interface Attempt { id: string; studentId: string; questionId: string; topic: TopicId; correct: boolean; hints: number; at: string; sessionId?: string; planId?: string }
-export interface CoachMessage { id: string; role: "student" | "coach"; text: string; questionId: string; at: string; kind?: "hint" | "correct" | "retry" | "guardrail" | "safety" | "explain" | "encouragement"; source?: string }
-export interface CoachSession { id: string; studentId: string; topic: TopicId; planId?: string; questionIndex: number; messages: CoachMessage[]; startedAt: string; completedAt?: string }
+export interface CoachMessage { id: string; role: "student" | "coach"; text: string; questionId: string; at: string; kind?: "hint" | "correct" | "retry" | "guardrail" | "safety" | "explain" | "encouragement" | "trace"; source?: string }
+// Set by code (lib/product/rootCause.ts) when repeated checked misses point to an earlier skill.
+export interface RootCauseTrace { prerequisite: TopicId; standard: string; questionId: string; wrongAnswers: string[]; at: string; refresherSessionId?: string; refresherCompletedAt?: string; fixedAt?: string; acknowledgedAt?: string }
+export interface AiSummary { text: string; model: string; at: string; messageCount: number }
+export interface CoachSession { id: string; studentId: string; topic: TopicId; planId?: string; refresherFor?: string; questionIndex: number; messages: CoachMessage[]; startedAt: string; completedAt?: string; trace?: RootCauseTrace; aiSummary?: AiSummary }
 export interface Plan { id: string; topic: TopicId; studentIds: string[]; at: string; completed?: boolean }
-export interface Note { id: string; studentId: string; text: string; author: string; at: string }
+export interface Note { id: string; studentId: string; text: string; author: string; at: string; automatic?: boolean }
 export interface Workspace { name: string; code: string; students: Learner[]; attempts: Attempt[]; plans: Plan[]; notes: Note[]; checks: string[]; sessions?: CoachSession[] }
 export const emptyWorkspace: Workspace = { name: "My classroom", code: "", students: [], attempts: [], plans: [], notes: [], checks: [] };
 export const sampleProfiles: Record<Role, Profile> = {

@@ -83,3 +83,27 @@ Before a public presentation, the team must also choose deployment-compatible st
 - Safety flags are visible for teacher review; there is no external notification delivery or acknowledgment workflow.
 - Automated role and visibility tests cover the new contract. Browser verification used simulated accounts and isolated local data only.
 - Remaining work outside this request: production data/auth, presentation reset, the legacy detection/re-check integration, and broader scripted curriculum coverage.
+
+## Root-cause loop, progress report, and optional AI summary (2026-10-18)
+
+Added on top of this PR at the request of a team member preparing the venture pitch. These bring the venture case's core demo (stuck on ratios → traced to equivalent fractions → refresher → teacher and family looped in → solved) back on screen in the new product.
+
+- **Ratios stretch challenge (`lib/product/curriculum.ts`):** a grade 6 preview topic, `ratios` (6.RP.A.3), with three questions. It is in `allTopics` but not `topics`, so the six grade 4 foundations, scores, class maps, and family activities are unchanged. Students open it from a "Stretch challenge" card.
+- **Root-cause trace (`lib/product/rootCause.ts`):** plain code over checked attempts. Two incorrect checked answers on one ratios question set `session.trace` (prerequisite `fractions`, 4.NF.A.1, the learner's wrong answers as evidence). The coach names the additive misconception ("you added the same amount to both parts") and then offers a three-question equivalent-fractions refresher. A refresher is a normal coaching session with `refresherFor`; completing it sets `trace.refresherCompletedAt`, and solving the original question sets `trace.fixedAt`.
+- **Teacher learning alert (`RootCauseAlerts.tsx`):** on Overview and Learning plans. Shows evidence, root cause, a 5-minute reteach, family status, classmates with the same low signal (simulated profiles included, labeled), "Share a refresher with this group" (opens the existing group lesson dialog with those learners preselected), "Mark reteach planned" (`trace-ack`, teacher-only), and the conversation review. The 7-day re-check is labeled planned, not built.
+- **Automatic family updates:** a note when the trace fires (with the at-home activity) and a win note when the original question is solved. Saved in Rova only, tagged "Automatic update · Saved in Rova · SMS planned". No text or email is sent.
+- **Principal / MTSS progress report (`lib/product/report.ts`, `ProgressReport.tsx`):** a new teacher destination, `#report`. Tiles count live, code-checked evidence; support tiers use current confidence (simulated profiles included, labeled); an intervention log lists each lesson with what was tried, the result, and the next step. Print uses a print stylesheet; "Export intervention log (CSV)" downloads the log.
+- **Optional AI lesson summary (`lib/product/aiSummary.ts`):** teacher-only `ai-summary` action from the lesson review. With `ANTHROPIC_API_KEY` set on the server, it asks Claude (`claude-opus-5-5` by default, override with `ROVA_SUMMARY_MODEL`; low effort; server-side refusal fallback on) for a three-line summary. The prompt carries the code-computed counts and the transcript with role labels only (no learner name), and the model is told not to contradict the checked results. The result is cached on the session and invalidated when new messages arrive; students and parents never receive it. Without a key, nothing is called and the scripted summary stays, with an on-screen notice. The model call runs outside the JSON write queue.
+- **Dependency:** `@anthropic-ai/sdk`. No key is committed; see `.env.example`.
+
+### Contract impact
+
+- `CoachSession` gains optional `refresherFor`, `trace`, and `aiSummary`; `CoachMessage.kind` gains `"trace"`; `Note` gains optional `automatic`; `TopicId` gains `"ratios"`. All optional, so existing JSON files load unchanged.
+- `/api/learning`: `coach-start` accepts `refresherFor` (validated: the learner's own traced session, matching prerequisite, no plan); new teacher-only `trace-ack` and `ai-summary`.
+- **D-004 (no AI model):** the default behavior is unchanged because nothing is called without a key. Turning the summary on is a change to D-004, so Person B should record it as a decision before anyone presents it as live AI.
+
+### Verification
+
+- Vitest: 26 files, 220 tests (new: root-cause trace, refresher flow and ownership, report counts and CSV escaping, AI prompt contents without the learner's name, API refresher/ack/summary authorization and the no-key fallback). TypeScript, ESLint, and the production build pass.
+- Headless Chrome against a production build on a fresh `ROVA_DATA_DIR`: student ratios → answer request redirected → `7` (additive hint) → `8` (trace) → refresher 2, 4, 9 → back to ratios → `9 cups` solved; teacher alert shows "Solved after refresher", reteach acknowledged, the group dialog preselects 8 learners; Write AI summary shows the no-key notice; report tiles, one log row, CSV download, and print layout; parent sees both automatic updates. No page-level horizontal scroll at 390px on the teacher pages.
+- Not verified: a live model response (no API key in the build environment).

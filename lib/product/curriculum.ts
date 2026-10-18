@@ -1,7 +1,7 @@
 import { check_answer } from "@/lib/math/checkAnswer";
 
 export type Role = "student" | "teacher" | "parent";
-export type TopicId = "place-value" | "multiplication" | "division" | "fractions" | "measurement" | "geometry";
+export type TopicId = "place-value" | "multiplication" | "division" | "fractions" | "measurement" | "geometry" | "ratios";
 export interface Topic { id: TopicId; name: string; short: string; standard: string; description: string; symbol: string; color: string; activity: string; steps: string[] }
 export const topics: Topic[] = [
   { id: "place-value", name: "Place value", short: "Place value", standard: "4.NBT.A.2", description: "Big numbers, small building blocks.", symbol: "123", color: "sage", activity: "Build the biggest number", steps: ["Write four different digits on scraps of paper.", "Arrange them to make the largest number you can.", "Swap two digits. Explain how their values changed."] },
@@ -11,6 +11,11 @@ export const topics: Topic[] = [
   { id: "measurement", name: "Measurement", short: "Measure", standard: "4.MD.A.1", description: "Make sense of the world around you.", symbol: "↔", color: "blue", activity: "Measure your world", steps: ["Find an object about one meter long.", "Estimate its length in centimeters.", "Measure it together and compare your estimate."] },
   { id: "geometry", name: "Shapes & angles", short: "Geometry", standard: "4.MD.C.5", description: "A new angle on everyday shapes.", symbol: "∠", color: "rose", activity: "Go on an angle hunt", steps: ["Find a right angle in your room.", "Look for an angle smaller than it and one larger.", "Draw all three and label acute, right, or obtuse."] },
 ];
+// A grade 6 stretch topic outside the six grade 4 foundations. Its struggles trace back to
+// fractions (lib/product/rootCause.ts), so it is kept out of scores, class maps, and activities.
+export const ratiosTopic: Topic = { id: "ratios", name: "Ratios", short: "Ratios", standard: "6.RP.A.3", description: "Grade 6 preview: scale a recipe, keep the taste.", symbol: "∶", color: "blue", activity: "The recipe-ratio challenge", steps: ["Pick a recipe that uses 2 cups of one thing for every 3 of another.", "Double it together. What happens to both amounts?", "Ask: why does adding the same amount to both change the taste?"] };
+export const allTopics: Topic[] = [...topics, ratiosTopic];
+export function topicById(id: TopicId): Topic { return allTopics.find(t => t.id === id)!; }
 
 export interface PracticeQuestion { id: string; topic: TopicId; prompt: string; answer: string; hints: string[]; explanation: string; visual?: "fraction" | "groups" | "angle" }
 export const questions: PracticeQuestion[] = [
@@ -32,10 +37,13 @@ export const questions: PracticeQuestion[] = [
   { id: "ge1", topic: "geometry", prompt: "A right angle measures how many degrees?", answer: "90", hints: ["Think of the corner of a square.", "Four right angles make one full turn of 360 degrees.", "Divide 360 by 4."], explanation: "Every right angle measures 90 degrees.", visual: "angle" },
   { id: "ge2", topic: "geometry", prompt: "A straight angle is split into 60° and another angle. How many degrees is the other angle?", answer: "120", hints: ["A straight angle measures 180 degrees.", "Both smaller angles must add to 180.", "Subtract 60 from 180."], explanation: "Adjacent angles on a straight line sum to 180 degrees." },
   { id: "ge3", topic: "geometry", prompt: "A 90° angle is split into 35° and another angle. What is the missing angle?", answer: "55", hints: ["The two parts add up to the whole angle.", "The whole measures 90 degrees.", "Calculate 90 − 35."], explanation: "You can add and subtract angle measures just like lengths." },
+  { id: "ra1", topic: "ratios", prompt: "A lemonade recipe uses 2 cups of lemon juice for every 3 cups of water. How many cups of water go with 6 cups of lemon juice?", answer: "9", hints: ["Make a ratio table: 2 lemon to 3 water.", "How did 2 cups of lemon become 6? You multiplied by 3.", "Multiply the water by the same number: 3 × 3."], explanation: "Equivalent ratios scale both parts by the same factor: 2:3 = 6:9." },
+  { id: "ra2", topic: "ratios", prompt: "A map uses 1 inch for every 5 miles. How many miles do 4 inches show?", answer: "20", hints: ["Write the ratio 1 inch : 5 miles.", "The inches were multiplied by 4.", "Multiply the miles by 4 too."], explanation: "1:5 scales to 4:20 because both parts were multiplied by 4." },
+  { id: "ra3", topic: "ratios", prompt: "Fill in the missing number: 4 : 6 = 10 : ?", answer: "15", hints: ["Simplify 4 : 6 first. Both numbers share a factor of 2.", "4 : 6 is the same as 2 : 3.", "2 became 10 by multiplying by 5. Multiply 3 by 5."], explanation: "4:6, 2:3, and 10:15 are equivalent ratios, just like equivalent fractions." },
 ];
 
 export function gradeAnswer(questionId: string, answer: string): boolean {
   const q = questions.find((item) => item.id === questionId);
   if (!q || answer.length > 100 || !/^[\d\s.,/+-]+$/.test(answer.trim())) return false;
-  return check_answer({ id: q.id, skill_id: topics.find((t) => t.id === q.topic)!.standard, prompt: q.prompt, answer: q.answer }, answer).correct;
+  return check_answer({ id: q.id, skill_id: topicById(q.topic).standard, prompt: q.prompt, answer: q.answer }, answer).correct;
 }

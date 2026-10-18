@@ -1,4 +1,5 @@
-import { questions, topics } from "./curriculum";
+import { questions, topicById, topics } from "./curriculum";
+import { skillPhrase } from "./rootCause";
 import { scoreFor, type CoachSession, type Learner, type Workspace } from "./model";
 
 export function supportTopics(student: Learner, workspace: Workspace) {
@@ -31,7 +32,8 @@ export function summarizeLesson(workspace: Workspace, session: CoachSession) {
   const safety = session.messages.some(m => m.kind === "safety");
   const student = workspace.students.find(s => s.id === session.studentId);
   const name = student?.name.split(" ")[0] ?? "The learner";
-  const topic = topics.find(t => t.id === session.topic)!;
+  const topic = topicById(session.topic);
+  const earlier = session.trace ? topicById(session.trace.prerequisite) : undefined;
   const misconceptions = session.messages.filter(m => m.kind === "retry").map(m => m.text);
   const firstResponse = session.messages.find(m => m.role === "student");
   const lastResponse = [...session.messages].reverse().find(m => m.role === "student");
@@ -42,11 +44,13 @@ export function summarizeLesson(workspace: Workspace, session: CoachSession) {
       ? `${name} worked on ${topic.name.toLowerCase()} and solved ${solved.length} of ${set.length} questions. ${independent.length} ${independent.length === 1 ? "was" : "were"} solved on the first try without prior support; ${corrected.length} ${corrected.length === 1 ? "was" : "were"} corrected after a retry.`
       : `${name} opened a ${topic.name.toLowerCase()} lesson. No answers have been checked yet.`,
     challenge: safety ? "A personal safety concern was flagged. Review the conversation and check in with the learner."
+      : earlier ? `Two checked misses on one ${topic.name.toLowerCase()} question were traced to an earlier skill: ${skillPhrase[earlier.id] ?? earlier.name.toLowerCase()} (${earlier.standard}).`
       : misconceptions.some(text => text.includes("original pieces")) ? "The first garden response suggests confusion between the original halves and the smaller fourths."
       : attempts.some(a => !a.correct) ? `Some ${topic.name.toLowerCase()} answers needed another attempt. Review the question-by-question evidence before choosing a refresher.`
       : "No incorrect checked answers recorded in this lesson so far.",
     support: `Guiding hints and retry nudges: ${nudges}. Concept explanations: ${explanations}. Answer-request or off-topic redirects: ${redirects}. The full conversation shows each support step.`,
     nextStep: safety ? "Prioritize a personal check-in before more math practice."
+      : earlier && !session.trace?.fixedAt ? `Check that ${name} finishes the ${earlier.name.toLowerCase()} refresher, then returns to the ${topic.name.toLowerCase()} question.`
       : solved.length === set.length ? `Ask ${name} to explain an example of ${topic.name.toLowerCase()} without the coach, then use a fresh problem to check transfer.`
       : `Resume the lesson with ${name} and work through the remaining ${set.length - solved.length} question${set.length - solved.length === 1 ? "" : "s"}.`,
   };

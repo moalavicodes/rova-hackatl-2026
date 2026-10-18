@@ -50,10 +50,26 @@ Optional visual moment: open **Visual guide**, then click **Split into smaller p
 
 Show **My progress**: “Your growing strengths” sits beside “Your next breakthroughs.” The latter opens targeted practice for the topics that need work.
 
+## 2b. Stuck on ratios: the root-cause loop
+
+Still signed in as the student, scroll to **Stretch challenge · Grade 6 preview** and choose **Try the ratio challenge → Start our conversation**.
+
+Say: “When a student is stuck, the problem often started in an earlier grade. Rova finds that skill with code, not guesswork.”
+
+| Student action | What to point out |
+| --- | --- |
+| Type `7` | Code checks it. Rova names the misconception: adding the same amount to both parts instead of multiplying. |
+| Type `8` | Two checked misses on one question: Rova traces the gap to **equivalent fractions (4.NF.A.1)** and a banner offers a refresher. |
+| **Start refresher → Start our conversation**, then `2`, **Next question**, `4`, **Next question**, `9` | A three-question fractions refresher; each answer is checked by code. |
+| **Back to ratios**, then type `9 cups` | The original ratio question is solved after the refresher. |
+
 ## 3. A teacher sees what happened, quickly
 
 Sign out and log in as the teacher.
 
+- On **Overview**, the **learning alert** for Maya shows the evidence (her answers 7 and 8), the root cause (equivalent fractions, 4.NF.A.1), a 5-minute reteach, the family update, and “Solved after refresher”. Click **Mark reteach planned**, then **Share a fractions refresher with this group**: the classmates with the same low signal are preselected (their signal includes simulated profiles). Say the 7-day re-check is planned, not built.
+- Select **Progress report**: tiles count lessons, code-checked questions, root causes found, teacher actions, and family updates. Show **Export intervention log (CSV)** and **Print report**. Say: “This is the paperwork MTSS already requires, produced as a by-product.”
+- In a lesson review, **Write AI summary** calls a model only when the server has `ANTHROPIC_API_KEY`. Without a key, it says so and keeps the scripted summary; don’t describe the scripted summary as AI.
 - Select **Learning insights**. On a fresh run using the script above, the fractions graph shows **one independent success, two successes after support/retry, and one corrected question**. Seeded starting history is excluded.
 - Select **Learning plans**. Maya is completed (3/3), while classmates who have not started remain not started.
 - Click **Review lesson** beside Maya. A dedicated modal opens above the classroom.
@@ -70,7 +86,7 @@ Optional: **My classroom → Maya’s learning story → Share family update**. 
 
 Sign out and log in as the parent.
 
-- Show **Learning journey** and **Classroom updates** to connect school practice and the family note.
+- Show **Learning journey** and **Classroom updates** to connect school practice and the family note. After the ratios run, two automatic updates from Rova appear: the at-home activity when the gap was found, and the win message. They are saved in Rova only; SMS delivery is planned.
 - Select **Learn together**. Complete all three paper-folding checkpoints.
 - Show the completion celebration, the new activity, and the collapsed completed-activities history. If all six activities are completed, the page says “You’re all caught up” instead of recycling work.
 

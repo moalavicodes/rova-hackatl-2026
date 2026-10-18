@@ -48,4 +48,40 @@ describe("learning API coaching authorization", () => {
     expect(plan.completed).toBe(true);
     expect(state.db.workspace.attempts.filter(a => a.planId === plan.id)).toHaveLength(3);
   });
+  it("opens a refresher only from the learner’s own traced ratios session", async () => {
+    const ratios = (await (await request({ action: "coach-start", topic: "ratios" })).json()).session;
+    for (const [index, text] of ["7", "8"].entries()) await request({ action: "coach-turn", sessionId: ratios.id, id: `miss-000${index}`, text });
+    expect(state.db.workspace.sessions?.[0].trace?.prerequisite).toBe("fractions");
+    expect((await request({ action: "coach-start", topic: "geometry", refresherFor: ratios.id })).status).toBe(400);
+    const refresher = await request({ action: "coach-start", topic: "fractions", refresherFor: ratios.id });
+    expect(refresher.status).toBe(200);
+    expect((await refresher.json()).session.refresherFor).toBe(ratios.id);
+    state.account!.id = "learner-1";
+    expect((await request({ action: "coach-start", topic: "fractions", refresherFor: ratios.id })).status).toBe(400);
+  });
+  it("lets only teachers acknowledge a learning alert", async () => {
+    const ratios = (await (await request({ action: "coach-start", topic: "ratios" })).json()).session;
+    for (const [index, text] of ["7", "8"].entries()) await request({ action: "coach-turn", sessionId: ratios.id, id: `miss-000${index}`, text });
+    expect((await request({ action: "trace-ack", sessionId: ratios.id })).status).toBe(403);
+    state.account!.role = "teacher";
+    expect((await request({ action: "trace-ack", sessionId: ratios.id })).status).toBe(200);
+    expect(state.db.workspace.sessions?.[0].trace?.acknowledgedAt).toBeDefined();
+  });
+  it("falls back to the scripted summary when no AI key is configured", async () => {
+    const saved = { key: process.env.ANTHROPIC_API_KEY, token: process.env.ANTHROPIC_AUTH_TOKEN };
+    delete process.env.ANTHROPIC_API_KEY; delete process.env.ANTHROPIC_AUTH_TOKEN;
+    try {
+      const session = (await (await request({ action: "coach-start", topic: "fractions" })).json()).session;
+      expect((await request({ action: "ai-summary", sessionId: session.id })).status).toBe(403);
+      state.account!.role = "teacher";
+      const response = await request({ action: "ai-summary", sessionId: session.id });
+      const body = await response.json();
+      expect(response.status).toBe(200);
+      expect(body.aiSummary).toBeNull();
+      expect(body.notice).toContain("scripted summary");
+    } finally {
+      if (saved.key !== undefined) process.env.ANTHROPIC_API_KEY = saved.key;
+      if (saved.token !== undefined) process.env.ANTHROPIC_AUTH_TOKEN = saved.token;
+    }
+  });
 });

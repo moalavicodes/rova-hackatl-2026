@@ -1,15 +1,16 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { questions, topics, type TopicId } from "@/lib/product/curriculum";
+import { questions, topicById, type TopicId } from "@/lib/product/curriculum";
+import { skillName, traceStatus } from "@/lib/product/rootCause";
 import type { CoachSession } from "@/lib/product/model";
 import { Icon } from "./Brand";
 import { Modal, type Mutate } from "./Shared";
 import { LessonVisual } from "./LessonVisual";
 
-export function Practice({ topicId, planId, sessions = [], mutate, onClose }: { topicId: TopicId; planId?: string; sessions?: CoachSession[]; mutate: Mutate; onClose: () => void }) {
-  const topic = topics.find(t => t.id === topicId)!;
+export function Practice({ topicId, planId, refresherFor, sessions = [], mutate, onClose, onOpen }: { topicId: TopicId; planId?: string; refresherFor?: string; sessions?: CoachSession[]; mutate: Mutate; onClose: () => void; onOpen?: (topic: TopicId, refresherFor?: string) => void }) {
+  const topic = topicById(topicId);
   const set = questions.filter(q => q.topic === topicId);
-  const [session, setSession] = useState<CoachSession | null>(() => [...sessions].reverse().find(s => s.topic === topicId && s.planId === planId && (!s.completedAt || planId)) ?? null);
+  const [session, setSession] = useState<CoachSession | null>(() => [...sessions].reverse().find(s => s.topic === topicId && s.planId === planId && s.refresherFor === refresherFor && (!s.completedAt || planId || refresherFor)) ?? null);
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -20,6 +21,8 @@ export function Practice({ topicId, planId, sessions = [], mutate, onClose }: { 
   const locked = useRef(false);
   const q = set[session?.questionIndex ?? 0];
   const solved = session?.messages.some(m => m.questionId === q.id && m.kind === "correct") ?? false;
+  const traced = refresherFor ? sessions.find(s => s.id === refresherFor) : undefined;
+  const trace = session?.trace && !session.trace.fixedAt ? session.trace : undefined;
   useEffect(() => {
     if (followLatest.current && thread.current) thread.current.scrollTop = thread.current.scrollHeight;
   }, [session?.messages.length]);
@@ -27,7 +30,7 @@ export function Practice({ topicId, planId, sessions = [], mutate, onClose }: { 
   async function start() {
     if (locked.current) return;
     locked.current = true; setBusy(true); setError("");
-    const response = await mutate({ action: "coach-start", topic: topicId, planId });
+    const response = await mutate({ action: "coach-start", topic: topicId, planId, refresherFor });
     if (response?.session) setSession(response.session);
     else setError("Your coach couldn’t open. Please try again.");
     locked.current = false; setBusy(false);
@@ -53,7 +56,7 @@ export function Practice({ topicId, planId, sessions = [], mutate, onClose }: { 
   return <Modal title={`${topic.name} · Chat with Rova`} onClose={onClose} wide className="practice-dialog">
     {!session ? <div className="coach-welcome"><span className="topic-symbol sage"><Icon name="leaf" size={30}/></span><span className="eyebrow">A coach who helps you think</span><h3>Let’s talk it through.</h3><p>Share a guess, ask a question, or tell Rova where you’re stuck. Your conversation stays here, so you can always look back.</p><button className="btn btn-dark" onClick={start} disabled={busy}>{busy ? "Opening…" : "Start our conversation"}<Icon name="arrow"/></button><small className="coach-disclosure">Scripted coach · AI model planned</small>{error && <p role="alert">{error}</p>}</div>
     : <div className="practice-messenger">
-      <div className="messenger-problem"><div className="messenger-problem-meta"><span>{planId ? "Assigned lesson" : "Practice"} · Question {session.questionIndex + 1} of {set.length}</span><span>{topic.standard}</span></div><h3>{q.prompt}</h3><details className="messenger-guide" key={q.id}><summary><Icon name="book" size={15}/>Open visual guide</summary><LessonVisual question={q}/></details></div>
+      <div className="messenger-problem"><div className="messenger-problem-meta"><span>{planId ? "Assigned lesson" : refresherFor ? "Refresher" : "Practice"} · Question {session.questionIndex + 1} of {set.length}</span><span>{topic.standard}</span></div><h3>{q.prompt}</h3><details className="messenger-guide" key={q.id}><summary><Icon name="book" size={15}/>Open visual guide</summary><LessonVisual question={q}/></details></div>
       <div className="messenger-thread" ref={thread} role="log" aria-label="Conversation with Rova" aria-live="polite" aria-relevant="additions" onScroll={e => { const el = e.currentTarget; followLatest.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80; }}>
         <div className="messenger-start"><Icon name="leaf" size={15}/>Rova is here to help you think · Scripted coach</div>
         {session.messages.map((message, index) => {
@@ -70,6 +73,8 @@ export function Practice({ topicId, planId, sessions = [], mutate, onClose }: { 
       <div className="messenger-compose">
         {solved ? <div className="messenger-solved" role="status"><span><Icon name="check" size={17}/>{session.completedAt ? "Lesson complete · Shared with your teacher" : "Answer checked. Nice thinking!"}</span><button className="btn btn-dark" disabled={busy} onClick={session.completedAt ? onClose : next}>{session.completedAt ? "Finish lesson" : "Next question"}<Icon name="arrow" size={16}/></button></div>
         : <div className="messenger-suggestions">{["I’m stuck", "Show me a picture", "Why does this work?"].map(value => <button key={value} disabled={busy} onClick={() => send(value)}>{value}</button>)}</div>}
+        {trace && onOpen && <div className="trace-banner" role="status"><span><strong>Root cause found · {skillName(trace.prerequisite)} ({trace.standard})</strong>{traceStatus(trace) === "Refresher completed" ? "Refresher done. Try this question again." : "Three short questions, then come back here."}</span>{traceStatus(trace) !== "Refresher completed" && <button className="btn btn-dark" disabled={busy} onClick={() => onOpen(trace.prerequisite, session!.id)}>{trace.refresherSessionId ? "Continue refresher" : "Start refresher"}<Icon name="arrow" size={16}/></button>}</div>}
+        {traced && session.completedAt && onOpen && <div className="trace-banner" role="status"><span><strong>Refresher complete</strong>Now go back to your {topicById(traced.topic).name.toLowerCase()} question.</span><button className="btn btn-dark" onClick={() => onOpen(traced.topic)}>Back to {topicById(traced.topic).name.toLowerCase()}<Icon name="arrow" size={16}/></button></div>}
         {error && <p className="form-error" role="alert">{error}</p>}
         <form onSubmit={e => { e.preventDefault(); void send(text); }}><label className="sr-only" htmlFor="rova-message">Message Rova or try an answer</label><textarea ref={composer} id="rova-message" value={text} onChange={e => setText(e.target.value)} onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); void send(text); } }} placeholder="Message Rova or try an answer…" maxLength={600} rows={1} readOnly={busy}/><button className="messenger-send" disabled={busy || !text.trim()} aria-label={busy ? "Sending message" : "Send message"}><Icon name="arrow" size={21}/></button></form>
         <small>Your teacher can see this conversation · AI model planned</small>

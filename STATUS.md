@@ -12,12 +12,15 @@ The integration owner consolidates this file after merges. During feature work, 
 
 ## Current state
 
-- **Current app (D-009):** commit 3439f5a ("new UI", pushed to `main` without a PR) replaced all four pages with a new grade 4 app in `components/product/` and `lib/product/`. The team chose to keep it. See README §8 and §17.
-  - Working: sample logins and sign-up with class/family codes; student practice on six topics with 3-step hints and code-checked answers; teacher shared-gap view, class table, learning plans, notes to families; parent progress, activity checklists, teacher notes.
-  - Not tested: the new screens and `lib/product/` have no tests yet.
-- **Built but not connected:** the earlier closed loop and views (PRs #1–#13 and e390088): root-cause trace, alerts, 7-day re-check, parent texts, safety reports, Reset demo, the free-text tutor, and C7/C8 of the earlier redesign. All tested; nothing on screen uses them.
+- **Current app (D-009):** the grade 4 app in `components/product/` and `lib/product/`, with conversational coaching, the ratio root-cause loop, assigned lessons, and lesson reviews (PR #15).
+- **PR #16 (branch `feat/teacher-insights-pr16`):**
+  - Teacher overview with four intentional numbers (need you today, class momentum, reteach next, is it working), topics-by-status chart, status learner cards, and a student panel with a confidence chart, rule-based why facts, an answer timeline, and before/after for group lessons.
+  - On track / behind / stagnant rule (D-010) and rule-based why insights (D-011), with a common-mistake catalog for all 21 questions now also used by the coach.
+  - Progress report rebuilt: shared filters, momentum and topic charts, sortable learner table with trend lines, *Is it working?*, intervention log with filters and 5-per-page paging (export and print use all filtered rows).
+  - Parent view: *This week* + *Progress* (D-012).
+  - Hands-on visuals for every topic (pie charts for fractions and more); fixed a place-value picture that showed an answer.
+  - Pictures for all 17 simulated classmates; slogans and repeated text removed across views.
 - **Blocked:** deploying to Vercel (the app writes a JSON file at runtime).
-- **Decided:** keep the new app (D-009); no AI model for now (D-004); hosting on Vercel (D-006, blocked by storage).
 
 ## Open questions
 
@@ -37,6 +40,8 @@ The integration owner consolidates this file after merges. During feature work, 
 5. Demo acceptance check from README §8: 3 full runs, then 5 minutes of free use.
 
 ## Verification
+
+- 2026-10-18 on `feat/teacher-insights-pr16`: 244/244 tests, tsc and lint clean, production build succeeds. Chrome: teacher overview, classroom cards, student panel (James, Maya), report filters from the top numbers and chart segments, log pager, parent This week, student pie chart; live ratio run → Maya first in Need you today with a live root-cause fact and an answer timeline.
 
 - 2026-10-17 `main` at 3439f5a: 151/151 tests (old code), lint clean. Chrome: student login → fractions practice (wrong answers get "Not quite yet", hints work) → teacher sees "A shared gap in fractions" and class table.
 

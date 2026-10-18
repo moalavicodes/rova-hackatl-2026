@@ -24,10 +24,10 @@ export function WorkspaceApp({ role }: { role: Role }) {
   if(!profile||!workspace)return <main className="workspace-loading"><Brand/><span className="loading-leaf"><Icon name="leaf" size={32}/></span><h1>A little room for learning.</h1><p>{error||"Opening your workspace…"}</p>{error&&<button className="btn btn-dark" onClick={load}>Try again</button>}</main>;
   return <div data-section={section} className={`workspace-layout ${collapsed ? "workspace-collapsed" : ""}`}>
     <aside id="workspace-navigation" className={`workspace-sidebar ${mobile ? "sidebar-open" : ""}`}><Brand/>
-      <div className="sidebar-school"><span className="school-icon"><Icon name="book" size={18}/></span><div><strong>{profile.school || "Our learning community"}</strong><span>Growing together</span></div></div>
+      <div className="sidebar-school"><span className="school-icon"><Icon name="book" size={18}/></span><div><strong>{profile.school || "Our learning community"}</strong><span>Grade 4 math</span></div></div>
       <span className="sidebar-label">Your workspace</span>
       <nav aria-label="Workspace navigation">{navigation[role].map(item => <a key={item.id} href={`#${item.id}`} className={section === item.id ? "active" : ""} title={item.label} aria-label={item.label} aria-current={section === item.id ? "page" : undefined} onClick={() => { setMobile(false); window.scrollTo({ top: 0, behavior: "instant" }); }}><Icon name={item.icon}/><span>{item.label}</span>{role === "teacher" && item.id === "plans" && workspace.plans.some(p => !p.completed) && <small>{workspace.plans.filter(p => !p.completed).length}</small>}</a>)}</nav>
-      <div className="sidebar-note"><Icon name="leaf" size={25}/><p>Small steps.<br/><strong>Lasting understanding.</strong></p></div>
+      
       <div className="sidebar-bottom"><button aria-label="Log out" title="Log out" onClick={logout}><Icon name="logout"/><span>Log out</span></button></div>
       <button className="sidebar-profile" aria-label="Edit my profile" onClick={() => { setEditing(true); setMobile(false); }}><Avatar name={profile.name} id={profile.id} color={profile.avatar}/><span><strong>{profile.name}</strong><small>View my profile</small></span><Icon name="chevron" size={14}/></button>
     </aside>{mobile && <button className="sidebar-scrim" aria-label="Close navigation" onClick={() => setMobile(false)}/>}
@@ -37,10 +37,10 @@ export function WorkspaceApp({ role }: { role: Role }) {
       <span>{navigation[role].find(item => item.id === section)?.label}<span className="breadcrumb-separator">/</span><span className="quiet">Grade 4 mathematics</span></span>
       <div><span className="today-date">{new Date().toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}</span><button className="profile-top-button" onClick={() => setEditing(true)} aria-label="Edit my profile"><Avatar name={profile.name} id={profile.id} color={profile.avatar} small/></button></div>
     </header><main className="workspace-content" id="main-content" tabIndex={-1}>
-      {section !== "overview" && <div className="section-page-heading"><span className="eyebrow">Grade 4 · Mathematics</span><h1>{navigation[role].find(item => item.id === section)?.label}</h1></div>}
+      {section !== "overview" && <div className="section-page-heading"><h1>{navigation[role].find(item => item.id === section)?.label}</h1></div>}
       {error && <div className="form-error" role="alert">{error}<button className="text-link" onClick={() => setError("")}>Dismiss</button></div>}
       {role === "teacher" ? <TeacherDashboard profile={profile} workspace={workspace} section={section} mutate={mutate}/> : role === "student" ? <StudentDashboard profile={profile} workspace={workspace} section={section} mutate={mutate}/> : <ParentDashboard profile={profile} workspace={workspace} section={section} mutate={mutate}/>}
-      <footer className="workspace-footer"><span>Made for the way understanding grows.</span><span>Simulated classroom · Presentation accounts</span></footer>
+      <footer className="workspace-footer"><span>Simulated classroom · sample accounts</span></footer>
     </main></div>
     {editing&&<ProfileEditor profile={profile} onClose={()=>setEditing(false)} onSave={p=>{setProfile(p);setEditing(false);void load();}}/>}
   </div>;

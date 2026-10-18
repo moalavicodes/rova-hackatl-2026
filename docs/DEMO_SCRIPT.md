@@ -21,12 +21,12 @@ Open `http://localhost:3000/login`. Sign out between roles when using one browse
 
 Log in as the teacher.
 
-Say: “An average can hide a learner who needs help everywhere. Rova brings that student forward.”
+Say: “Four numbers, each answering a question a teacher asks every morning.”
 
-- Show the priority check-in for **James Walker**, whose simulated starting confidence is below 60% across all six topics.
-- Open James’s learning story to show the six foundations, then close it.
-- Select **My classroom**: the page title and URL change to `#classroom`. James is the first highlighted learner card. Search and filter controls have matching dimensions.
-- Return to **Overview**, then choose **Build a small-group lesson** for fractions. Keep Maya in the group, adjust the other members if desired, and share it.
+- Point to the top row: **Need you today** (James and others, each with a reason), **Class momentum** (8 on track · 5 behind · 5 stagnant against a 70% target by the unit’s end), **Reteach next: Fractions**, and **Is it working?**
+- Click **James** in *Need you today*: his panel says *stagnant in fractions, at 32%, no change over two weeks*, links it to multiplication (skill map), and gives one next step. Hollow chart points are simulated history. Close it.
+- Click **5 stagnant**: the progress report opens filtered to those learners.
+- Return to **Overview**, then choose **Build a small group** under *Reteach next*. Learners behind or stagnant in fractions are preselected; keep Maya in the group and share it.
 
 Say: “The lesson lands on each selected student’s dashboard. Completion is tracked individually; assigning the lesson does not mark anyone as done.”
 
@@ -85,8 +85,9 @@ Optional: **My classroom → Maya’s learning story → Share family update**. 
 
 Sign out and log in as the parent.
 
-- Show **Learning journey** and **Classroom updates** to connect school practice and the family note. After the ratios run, two automatic updates from Rova appear: the at-home activity when the gap was found, and the win message. They are saved in Rova only; SMS delivery is planned.
-- Select **Learn together**. Complete all three paper-folding checkpoints.
+- **This week** opens with one sentence on how Maya is doing, each topic in plain words, why, what school is doing (the small group and the refresher), and wins from her live practice. Under **Messages**, two automatic updates from Rova appear after the ratios run: the at-home activity when the gap was found, and the win message. They are saved in Rova only; SMS delivery is planned.
+- In **Tonight’s 10 minutes**, complete all three paper-folding checkpoints.
+- Optional: **Progress** shows each topic’s confidence against the class goal.
 - Show the completion celebration, the new activity, and the collapsed completed-activities history. If all six activities are completed, the page says “You’re all caught up” instead of recycling work.
 
 Say: “Families get something specific they can do—and see that their effort counted.”

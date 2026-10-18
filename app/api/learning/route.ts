@@ -1,11 +1,12 @@
 import { randomUUID } from "node:crypto";
-import { currentAccount, database, sameOrigin, visibleWorkspace } from "@/lib/product/server";
+import { rm } from "node:fs/promises";
+import path from "node:path";
+import { currentAccount, database, materialsDirectory, sameOrigin, visibleWorkspace } from "@/lib/product/server";
 import { allTopics, topics, type TopicId } from "@/lib/product/curriculum";
 import { advanceCoaching, coachingTurn, lessonProgress, startCoaching } from "@/lib/product/coaching";
-import { DEFAULT_LESSON_QUESTIONS, MAX_LESSON_QUESTIONS, bankFor, gradeQuestion, inBankOrder, isBuiltIn, pickQuestionIds, questionById, validateDraft } from "@/lib/product/bank";
-import type { CoachSession, Material } from "@/lib/product/model";
+import { DEFAULT_LESSON_QUESTIONS, MAX_LESSON_QUESTIONS, bankFor, gradeQuestion, inBankOrder, isBuiltIn, pickQuestionIds, questionById, validateDraft, validateMaterial } from "@/lib/product/bank";
+import type { CoachSession } from "@/lib/product/model";
 
-const materialKinds: Material["kind"][] = ["handbook", "textbook", "curriculum", "other"];
 const clean = (value: unknown, max: number) => String(value ?? "").trim().slice(0, max);
 
 export const runtime = "nodejs";
@@ -70,16 +71,16 @@ export async function POST(request: Request) {
         if (db.workspace.plans.some((p) => p.questionIds?.includes(id)) || db.workspace.sessions?.some((s) => s.questionIds?.includes(id))) return Response.json({ error: "That question is part of a shared lesson, so it stays in the bank." }, { status: 400 });
         db.workspace.questions = db.workspace.questions.filter((q) => q.id !== id);
       } else if (body.action === "material-add" && account.role === "teacher") {
-        const title = clean(body.title, 120);
-        const topicIds = Array.isArray(body.topics) ? allTopics.filter((t) => body.topics.includes(t.id)).map((t) => t.id) : [];
-        const kind = materialKinds.find((k) => k === body.kind);
-        if (title.length < 2 || !topicIds.length || !kind) return Response.json({ error: "Give the material a title, a kind, and at least one topic." }, { status: 400 });
+        const material = validateMaterial(body);
+        if ("error" in material) return Response.json({ error: material.error }, { status: 400 });
         if ((db.workspace.materials?.length ?? 0) >= 50) return Response.json({ error: "Remove a material before adding another." }, { status: 400 });
-        (db.workspace.materials ??= []).push({ id: randomUUID(), title, kind, topics: topicIds, notes: clean(body.notes, 2000), at: now });
+        (db.workspace.materials ??= []).push({ id: randomUUID(), ...material, at: now });
       } else if (body.action === "material-remove" && account.role === "teacher") {
         const id = String(body.id ?? "");
-        if (!db.workspace.materials?.some((m) => m.id === id)) return Response.json({ error: "Choose a material." }, { status: 400 });
-        db.workspace.materials = db.workspace.materials.filter((m) => m.id !== id);
+        const material = db.workspace.materials?.find((m) => m.id === id);
+        if (!material) return Response.json({ error: "Choose a material." }, { status: 400 });
+        if (material.file) await rm(path.join(materialsDirectory, `${material.id}.${material.file.ext}`), { force: true });
+        db.workspace.materials = db.workspace.materials!.filter((m) => m.id !== id);
         for (const q of db.workspace.questions ?? []) if (q.source === id) q.source = undefined;
       } else if (body.action === "complete-plan" && account.role === "teacher") {
         const plan = db.workspace.plans.find((p) => p.id === body.id);

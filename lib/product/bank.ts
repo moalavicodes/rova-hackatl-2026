@@ -1,10 +1,28 @@
 // The question bank: built-in questions plus the ones a teacher adds, and rule-generated
 // suggestions. Every question's answer is known to code, so grading never depends on a model.
 import { check_answer } from "@/lib/math/checkAnswer";
-import { questions, topicById, type PracticeQuestion, type TopicId } from "./curriculum";
+import { allTopics, questions, topicById, type PracticeQuestion, type TopicId } from "./curriculum";
+const allTopicIds: TopicId[] = allTopics.map((t) => t.id);
 import type { BankQuestion, Material, Workspace } from "./model";
 
 export const DEFAULT_LESSON_QUESTIONS = 3;
+export const MATERIAL_KINDS: Material["kind"][] = ["handbook", "textbook", "curriculum", "other"];
+// Course files a teacher may upload: PDFs and documents, up to 10 MB.
+export const MATERIAL_FILE_TYPES: Record<string, string> = { pdf: "application/pdf", doc: "application/msword", docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document", txt: "text/plain", md: "text/markdown" };
+export const MATERIAL_FILE_LIMIT = 10 * 1024 * 1024;
+export function materialExtension(name: string): string | null {
+  const ext = name.toLowerCase().match(/\.([a-z0-9]+)$/)?.[1] ?? "";
+  return ext in MATERIAL_FILE_TYPES ? ext : null;
+}
+// Checks the fields of a course material the way both the JSON and the upload routes need.
+export function validateMaterial(fields: { title?: unknown; kind?: unknown; topics?: unknown; notes?: unknown }): { error: string } | { title: string; kind: Material["kind"]; topics: TopicId[]; notes: string } {
+  const title = String(fields.title ?? "").trim().slice(0, 120);
+  const kind = MATERIAL_KINDS.find((k) => k === fields.kind);
+  const wanted = Array.isArray(fields.topics) ? fields.topics : [];
+  const topics = allTopicIds.filter((t) => wanted.includes(t));
+  if (title.length < 2 || !topics.length || !kind) return { error: "Give the material a title, a kind, and at least one topic." };
+  return { title, kind, topics, notes: String(fields.notes ?? "").trim().slice(0, 2000) };
+}
 export const MAX_LESSON_QUESTIONS = 10;
 
 export function builtInFor(topic: TopicId): PracticeQuestion[] {

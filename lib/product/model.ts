@@ -9,7 +9,9 @@ export interface RootCauseTrace { prerequisite: TopicId; standard: string; quest
 export interface CoachSession { id: string; studentId: string; topic: TopicId; planId?: string; refresherFor?: string; questionIds?: string[]; questionIndex: number; messages: CoachMessage[]; startedAt: string; completedAt?: string; trace?: RootCauseTrace }
 export interface Plan { id: string; topic: TopicId; studentIds: string[]; at: string; completed?: boolean; questionIds?: string[] }
 // Course handbooks, course books, and curriculum materials a teacher adds; bank questions reference them.
-export interface Material { id: string; title: string; kind: "handbook" | "textbook" | "curriculum" | "other"; topics: TopicId[]; notes: string; at: string }
+// An uploaded PDF or document is kept on disk under the data directory; only its details are saved here.
+export interface MaterialFile { name: string; type: string; size: number; ext: string }
+export interface Material { id: string; title: string; kind: "handbook" | "textbook" | "curriculum" | "other"; topics: TopicId[]; notes: string; at: string; file?: MaterialFile }
 // A question a teacher wrote or accepted from a suggestion. Shaped like a built-in question so the coach treats it the same.
 export interface BankQuestion { id: string; topic: TopicId; prompt: string; answer: string; hints: string[]; explanation: string; guide: string; simple: string; source?: string; origin: "teacher" | "suggested"; at: string }
 export interface Note { id: string; studentId: string; text: string; author: string; authorId?: string; at: string; automatic?: boolean }

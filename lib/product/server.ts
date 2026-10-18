@@ -9,6 +9,8 @@ import type { Role } from "./curriculum";
 // Deliberately JSON-backed for the requested presentation. No real student data.
 // The writable directory can be supplied by a local host; it is not a production database.
 const directory = process.env.ROVA_DATA_DIR || path.join(process.cwd(), ".rova");
+// Uploaded course materials live beside the workspace file, never inside it.
+export const materialsDirectory = path.join(directory, "materials");
 const filename = path.join(directory, "workspace.json");
 interface Account extends Profile { hash: string; salt: string; linkedStudentId?: string }
 interface Database { accounts: Account[]; workspace: Workspace; secret: string }

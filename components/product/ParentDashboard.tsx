@@ -116,7 +116,6 @@ export function ParentDashboard({
       <div className="parent-columns">
         <section className="surface">
           <h3 className="with-ai-mark"><span className="ai-mark" title="Written by Rova from checked practice"><Icon name="sparkle" size={18}/></span>What we noticed</h3>
-          <p className="parent-subtle">In plain words, from {name}’s checked practice.</p>
           {why.length ? (
             <ul className="parent-why">
               {why.map((line) => <li key={line}>{line}</li>)}

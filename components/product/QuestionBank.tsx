@@ -1,7 +1,7 @@
 "use client";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { allTopics, type TopicId } from "@/lib/product/curriculum";
-import { bankFor, isBuiltIn, materialsFor, suggestedQuestions, validateDraft, type Draft } from "@/lib/product/bank";
+import { MATERIAL_FILE_LIMIT, bankFor, isBuiltIn, materialExtension, materialsFor, suggestedQuestions, validateDraft, type Draft } from "@/lib/product/bank";
 import type { Material, Workspace } from "@/lib/product/model";
 import { Icon } from "./Brand";
 import type { Mutate } from "./Shared";
@@ -21,6 +21,8 @@ export function QuestionBank({ workspace, mutate }: { workspace: Workspace; muta
   const [draft, setDraft] = useState<Draft>(emptyDraft("fractions"));
   const [source, setSource] = useState("");
   const [material, setMaterial] = useState<{ title: string; kind: Material["kind"]; topics: TopicId[]; notes: string }>({ title: "", kind: "handbook", topics: ["fractions"], notes: "" });
+  const [file, setFile] = useState<File | null>(null);
+  const fileInput = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [note, setNote] = useState("");
@@ -30,7 +32,7 @@ export function QuestionBank({ workspace, mutate }: { workspace: Workspace; muta
   const suggestions = suggestedQuestions(workspace, topic);
   const materialName = (id?: string) => materials.find((m) => m.id === id)?.title;
 
-  async function run(body: Record<string, unknown>, done: string) {
+  async function run(body: Record<string, unknown> | FormData, done: string) {
     if (busy) return false;
     setBusy(true);
     setError("");
@@ -56,7 +58,19 @@ export function QuestionBank({ workspace, mutate }: { workspace: Workspace; muta
   async function addMaterial() {
     if (material.title.trim().length < 2) return setError("Give the material a title.");
     if (!material.topics.length) return setError("Choose at least one topic the material covers.");
-    if (await run({ action: "material-add", ...material }, `${material.title.trim()} added.`)) setMaterial({ title: "", kind: "handbook", topics: [topic], notes: "" });
+    if (file && !materialExtension(file.name)) return setError("Upload a PDF, Word document, or text file.");
+    if (file && file.size > MATERIAL_FILE_LIMIT) return setError("Files can be up to 10 MB.");
+    const form = new FormData();
+    form.set("title", material.title);
+    form.set("kind", material.kind);
+    form.set("topics", JSON.stringify(material.topics));
+    form.set("notes", material.notes);
+    if (file) form.set("file", file);
+    if (await run(form, `${material.title.trim()} added.`)) {
+      setMaterial({ title: "", kind: "handbook", topics: [topic], notes: "" });
+      setFile(null);
+      if (fileInput.current) fileInput.current.value = "";
+    }
   }
 
   return (
@@ -65,7 +79,7 @@ export function QuestionBank({ workspace, mutate }: { workspace: Workspace; muta
         <div className="section-heading">
           <div>
             <h2>Course materials</h2>
-            <p>Questions are written from these. Add your handbook, course book, and curriculum materials so suggestions reference them.</p>
+            <p>Questions are written from these. Add your handbook, course book, and curriculum materials, with the PDF or document, so suggestions reference them.</p>
           </div>
         </div>
         {materials.length ? (
@@ -77,8 +91,14 @@ export function QuestionBank({ workspace, mutate }: { workspace: Workspace; muta
                   <strong>{m.title}</strong>
                   <small>
                     {kinds.find((k) => k.value === m.kind)?.label} · {m.topics.map((t) => allTopics.find((x) => x.id === t)?.name).join(", ")}
-                    {m.notes && ` · ${m.notes}`}
+                    {m.notes && ` · ${m.notes.length > 160 ? m.notes.slice(0, 160) + "…" : m.notes}`}
                   </small>
+                  {m.file && (
+                    <a className="material-file" href={`/api/materials/${m.id}`} target="_blank" rel="noopener">
+                      <Icon name="arrow" size={14} />
+                      {m.file.name} · {m.file.size >= 1024 * 1024 ? `${(m.file.size / 1024 / 1024).toFixed(1)} MB` : `${Math.max(1, Math.round(m.file.size / 1024))} KB`}
+                    </a>
+                  )}
                 </div>
                 <button className="text-link" disabled={busy} onClick={() => run({ action: "material-remove", id: m.id }, "Material removed.")}>
                   Remove
@@ -119,6 +139,10 @@ export function QuestionBank({ workspace, mutate }: { workspace: Workspace; muta
               </label>
             ))}
           </fieldset>
+          <label className="wide file-field">
+            File (PDF, Word, or text · up to 10 MB · optional)
+            <input ref={fileInput} type="file" accept=".pdf,.doc,.docx,.txt,.md" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
+          </label>
           <label className="wide">
             Notes, pages, or an excerpt the questions should follow
             <textarea value={material.notes} maxLength={2000} rows={2} placeholder="Chapter 5, pages 112–118: equivalent fractions with area models." onChange={(e) => setMaterial({ ...material, notes: e.target.value })} />

@@ -59,11 +59,12 @@ export function TeacherDashboard({
   const [feedback, setFeedback] = useState("");
   const [reportFilters, setReportFilters] = useState<ReportFilters>({ status: "all", topic: "all" });
   const [jumpToLearners, setJumpToLearners] = useState(0);
-  // After a tile opens the report, land on the learners table instead of the top of the page.
+  // After a tile opens My classroom, land on the learner cards instead of the top of the page.
   useEffect(() => {
-    if (section !== "report" || !jumpToLearners) return;
-    const el = document.getElementById("report-learners");
-    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    if (section !== "classroom" || !jumpToLearners) return;
+    // The workspace shell resets scroll to the top after a section change; run after it.
+    const frame = requestAnimationFrame(() => document.getElementById("learner-cards")?.scrollIntoView({ behavior: "smooth", block: "start" }));
+    return () => cancelAnimationFrame(frame);
   }, [section, jumpToLearners]);
 
   const statuses = useMemo(() => classStatuses(workspace), [workspace]);
@@ -97,10 +98,14 @@ export function TeacherDashboard({
     }
     setBusy(false);
   }
-  function openReport(filters: Partial<ReportFilters>) {
-    setReportFilters({ status: "all", topic: "all", ...filters });
+  // Overview tiles and charts open My classroom filtered to that status (and, for learners who
+  // need support in a topic, that topic), scrolled to the cards.
+  function openClassroom(status: Status | "all", topic: TopicId | "all" = "all") {
+    setSearch("");
+    setStatusFilter(status);
+    setTopicFilter(["behind", "stagnant"].includes(status) ? topic : "all");
     setJumpToLearners((n) => n + 1);
-    goTo("report");
+    goTo("classroom");
   }
 
   const visible = statuses.filter(
@@ -157,13 +162,13 @@ export function TeacherDashboard({
                 ))}
               </ul>
               {today.length > 3 && (
-                <button className="text-link" onClick={() => openReport({ status: "stagnant" })}>
+                <button className="text-link" onClick={() => openClassroom("all")}>
                   See all {today.length}
                 </button>
               )}
             </article>
             {(["on_track", "behind", "stagnant"] as Status[]).map((s) => (
-              <button key={s} type="button" className={`kpi kpi-status kpi-${s}`} onClick={() => openReport({ status: s })} aria-label={`${counts[s]} ${statusLabel[s].toLowerCase()}: open in the progress report`}>
+              <button key={s} type="button" className={`kpi kpi-status kpi-${s}`} onClick={() => openClassroom(s)} aria-label={`${counts[s]} ${statusLabel[s].toLowerCase()}: open in My classroom`}>
                 <span className="kpi-title">
                   <StatusIcon status={s} />
                   {statusLabel[s]}
@@ -195,7 +200,7 @@ export function TeacherDashboard({
                   <StatusBar
                     counts={row.counts}
                     label={row.topic.name}
-                    onSelect={(status) => openReport({ status, topic: row.topic.id })}
+                    onSelect={(status) => openClassroom(status, row.topic.id)}
                   />
                 </div>
               ))}
@@ -228,7 +233,7 @@ export function TeacherDashboard({
               ))}
             </select>
           </div>
-          <div className="learner-card-grid">
+          <div className="learner-card-grid" id="learner-cards">
             {visible.map((s) => {
               const line = whyLine(workspace, s);
               return (
@@ -276,7 +281,7 @@ export function TeacherDashboard({
                 <p>Each learner’s overall status at the unit start and today.</p>
               </div>
             </div>
-            <MomentumChart history={history} onSelect={(s) => openReport({ status: s })} />
+            <MomentumChart history={history} onSelect={(s) => openClassroom(s)} />
           </section>
           <ClassroomLearningChart workspace={workspace} />
         </>

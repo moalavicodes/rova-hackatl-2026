@@ -374,3 +374,8 @@ button.status-segment { cursor: pointer; }
   .material-list li, .bank-list > li { grid-template-columns: 1fr; }
   .bank-list .btn-small, .material-list .text-link { justify-self: start; }
 }
+.material-file { display: inline-flex; align-items: center; gap: 6px; margin-top: 6px; font-size: 13px; font-weight: 600; color: #244c3b; text-decoration: none; }
+.material-file:hover { text-decoration: underline; }
+.material-file svg { transform: rotate(-45deg); }
+.material-form .file-field input[type="file"] { padding: 8px; background: #fbfbf6; }
+.material-form .file-field input[type="file"]::file-selector-button { font: inherit; font-size: 13px; font-weight: 600; color: #244c3b; background: #e8eedc; border: 1px solid #bdcbb4; border-radius: 6px; padding: 6px 12px; margin-right: 12px; cursor: pointer; }

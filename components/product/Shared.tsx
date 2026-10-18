@@ -18,4 +18,5 @@ export function ActivityChart({ attempts, studentId }: { attempts: Attempt[]; st
   return <div className="activity-chart" role="img" aria-label={`Practice this week: ${days.map(d=>`${d.label}: ${d.attempts} attempts, ${d.correct} correct`).join("; ")}`}><div className="chart-bars">{days.map((d,i)=><div key={i} className="chart-day"><span className="chart-count">{d.attempts||""}</span><div className="chart-bar-space"><div className={`chart-bar ${i===6?"today":""}`} style={{height:`${Math.max(d.attempts?8:2,d.attempts/max*100)}%`}}><i style={{height:`${d.attempts?d.correct/d.attempts*100:0}%`}}/></div></div><span>{d.label}</span></div>)}</div><div className="chart-legend"><span><i className="strong"/> Correct</span><span><i className="growing"/> Still practicing</span></div></div>;
 }
 export function Empty({ title, text }: { title: string; text: string }) { return <div className="empty-state"><Icon name="leaf" size={30}/><h3>{title}</h3><p>{text}</p></div>; }
-export type Mutate = (body: Record<string, unknown>) => Promise<{ correct?: boolean; session?: CoachSession } | null>;
+// JSON bodies go to /api/learning; a FormData body (a course material with its file) goes to /api/materials.
+export type Mutate = (body: Record<string, unknown> | FormData) => Promise<{ correct?: boolean; session?: CoachSession } | null>;

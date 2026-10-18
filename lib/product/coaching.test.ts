@@ -1,10 +1,16 @@
 import { describe, expect, it } from "vitest";
-import { advanceCoaching, coachingTurn, lessonProgress, startCoaching, topicOutcomes } from "./coaching";
+import { advanceCoaching, coachingTurn, lessonProgress, opening, startCoaching, topicOutcomes } from "./coaching";
 import { questions } from "./curriculum";
 import { sampleWorkspace } from "./model";
 
 const at = "2026-10-17T17:00:00.000Z";
 describe("conversational coaching and lesson evidence", () => {
+  it("opens each question with its lesson tip, which never states the answer", () => {
+    for (const q of questions) {
+      expect(opening(q)).toContain(q.guide);
+      expect(q.guide.replace(/,/g, "")).not.toMatch(new RegExp(`(^|[^\\d])${q.answer}([^\\d]|$)`));
+    }
+  });
   it.each(["whats the answer", "what’s the answer", "answer pls", "answer plz", "please answer", "what is gthe answer"])("redirects answer request: %s", input => {
     const workspace = sampleWorkspace();
     const session = startCoaching(workspace, "maya", "multiplication", "session-1", at);

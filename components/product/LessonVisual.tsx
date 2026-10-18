@@ -21,6 +21,10 @@ export function LessonVisual({ question, compact = false }: { question: Practice
         <text x="325" y="117">?/{target}</text>
       </svg>{!compact && <button className="btn btn-outline" aria-pressed={explore} onClick={() => setExplore(!explore)}>{explore ? "Compare the original pieces" : "Split into smaller pieces"}</button>}<p>Keep the shaded amount the same. Count the new pieces it covers.</p></figure>;
   }
+  if (q.topic === "ratios") {
+    const [labels, known, scaled] = q.id === "ra1" ? [["Lemon (cups)", "Water (cups)"], [2, 3], 6] : q.id === "ra2" ? [["Inches", "Miles"], [1, 5], 4] : [["First", "Second"], [4, 6], 10];
+    return <figure className="lesson-visual"><figcaption>A ratio table: multiply both rows by the same number.</figcaption><table className="ratio-model"><tbody>{labels.map((label, i) => <tr key={label}><th scope="row">{label}</th><td>{known[i]}</td><td>{i === 0 ? scaled : "?"}</td></tr>)}</tbody></table><p>What was the top row multiplied by? Do the same to the bottom row.</p></figure>;
+  }
   if (q.topic === "multiplication") {
     const [factor, first, second] = q.id === "mu1" ? [6, 10, 4] : q.id === "mu2" ? [4, 20, 3] : [32, 10, 2];
     return <figure className="lesson-visual"><figcaption>Build with partial products.</figcaption><div className="area-model"><div style={{ flex: first }}>{factor} × {first}</div><div style={{ flex: second }}>{factor} × {second}</div></div><p>Find each smaller rectangle’s total, then combine them. The whole is {factor} × ({first} + {second}).</p></figure>;

@@ -109,3 +109,8 @@ Added on top of this PR at the request of a team member preparing the venture pi
 
 - On screens 900px and wider, the practice chat is two columns: the pinned question, its standard, and the visual guide on the left (scrolls on its own); the conversation and composer on the right. The dialog widens to 1240px. Below 900px the original stacked layout (question above the chat) is unchanged. CSS only, in `app/coaching.css`; no markup changes. Checked in headless Chrome at 1440, 1024, and 390px with the visual guide open: side by side at the first two, stacked on the phone, no horizontal scroll.
 - The optional AI lesson summary added earlier on this branch was removed at the team's request (2026-10-18). Lesson reviews use the scripted, evidence-derived summary only.
+
+### Lesson tips in the conversation (2026-10-18)
+
+- The "Open visual guide" button above or beside the question was removed. Each question now has a `guide` tip in `lib/product/curriculum.ts` (taken from its visual model's caption and note), and the coach's opening message for that question includes it. A test checks that no tip contains its question's answer.
+- "Show me a picture" still adds the code-drawn model to the chat. Ratios questions now have their own ratio-table model; before, they fell through to the geometry angle picture.

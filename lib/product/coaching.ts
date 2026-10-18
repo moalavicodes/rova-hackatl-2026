@@ -18,7 +18,7 @@ const concepts: Record<TopicId, string> = {
 const additiveAnswers: Record<string, string> = { ra1: "7", ra2: "8", ra3: "12" };
 
 export function opening(question: PracticeQuestion): string {
-  return `Let’s work through this ${topicById(question.topic).name.toLowerCase()} question together. Share a first idea, try an answer, or ask for a picture.`;
+  return `Let’s work through this ${topicById(question.topic).name.toLowerCase()} question together. ${question.guide} Share a first idea, try an answer, or ask for a picture.`;
 }
 export function currentQuestion(session: CoachSession) {
   return questions.filter(q => q.topic === session.topic)[session.questionIndex];

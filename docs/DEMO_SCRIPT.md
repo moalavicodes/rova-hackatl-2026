@@ -46,7 +46,7 @@ Say: “Rova is designed around a conversation that makes the student do the thi
 | Third question: `3/4 = ?/12` | Click **Next question**, then type `Do I multiply both parts by 3?` | Rova responds to the scaling idea, without grading a concept question as a numeric answer. |
 | Same question | Type `9`, then **Finish lesson** | All three answers are checked; this learner’s assignment becomes complete. |
 
-Optional visual moment: open **Visual guide**, then click **Split into smaller pieces**. Practice uses one tall message thread with the current question pinned above it and the composer fixed below. All saved messages remain in the thread; scroll up to revisit earlier questions without loading or expanding history.
+Each question opens with a short lesson tip in Rova’s first message; **Show me a picture** adds the visual model to the chat. Practice uses one tall message thread with the current question pinned above it and the composer fixed below. All saved messages remain in the thread; scroll up to revisit earlier questions without loading or expanding history.
 
 Show **My progress**: “Your growing strengths” sits beside “Your next breakthroughs.” The latter opens targeted practice for the topics that need work.
 
@@ -94,6 +94,6 @@ Say: “Families get something specific they can do—and see that their effort 
 ## Recovery during a rehearsal
 
 - Closing a lesson preserves its conversation. Reopen the assignment to continue or review it.
-- The current question stays pinned above the chat. Open **Visual guide** when you want to explore a model; it does not replace the conversation.
+- The current question stays pinned beside the chat on wide screens and above it on phones. Its lesson tip is in Rova’s opening message; **Show me a picture** adds the visual model to the conversation.
 - Sidebar destinations survive refresh and work with browser back/forward through their URL fragments.
 - A new data directory starts a fresh presentation; it does not remove previous work.

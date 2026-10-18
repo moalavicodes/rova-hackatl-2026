@@ -190,7 +190,7 @@ export interface Priority {
   student: Learner;
   reason: string;
 }
-// Who needs the teacher today: open safety concerns, root-cause gaps not yet acknowledged, and
+// Who needs the teacher today: open safety concerns, unsolved root-cause gaps not yet acknowledged, and
 // stagnant learners. Each learner appears once, with the most urgent reason.
 export function needYouToday(workspace: Workspace, statuses = classStatuses(workspace)): Priority[] {
   const out = new Map<string, Priority>();
@@ -198,7 +198,7 @@ export function needYouToday(workspace: Workspace, statuses = classStatuses(work
     const student = workspace.students.find((s) => s.id === session.studentId);
     if (!student) continue;
     if (hasSafety(session)) out.set(student.id, { student, reason: "Safety concern" });
-    else if (session.trace && !session.trace.acknowledgedAt && !out.has(student.id))
+    else if (session.trace && !session.trace.acknowledgedAt && !session.trace.fixedAt && !out.has(student.id))
       out.set(student.id, { student, reason: `Root cause: ${skillName(session.trace.prerequisite).toLowerCase()}` });
   }
   for (const s of statuses.filter((s) => s.status === "stagnant"))
@@ -219,13 +219,15 @@ export function topReteach(workspace: Workspace, statuses = classStatuses(worksp
     .sort((a, b) => b.weight - a.weight);
   const best = scored[0];
   if (!best || !best.weight) return null;
-  const traced = (workspace.sessions ?? []).filter((s) => s.trace?.prerequisite === best.topic.id).length;
+  const tracedSessions = (workspace.sessions ?? []).filter((s) => s.trace?.prerequisite === best.topic.id);
+  const traced = new Set(tracedSessions.map((s) => s.studentId)).size;
+  const harder = tracedSessions[0] ? topicById(tracedSessions[0].topic).name.toLowerCase() : "";
   const mistake = workspace.students
     .flatMap((s) => repeatedMistakes(workspace, s.id))
     .filter((m) => m.topic === best.topic.id)
     .sort((a, b) => b.answers.length - a.answers.length)[0];
   const reason = traced
-    ? `Root cause of ${traced} traced gap${traced === 1 ? "" : "s"} in harder work`
+    ? `Also the root cause for ${traced} learner${traced === 1 ? "" : "s"} stuck on ${harder}`
     : mistake
       ? `Most common mistake: ${mistake.label.toLowerCase()}`
       : `${best.students.length} learners behind or stagnant`;
@@ -281,6 +283,12 @@ export function familyWhy(workspace: Workspace, student: Learner, status = stude
           return f.detail;
       }
     });
+}
+
+// For a learner with nothing to flag: their strongest topic, so on-track rows say something specific.
+export function strengthLine(status: StudentStatus): string {
+  const best = status.topics.filter((t) => t.score !== null).sort((a, b) => b.score! - a.score!)[0];
+  return best ? `Strongest: ${topicById(best.topic).name}, ${best.score}%` : "Not enough practice yet";
 }
 
 // One short line for a learner card or table row: a live fact if there is one (root cause,

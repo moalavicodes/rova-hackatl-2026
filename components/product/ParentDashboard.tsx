@@ -2,12 +2,20 @@
 import { topicById } from "@/lib/product/curriculum";
 import type { Profile, Workspace } from "@/lib/product/model";
 import { currentUnit, studentStatus } from "@/lib/product/progress";
-import { traceStatus } from "@/lib/product/rootCause";
+import { skillName, traceStatus, type TraceStatus } from "@/lib/product/rootCause";
 import { familyLabel, familyWhy, practiceDays } from "@/lib/product/why";
 import { ConfidenceChart, StatusBadge } from "./charts";
 import { FamilyActivities } from "./FamilyActivities";
 import { Avatar, Empty, type Mutate } from "./Shared";
 
+// Plain words for a refresher's progress, for families.
+const refresherWords: Record<TraceStatus, string> = {
+  "Refresher suggested": "ready to start",
+  "Refresher in progress": "in progress",
+  "Refresher completed": "done; the harder problem is next",
+  "Solved after refresher": "done, and the harder problem was solved",
+  "Solved without refresher": "not needed; the harder problem was solved",
+};
 const shortDate = (at: string) => new Date(at).toLocaleDateString("en-US", { month: "long", day: "numeric" });
 
 // "This week" answers, in order: is my child okay, why, what is the school doing, what can I do
@@ -36,6 +44,7 @@ export function ParentDashboard({
   const traces = (workspace.sessions ?? []).filter((s) => s.studentId === child.id && s.trace);
   const notes = workspace.notes.filter((n) => n.studentId === child.id).slice().reverse();
   const unit = currentUnit();
+  const why = familyWhy(workspace, child, status);
 
   // Wins come from live practice only, never from the simulated starting history.
   const wins: string[] = [];
@@ -90,7 +99,7 @@ export function ParentDashboard({
               {focusPlan ? ". The teacher has started a small group for it." : "."}
             </p>
           ) : (
-            <p>Every topic is on track this week.</p>
+            <p>Keep the practice going. Tonight’s activity is below.</p>
           )}
         </div>
         <ul className="parent-topics" aria-label="Topics">
@@ -106,9 +115,11 @@ export function ParentDashboard({
       <div className="parent-columns">
         <section className="surface">
           <h3>Why</h3>
-          {familyWhy(workspace, child, status).map((line) => (
-            <p key={line}>{line}</p>
-          ))}
+          {why.length ? (
+            why.map((line) => <p key={line}>{line}</p>)
+          ) : (
+            <p>Nothing needs extra attention right now. {name} is at, or on pace for, the class goal in every topic practiced so far.</p>
+          )}
           {(plans.length > 0 || traces.length > 0) && (
             <>
               <h4>What school is doing</h4>
@@ -120,7 +131,7 @@ export function ParentDashboard({
                 ))}
                 {traces.map((s) => (
                   <li key={s.id}>
-                    {topicById(s.trace!.prerequisite).name} refresher: {traceStatus(s.trace!).toLowerCase()}
+                    {skillName(s.trace!.prerequisite)} refresher: {refresherWords[traceStatus(s.trace!)]}
                   </li>
                 ))}
               </ul>

@@ -11,7 +11,7 @@ import {
   topicStatusCounts,
   type Status,
 } from "@/lib/product/progress";
-import { needYouToday, topReteach, whyLine } from "@/lib/product/why";
+import { needYouToday, strengthLine, topReteach, whyLine } from "@/lib/product/why";
 import { Icon } from "./Brand";
 import { MomentumChart, Sparkline, StatusBadge, StatusBar, StatusLegend } from "./charts";
 import { ClassroomLearningChart, LessonMonitor } from "./LearningEvidence";
@@ -183,7 +183,7 @@ export function TeacherDashboard({
                   <p>group lessons improved confidence</p>
                 </>
               ) : (
-                <p>{workspace.plans.length ? "Waiting for learners to practice" : "No group lessons yet"}</p>
+                <p>{workspace.plans.length ? "Waiting for learners to practice" : "No group lessons yet"}<small>Share a small-group lesson; this shows whether the group’s confidence rose afterwards.</small></p>
               )}
               <button className="text-link" onClick={() => goTo("plans")}>
                 See lessons
@@ -268,7 +268,7 @@ export function TeacherDashboard({
                       <Sparkline points={s.focus.points} label={`${topicById(s.focus.topic).name} trend`} />
                     </div>
                   )}
-                  <p>{line ?? "On track in every topic"}</p>
+                  <p>{line ?? strengthLine(s)}</p>
                 </button>
               );
             })}

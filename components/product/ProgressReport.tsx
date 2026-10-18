@@ -17,7 +17,7 @@ import {
   type StudentStatus,
 } from "@/lib/product/progress";
 import { interventionLogCsv, progressReport } from "@/lib/product/report";
-import { whyLine } from "@/lib/product/why";
+import { strengthLine, whyLine } from "@/lib/product/why";
 import { Icon } from "./Brand";
 import { MomentumChart, Sparkline, StatusBadge, StatusBar, StatusLegend } from "./charts";
 import { Avatar, Empty } from "./Shared";
@@ -263,7 +263,7 @@ export function ProgressReport({
                         )}
                       </td>
                       <td>{t && <Sparkline points={t.points} label={`${s.student.name}, ${topicById(t.topic).name} trend`} />}</td>
-                      <td className="why-cell">{why ?? "On track in every topic"}</td>
+                      <td className="why-cell">{why ?? strengthLine(s)}</td>
                     </tr>
                   );
                 })}
@@ -347,7 +347,7 @@ export function ProgressReport({
                       <td>{r.learner}</td>
                       <td>{r.focus}</td>
                       <td>{r.tried}</td>
-                      <td>{r.date}</td>
+                      <td className="nowrap"><time dateTime={r.date}>{new Date(`${r.date}T12:00:00`).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</time></td>
                       <td>
                         {r.outcome && <span className={`outcome outcome-${r.outcome.replace(/ /g, "-").toLowerCase()}`}>{r.outcome}</span>}
                         <small>{r.result}</small>

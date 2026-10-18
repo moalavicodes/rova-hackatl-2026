@@ -249,3 +249,29 @@ button.status-segment { cursor: pointer; }
 .angle-slider { display: grid; gap: 4px; font-size: 14px; font-weight: 600; max-width: 320px; margin: 0 auto; }
 .angle-slider input { width: 100%; accent-color: #244c3b; }
 .parent-columns p { font-size: 15px; }
+
+/* Presentation fixes */
+/* Learning alert: classmates on their own line, then all actions in one row. */
+.root-cause-card footer .avatar-stack { flex-basis: 100%; margin: 0 0 4px; }
+/* Classroom toolbar: search, status chips, and topic filter on one line when there is room. */
+.workspace-layout .class-map .map-tools { width: 100%; grid-template-columns: minmax(200px, 280px) minmax(0, 1fr) minmax(190px, 240px); align-items: center; margin-bottom: 18px; }
+.workspace-layout .class-map .map-tools .chip-filter { flex-wrap: nowrap; }
+.chip-filter button { white-space: nowrap; }
+/* Report and log filters share the classroom's input style. */
+.report-filters select, .log-filters select, .sort-control select, .log-filters .search-field { height: 42px; border: 1px solid #bdcbb4; border-radius: 7px; padding: 0 12px; background: #fffefa; font-size: 14px; font-weight: 500; color: var(--ink); }
+.log-filters .search-field { display: flex; align-items: center; gap: 8px; min-width: 260px; }
+.log-filters .search-field input { border: 0; background: transparent; padding: 0; height: 100%; min-width: 0; width: 100%; font-size: 14px; }
+.report-filters label { font-size: 13px; }
+/* Chart headers: the title never wraps; the legend moves below it when space is short. */
+.progress-report .section-heading { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px 18px; }
+.progress-report .section-heading h3 { white-space: nowrap; }
+@media (max-width: 1180px) {
+  .workspace-layout .class-map .map-tools { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .workspace-layout .class-map .map-tools .chip-filter { grid-column: 1 / -1; grid-row: 2; flex-wrap: wrap; }
+}
+@media (max-width: 680px) {
+  .workspace-layout .class-map .map-tools { grid-template-columns: 1fr; }
+  .workspace-layout .class-map .map-tools .chip-filter { grid-row: auto; }
+  .log-filters .search-field { min-width: 0; width: 100%; }
+}
+.report-table .nowrap { white-space: nowrap; }

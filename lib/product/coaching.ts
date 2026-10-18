@@ -139,7 +139,7 @@ export function coachingTurn(workspace: Workspace, studentId: string, sessionId:
     const skill = skillPhrase[trace.prerequisite] ?? earlier.name.toLowerCase();
     session.messages.push({ id: `${id}-reply`, role: "coach", kind: "trace", questionId: q.id, at, source: trace.standard,
       text: `Two tries on this one, and that tells us something useful. Ratios are built on ${skill}: multiplying both parts by the same number keeps the amount the same. Your three-question ${skill} refresher is ready on your dashboard. Close this chat to start it, then come back to this question.` });
-    familyUpdate(workspace, studentId, `${id}-family`, at, `hit a tricky spot in ${topicById(session.topic).name.toLowerCase()} today. Rova traced it to an earlier skill, ${skill} (${earlier.standard}). Try “${earlier.activity}” together in Learn together; it takes about 10 minutes.`);
+    familyUpdate(workspace, studentId, `${id}-family`, at, `hit a tricky spot in ${topicById(session.topic).name.toLowerCase()} today. Rova traced it to an earlier skill, ${skill} (${earlier.standard}). Try “${earlier.activity}” together under Tonight’s 10 minutes; it takes about 10 minutes.`);
   } else session.messages.push({ id: `${id}-reply`, role: "coach", text: reply.text, kind: reply.kind, questionId: q.id, at, source });
   if (reply.correct && session.trace && !session.trace.fixedAt && session.trace.questionId === q.id) {
     session.trace.fixedAt = at;

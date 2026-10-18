@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { coachingTurn, startCoaching } from "./coaching";
 import { sampleWorkspace } from "./model";
 import { classStatuses } from "./progress";
-import { familyLabel, hintReliance, needYouToday, nextStepFor, repeatedMistakes, topReteach, whyFor } from "./why";
+import { familyLabel, hintReliance, needYouToday, nextStepFor, repeatedMistakes, strengthLine, topReteach, whyFor } from "./why";
 
 const at = "2026-10-18T15:00:00.000Z";
 
@@ -54,5 +54,29 @@ describe("why insights", () => {
 
   it("uses plain words for families", () => {
     expect(familyLabel.stagnant).toBe("Needs extra help");
+  });
+});
+
+describe("presentation fixes", () => {
+  function solvedTrace() {
+    const ws = sampleWorkspace();
+    const ratios = startCoaching(ws, "maya", "ratios", "ratios-1", at);
+    coachingTurn(ws, "maya", ratios.id, "miss-0001", "7", at);
+    coachingTurn(ws, "maya", ratios.id, "miss-0002", "8", at);
+    return { ws, ratios };
+  }
+  it("keeps an unsolved root cause in Need you today and drops it once solved", () => {
+    const { ws, ratios } = solvedTrace();
+    expect(needYouToday(ws).find((p) => p.student.id === "maya")?.reason).toBe("Root cause: equivalent fractions");
+    coachingTurn(ws, "maya", ratios.id, "fix-0001", "9", at);
+    expect(needYouToday(ws).find((p) => p.student.id === "maya")?.reason ?? "").not.toContain("Root cause");
+  });
+  it("words the reteach reason in plain language", () => {
+    const { ws } = solvedTrace();
+    expect(topReteach(ws)?.reason).toBe("Also the root cause for 1 learner stuck on ratios");
+  });
+  it("gives on-track learners their strongest topic instead of a repeated line", () => {
+    const status = classStatuses(sampleWorkspace()).find((s) => s.student.id === "maya")!;
+    expect(strengthLine(status)).toMatch(/^Strongest: .+, \d+%$/);
   });
 });

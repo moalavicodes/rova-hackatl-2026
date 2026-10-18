@@ -7,8 +7,10 @@ export function supportTopics(student: Learner, workspace: Workspace) {
 }
 
 export function familyActivities(workspace: Workspace, parentId: string, child: Learner) {
+  // A root cause Rova traced comes first; the automatic family update points to its activity.
+  const traced = new Set((workspace.sessions ?? []).filter(s => s.studentId === child.id && s.trace).map(s => s.trace!.prerequisite));
   const ordered = topics.map(topic => ({ ...topic, score: scoreFor(child, topic.id, workspace.attempts), done: topic.steps.every((_, i) => workspace.checks.includes(`${parentId}:${topic.id}-${i}`)) }))
-    .sort((a, b) => (a.score ?? -1) - (b.score ?? -1));
+    .sort((a, b) => Number(traced.has(b.id)) - Number(traced.has(a.id)) || (a.score ?? -1) - (b.score ?? -1));
   return { next: ordered.find(topic => !topic.done), completed: ordered.filter(topic => topic.done) };
 }
 

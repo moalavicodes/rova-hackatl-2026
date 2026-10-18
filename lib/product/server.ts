@@ -42,10 +42,11 @@ export async function database<T>(action: (db: Database) => T | Promise<T>): Pro
 export function publicProfile(account: Account): Profile {
   return { id: account.id, name: account.name, email: account.email, role: account.role, school: account.school, goal: account.goal, avatar: account.avatar, familyCode: account.role === "student" ? `FAMILY-${account.id}` : undefined };
 }
+// Parents see their child’s lesson outcomes and root-cause traces, but never the conversation.
 export function visibleWorkspace(workspace: Workspace, account: Account): Workspace {
   if (account.role === "teacher") return workspace;
   const studentId = account.role === "parent" ? account.linkedStudentId : account.id;
-  return { ...workspace, code: "", sessions: account.role === "student" ? (workspace.sessions ?? []).filter(s => s.studentId === studentId) : [], students: workspace.students.filter((s) => s.id === studentId), attempts: workspace.attempts.filter((a) => a.studentId === studentId), plans: workspace.plans.filter((p) => p.studentIds.includes(studentId ?? "")).map((p) => ({ ...p, studentIds: [studentId!] })), notes: workspace.notes.filter((n) => n.studentId === studentId), checks: workspace.checks.filter((c) => c.startsWith(`${account.id}:`)) };
+  return { ...workspace, code: "", sessions: (workspace.sessions ?? []).filter(s => s.studentId === studentId).map(s => account.role === "student" ? s : { ...s, messages: [], trace: s.trace && { ...s.trace, wrongAnswers: [] } }), students: workspace.students.filter((s) => s.id === studentId), attempts: workspace.attempts.filter((a) => a.studentId === studentId), plans: workspace.plans.filter((p) => p.studentIds.includes(studentId ?? "")).map((p) => ({ ...p, studentIds: [studentId!] })), notes: workspace.notes.filter((n) => n.studentId === studentId), checks: workspace.checks.filter((c) => c.startsWith(`${account.id}:`)) };
 }
 function signature(value: string, secret: string) { return createHmac("sha256", secret).update(value).digest("hex"); }
 export async function setSession(id: string, secret: string) {

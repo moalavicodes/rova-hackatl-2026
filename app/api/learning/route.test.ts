@@ -67,9 +67,9 @@ describe("learning API coaching authorization", () => {
     expect((await request({ action: "trace-ack", sessionId: ratios.id })).status).toBe(200);
     expect(state.db.workspace.sessions?.[0].trace?.acknowledgedAt).toBeDefined();
   });
-  it("falls back to the scripted summary when no AI key is configured", async () => {
-    const saved = { key: process.env.ANTHROPIC_API_KEY, token: process.env.ANTHROPIC_AUTH_TOKEN };
-    delete process.env.ANTHROPIC_API_KEY; delete process.env.ANTHROPIC_AUTH_TOKEN;
+  it("falls back to the scripted summary when no local model is configured", async () => {
+    const saved = process.env.ROVA_LLM_URL;
+    delete process.env.ROVA_LLM_URL;
     try {
       const session = (await (await request({ action: "coach-start", topic: "fractions" })).json()).session;
       expect((await request({ action: "ai-summary", sessionId: session.id })).status).toBe(403);
@@ -80,8 +80,7 @@ describe("learning API coaching authorization", () => {
       expect(body.aiSummary).toBeNull();
       expect(body.notice).toContain("scripted summary");
     } finally {
-      if (saved.key !== undefined) process.env.ANTHROPIC_API_KEY = saved.key;
-      if (saved.token !== undefined) process.env.ANTHROPIC_AUTH_TOKEN = saved.token;
+      if (saved !== undefined) process.env.ROVA_LLM_URL = saved;
     }
   });
 });

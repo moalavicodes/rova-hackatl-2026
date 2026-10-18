@@ -1,20 +1,24 @@
-import Anthropic from "@anthropic-ai/sdk";
 import { topicById } from "./curriculum";
 import { summarizeLesson } from "./insights";
 import type { AiSummary, CoachSession, Workspace } from "./model";
 
-// Optional AI-written lesson summary for teachers. Code still decides every fact: the
-// counts below come from checked attempts, and the model is told not to contradict them.
-// Without credentials the app keeps the scripted summary from insights.ts.
-export const SUMMARY_MODEL = process.env.ROVA_SUMMARY_MODEL || "claude-opus-5-5";
+// Optional AI-written lesson summary for teachers, from a small open model the school runs
+// itself (Ollama by default; any OpenAI-compatible server such as LM Studio or llama.cpp works).
+// No paid API and no key. Code still decides every fact: the counts below come from checked
+// attempts, and the model is told not to contradict them. With no server configured the app
+// keeps the scripted summary from insights.ts.
+export function localModelConfig() {
+  const url = process.env.ROVA_LLM_URL?.replace(/\/+$/, "");
+  return url ? { url, model: process.env.ROVA_LLM_MODEL || "qwen2.5:3b" } : null;
+}
 export function aiSummaryAvailable(): boolean {
-  return Boolean(process.env.ANTHROPIC_API_KEY || process.env.ANTHROPIC_AUTH_TOKEN);
+  return localModelConfig() !== null;
 }
 
 const SYSTEM = `You write short lesson summaries for a grade 4 math teacher about one coached practice conversation.
 Use only the facts and transcript provided. The checked results were computed by code and are authoritative: never say an answer was right or wrong unless the facts say so, and never claim mastery.
 Refer to the student as "the learner". Do not diagnose emotions or learning disabilities.
-Write three short labeled lines: "What happened:", "Where they needed help:", "Suggested next step:". Under 110 words in total. Plain text, no markdown.`;
+Write exactly three short lines that start with "What happened:", "Where they needed help:", and "Suggested next step:". Under 110 words in total. Plain text, no markdown.`;
 
 // Names are left out of the prompt; the transcript uses role labels only.
 export function summaryPrompt(workspace: Workspace, session: CoachSession): string {
@@ -31,18 +35,25 @@ ${transcript}`;
 }
 
 export async function writeAiSummary(workspace: Workspace, session: CoachSession, at: string): Promise<AiSummary | null> {
-  if (!aiSummaryAvailable()) return null;
-  const client = new Anthropic();
-  const response = await client.beta.messages.create({
-    model: SUMMARY_MODEL,
-    max_tokens: 4000,
-    betas: ["server-side-fallback-2026-07-01"],
-    fallbacks: "default",
-    output_config: { effort: "low" },
-    system: SYSTEM,
-    messages: [{ role: "user", content: summaryPrompt(workspace, session) }],
+  const config = localModelConfig();
+  if (!config) return null;
+  // Small models on a laptop CPU can be slow; give up rather than leave the teacher waiting.
+  const response = await fetch(`${config.url}/chat/completions`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    signal: AbortSignal.timeout(60_000),
+    body: JSON.stringify({
+      model: config.model,
+      temperature: 0.2,
+      max_tokens: 300,
+      stream: false,
+      messages: [{ role: "system", content: SYSTEM }, { role: "user", content: summaryPrompt(workspace, session) }],
+    }),
   });
-  if (response.stop_reason === "refusal") return null;
-  const text = response.content.flatMap(block => block.type === "text" ? [block.text] : []).join("\n").trim();
-  return text ? { text, model: response.model, at, messageCount: session.messages.length } : null;
+  if (!response.ok) throw new Error(`Local model returned ${response.status}`);
+  const data = await response.json() as { choices?: { message?: { content?: unknown } }[] };
+  const content = data.choices?.[0]?.message?.content;
+  // Keep only plain text, trimmed to a teacher-sized summary.
+  const text = typeof content === "string" ? content.replace(/<think>[\s\S]*?<\/think>/g, "").replace(/[*#`]/g, "").trim().slice(0, 1200) : "";
+  return text ? { text, model: config.model, at, messageCount: session.messages.length } : null;
 }

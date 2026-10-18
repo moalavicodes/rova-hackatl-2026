@@ -76,11 +76,11 @@ async function aiSummary(sessionId: string) {
     return { workspace: structuredClone(db.workspace) as Workspace, session: structuredClone(session) as CoachSession };
   });
   if ("error" in prepared) return prepared.error;
-  if (!aiSummaryAvailable()) return Response.json({ workspace: prepared.workspace, aiSummary: null, notice: "No AI key is configured on this server, so the scripted summary is shown." });
+  if (!aiSummaryAvailable()) return Response.json({ workspace: prepared.workspace, aiSummary: null, notice: "No local AI model is configured on this server, so the scripted summary is shown." });
   let summary;
   try { summary = await writeAiSummary(prepared.workspace, prepared.session, new Date().toISOString()); }
-  catch { return Response.json({ workspace: prepared.workspace, aiSummary: null, notice: "The AI summary couldn’t be written right now. The scripted summary is shown." }); }
-  if (!summary) return Response.json({ workspace: prepared.workspace, aiSummary: null, notice: "The model declined to summarize this lesson. The scripted summary is shown." });
+  catch { return Response.json({ workspace: prepared.workspace, aiSummary: null, notice: "The local AI model didn’t respond. Check that it’s running; the scripted summary is shown." }); }
+  if (!summary) return Response.json({ workspace: prepared.workspace, aiSummary: null, notice: "The local AI model returned no summary. The scripted summary is shown." });
   return await database((db) => {
     const session = db.workspace.sessions?.find(s => s.id === sessionId);
     if (session) session.aiSummary = summary;

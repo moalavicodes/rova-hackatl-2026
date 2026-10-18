@@ -106,7 +106,9 @@ button.status-segment { cursor: pointer; }
 /* Classroom cards */
 .chip-filter { display: flex; flex-wrap: wrap; gap: 6px; }
 .chip-filter button { border: 1px solid var(--rule); background: var(--paper); color: var(--ink); border-radius: 999px; padding: 7px 12px; font-size: 13px; font-weight: 600; }
-.chip-filter button[aria-pressed="true"] { background: #244c3b; border-color: #244c3b; color: #fff; }
+/* Selected chips match the sidebar’s selected item: light green with dark text. */
+.chip-filter button[aria-pressed="true"] { background: #e8eedc; border-color: #bdcbb4; color: #244c3b; }
+.chip-filter button:hover { border-color: #bdcbb4; }
 .learner-card header .status-badge { margin-left: auto; }
 .learner-card header strong { min-width: 0; overflow-wrap: anywhere; }
 .learner-card-trend { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 14px; color: var(--ink); margin-bottom: 8px; }
@@ -275,3 +277,8 @@ button.status-segment { cursor: pointer; }
   .log-filters .search-field { min-width: 0; width: 100%; }
 }
 .report-table .nowrap { white-space: nowrap; }
+/* Log filters: one even row (search wider), equal heights; two per row on tablets, stacked on phones. */
+.log-filters { display: grid; grid-template-columns: minmax(220px, 1.5fr) repeat(3, minmax(150px, 1fr)); align-items: stretch; gap: 12px; margin-bottom: 8px; }
+.log-filters select, .log-filters .search-field { width: 100%; min-width: 0; max-width: none; margin: 0; }
+@media (max-width: 1100px) { .log-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 680px) { .log-filters { grid-template-columns: 1fr; } }

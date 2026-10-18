@@ -13,7 +13,7 @@ import { Avatar, Modal, type Mutate } from "./Shared";
 
 const evidenceLabel: Record<Evidence, string> = {
   live: "From live practice",
-  simulated: "Simulated history",
+  simulated: "Starting profile",
   "skill map": "Skill-map link",
 };
 
@@ -28,7 +28,7 @@ function AnswerTimeline({ workspace, student }: { workspace: Workspace; student:
     .filter((a) => a.studentId === student.id && !a.id.startsWith("sample-"))
     .slice(-12);
   if (!answers.length)
-    return <p className="quiet">No live answers yet. The trend above uses this learner’s simulated history.</p>;
+    return <p className="quiet">No live answers yet. The trend above uses this learner’s starting profile.</p>;
   return (
     <ol className="answer-timeline">
       {answers.map((a) => {

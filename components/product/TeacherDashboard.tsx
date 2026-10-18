@@ -1,5 +1,5 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { topicById, topics, type TopicId } from "@/lib/product/curriculum";
 import type { Learner, Profile, Workspace } from "@/lib/product/model";
 import {
@@ -12,7 +12,7 @@ import {
 } from "@/lib/product/progress";
 import { needYouToday, strengthLine, whyLine } from "@/lib/product/why";
 import { Icon } from "./Brand";
-import { MomentumChart, Sparkline, StatusBadge, StatusBar, StatusIcon, StatusLegend } from "./charts";
+import { MomentumChart, StatusBadge, StatusBar, StatusIcon, StatusLegend } from "./charts";
 import { ClassroomLearningChart } from "./LearningEvidence";
 import { ProgressReport, type ReportFilters } from "./ProgressReport";
 import { RootCauseAlerts } from "./RootCauseAlerts";
@@ -52,6 +52,13 @@ export function TeacherDashboard({
   const [busy, setBusy] = useState(false);
   const [feedback, setFeedback] = useState("");
   const [reportFilters, setReportFilters] = useState<ReportFilters>({ status: "all", topic: "all" });
+  const [jumpToLearners, setJumpToLearners] = useState(0);
+  // After a tile opens the report, land on the learners table instead of the top of the page.
+  useEffect(() => {
+    if (section !== "report" || !jumpToLearners) return;
+    const el = document.getElementById("report-learners");
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [section, jumpToLearners]);
 
   const statuses = useMemo(() => classStatuses(workspace), [workspace]);
   const counts = countByStatus(statuses);
@@ -80,6 +87,7 @@ export function TeacherDashboard({
   }
   function openReport(filters: Partial<ReportFilters>) {
     setReportFilters({ status: "all", topic: "all", ...filters });
+    setJumpToLearners((n) => n + 1);
     goTo("report");
   }
 
@@ -180,7 +188,7 @@ export function TeacherDashboard({
                 </div>
               ))}
             </div>
-            <p className="data-caption">Before today, trends use each learner’s simulated history.</p>
+            <p className="data-caption">Before today, trends use each learner’s starting profile.</p>
           </section>
         </>
       )}
@@ -229,7 +237,7 @@ export function TeacherDashboard({
                         {topicById(s.focus.topic).name}
                         <strong>{s.focus.score}%</strong>
                       </span>
-                      <Sparkline points={s.focus.points} label={`${topicById(s.focus.topic).name} trend`} />
+                      <small className="learner-card-change">{s.focus.perWeek === 0 ? "No change" : `${s.focus.perWeek > 0 ? "+" : ""}${s.focus.perWeek} a week`}</small>
                     </div>
                   )}
                   <p>{line ?? strengthLine(s)}</p>

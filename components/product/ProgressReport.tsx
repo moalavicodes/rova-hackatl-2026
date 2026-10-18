@@ -210,7 +210,7 @@ export function ProgressReport({
         </section>
       </div>
 
-      <section className="surface">
+      <section className="surface" id="report-learners">
         <div className="section-heading">
           <h3>Learners</h3>
           <label className="sort-control">
@@ -402,7 +402,7 @@ export function ProgressReport({
       </section>
       <p className="data-caption">
         Counts come from saved, code-checked answers. Status uses the 70% target and each learner’s pace; before today it
-        uses simulated history.
+        uses each learner’s starting profile.
       </p>
     </section>
   );

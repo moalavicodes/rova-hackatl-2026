@@ -303,3 +303,18 @@ button.status-segment { cursor: pointer; }
 .parent-why li + li { margin-top: 6px; }
 .impact-table th[scope="row"] { font-weight: 600; font-size: 14px; color: var(--ink); }
 .report-head > div > p + p { margin-top: 2px; }
+
+/* Every bar segment shows its number, so small segments keep a minimum width. */
+.status-segment { min-width: 24px; }
+.status-segment > span { font-size: 12px; }
+
+/* Parent lists sit flush with their headings. */
+.parent-wins, .parent-why, .parent-actions { padding-left: 0; list-style: none; }
+.parent-wins li, .parent-why li, .parent-actions li { display: flex; gap: 8px; align-items: flex-start; }
+.parent-wins li::before { content: "✓"; color: var(--status-on_track-ink); font-weight: 700; flex: none; }
+.parent-why li::before, .parent-actions li::before { content: "•"; color: var(--ink-soft); flex: none; }
+.with-ai-mark { display: flex; align-items: center; gap: 8px; }
+.ai-mark { display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: #e9e5f0; color: #5b4b84; }
+.learner-card-change { font-size: 12px; color: var(--ink-soft); white-space: nowrap; }
+.activity-takeaway { margin: 12px 0 6px; padding: 10px 12px; border-radius: 8px; background: #fffefa; border: 1px solid var(--rule); color: var(--ink); line-height: 1.5; }
+.activity-takeaway strong { color: var(--ink-soft); font-weight: 600; margin-right: 4px; }
